@@ -1,0 +1,13 @@
+{
+  "name": "ces0491-plugins",
+  "owner": { "name": "Cesaire Tobias", "url": "https://github.com/ces0491" },
+  "description": "Claude Code plugins by Cesaire Tobias.",
+  "plugins": [
+    {
+      "name": "tokenwise",
+      "source": "./",
+      "description": "Model and effort routing per phase for Claude Code, with the cost of switching and what the cheaper choice gives up.",
+      "category": "productivity"
+    }
+  ]
+}
