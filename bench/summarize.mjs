@@ -293,5 +293,27 @@ if (explore.length) {
 }
 
 const md = parts.join('\n');
+
+// --check regenerates without writing and reports whether the committed report still follows from the
+// committed run data. The generation timestamp is the one line that changes on every run whatever the
+// data says, so it is excluded from the comparison rather than being removed from the report.
+if (process.argv.includes('--check')) {
+  // Normalise line endings too: core.autocrlf checks the file out as CRLF on Windows, while the
+  // generated string is always LF, and comparing them raw fails on the first line for no real reason.
+  const undated = (s) => s.replace(/\r\n/g, '\n').replace(/^Generated [^\n]*$/m, 'Generated <timestamp>');
+  const current = fs.existsSync(outPath) ? fs.readFileSync(outPath, 'utf8') : '';
+  if (undated(current) === undated(md)) {
+    process.stdout.write(`${path.relative(process.cwd(), outPath)} matches ${runs.length} runs in results/runs.jsonl\n`);
+    process.exit(0);
+  }
+  const a = undated(current).split('\n');
+  const b = undated(md).split('\n');
+  const at = a.findIndex((line, i) => line !== b[i]);
+  process.stderr.write(`${path.relative(process.cwd(), outPath)} is stale: regenerating it from results/runs.jsonl gives different output.\n`);
+  process.stderr.write(`First difference at line ${at + 1}:\n  committed:  ${a[at] ?? '(end of file)'}\n  regenerated: ${b[at] ?? '(end of file)'}\n`);
+  process.stderr.write('Run `node bench/summarize.mjs` and commit the result.\n');
+  process.exit(1);
+}
+
 fs.writeFileSync(outPath, md);
 process.stdout.write(md);
