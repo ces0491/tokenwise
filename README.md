@@ -52,6 +52,7 @@ What the bench cannot show: all 52 graded runs passed, so it measures cost at eq
 - [User guide](docs/guide.md) — day-to-day use, what to run where, the two settings worth changing.
 - [Findings](docs/findings.md) — what the bench measured, claim by claim, and the two verdicts that need a caveat.
 - [Methodology](docs/methodology.md) — fixture, graders, run conditions, and what the harness cannot measure.
+- [Contributing](CONTRIBUTING.md) — the checks to run, how to change a routing row, and what adding a bench case involves.
 
 ## Install
 
