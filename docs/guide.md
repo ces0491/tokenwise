@@ -31,19 +31,21 @@ Two consequences follow. Keep reading out of the main context, and match the mod
 
 ## What to run where
 
-Start at the cheap end and escalate on a failure you can point to.
+Start at the cheap end and escalate on a failure you can point to. The Measured column says whether the bench covered that row; the skill's own table carries the evidence for each one.
 
+<!-- routing-table: generated from skills/route/SKILL.md by scripts/sync-routing-table.mjs -->
 | Work | Start | Escalate to | Measured |
 | --- | --- | --- | --- |
-| Planning, architecture, an ambiguous spec | opus, high | fable, xhigh | no |
-| Implementing from a written spec or plan | sonnet, medium | opus, medium | yes |
-| A cross-cutting change with no spec | sonnet, high | opus, xhigh | no |
-| Debugging with a failing test | sonnet, medium | opus, high | yes |
-| Debugging with no reproduction | opus, high | fable, xhigh | no |
-| Tests, docs, renames, mechanical refactors | sonnet or haiku, low | sonnet, medium | yes |
-| Reviewing a diff | opus, low | opus, high for a large diff | yes |
-| Commits, formatting, chores | haiku or sonnet, low | | no |
-| Labelling or extracting in bulk | a script against the API, not Claude Code | | no |
+| Plan, architect, resolve an ambiguous spec | opus, high | fable, xhigh | no |
+| Implement from a written spec or plan | sonnet, medium | opus, medium, then xhigh | yes |
+| Implement without a spec, or a cross-cutting change | sonnet, high | opus, xhigh | no |
+| Debug a failure you can reproduce | sonnet, medium | opus, high | yes |
+| Debug a failure with no reproduction | opus, high | fable, xhigh | no |
+| Tests, docs, mechanical refactors, renames | sonnet or haiku, low | sonnet, medium | yes |
+| Review a diff | opus, low | opus, high for a large or unfamiliar diff | yes |
+| Commit, chores, formatting | sonnet or haiku, low | | no |
+| Bulk labelling, classification, extraction | not Claude Code | | no |
+<!-- /routing-table -->
 
 On the four measured rows, the cheap setting finished the job in every run on a small test project, and the expensive settings cost up to fifteen times more for the same result. The rest carry no measurement. The numbers are in `findings.md`.
 

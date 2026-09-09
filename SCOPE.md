@@ -18,6 +18,8 @@ Version 1.0: the documentation matches the data, and a reader can check every cl
 - [ ] Every URL cited in `skills/route/reference.md` resolves.
 - [ ] Tagged `tokenwise--v1.0.0` with `claude plugin tag`, `plugin.json` and the marketplace entry agreeing.
 
+`.github/workflows/checks.yml` runs the mechanical part of this list on every pull request: the tests, the lint, `claude plugin validate`, and checks that `bench/RESULTS.md` still follows from the run data and that the guide's routing table still matches the skill's. What it cannot check is the first criterion, which is a reading of the prose against the runs.
+
 ## Out of scope
 
 - **Measuring spend.** `/usage`, `session-report` and ccusage report usage over time; this plugin does not.
