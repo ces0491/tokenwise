@@ -6,7 +6,6 @@ name: checks
 
 on:
   pull_request:
-    branches: [main]
   push:
     branches: [main]
 
@@ -35,6 +34,9 @@ jobs:
 
       - name: Manifests and skill frontmatter
         run: node scripts/check-manifests.mjs
+
+      - name: Guide routing table matches the skill
+        run: node scripts/sync-routing-table.mjs --check
 
       # The real schema check, which scripts/check-manifests.mjs only approximates. It needs the CLI,
       # so it runs last and under a timeout: an unauthenticated runner is exactly the environment this
