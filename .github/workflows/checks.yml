@@ -35,3 +35,12 @@ jobs:
 
       - name: Manifests and skill frontmatter
         run: node scripts/check-manifests.mjs
+
+      # The real schema check, which scripts/check-manifests.mjs only approximates. It needs the CLI,
+      # so it runs last and under a timeout: an unauthenticated runner is exactly the environment this
+      # has to work in, and a hang would otherwise burn the job's full allowance.
+      - name: claude plugin validate
+        timeout-minutes: 3
+        run: |
+          npm install -g @anthropic-ai/claude-code
+          claude plugin validate .
