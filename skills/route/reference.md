@@ -38,7 +38,7 @@ The cache lifetime is one hour on a subscription and five minutes on an API key 
 
 ## The cache is per model
 
-From the Claude Code prompt caching docs: "Each model has its own cache. Switching models recomputes the entire request even when the content is identical." Claude Code asks for confirmation on `/model` only while the cache is warm (from v2.1.238). A model switch is free on a cleared context and costs a full re-process of the current context otherwise. That is the whole reason for the phase-boundary protocol.
+From the Claude Code prompt caching docs: "Each model has its own cache. Switching models recomputes the entire request even when the content is identical." Claude Code asks for confirmation on `/model` only while the cache is warm (from v2.1.238). A model switch is free on a cleared context and costs a full re-process of the current context otherwise. The phase-boundary protocol follows from this.
 
 ## Nothing switches the live session for you
 

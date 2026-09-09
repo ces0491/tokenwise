@@ -14,7 +14,7 @@ Its size is a limitation, stated here because it bounds every result: context pe
 
 ## Five tasks, five graders
 
-Each case is a task with an objective grader. No grader reads for quality; each one checks a fact.
+Each case is a task with an objective grader. Each grader checks a stated fact about the result.
 
 | Case | Task | Grader |
 | --- | --- | --- |
@@ -34,13 +34,17 @@ Three details make the graders harder to game.
 
 Every grader was validated before the matrix ran: a reference solution passes the hidden implement tests; the planted debug defect fails exactly one visible and three hidden tests, and the fixture passes those same hidden tests unmodified; each of the five review defects was reproduced with a concrete input.
 
+The review grader is the only one that reads prose, so it matches by proximity rather than by markdown structure: a defect counts as found when a mention of its file has one of its patterns within 700 characters, and a file mention with no planted defect explained near it counts as a false positive. The patterns name the mechanism of each defect. `bench/results/hand-grades.json` records a hand reading of one answer per cell and decides pass or fail for the runs it covers.
+
 ## Run conditions
 
 Every run is a fresh non-interactive session (`claude -p`) in a throwaway copy of the fixture, with `--setting-sources project --strict-mcp-config` so no user settings, plugins, MCP servers or CLAUDE.md load. That leaves the base system prompt and tool schemas as the fixed overhead on every call: 19K to 28K tokens across the bench's own sessions, median 27K, measured with `node bench/context-profile.mjs --match tokenwise-bench`.
 
 Permissions are bypassed. In an early pilot the permission prompts turned a 16-call run into 28 calls with 20 denials, which would have measured the permission system rather than the model. The directories are disposable copies under the temp directory.
 
-Tokens, cost, turn count and per-model usage come from Claude Code's own JSON result. Cost is its list-price figure; on a subscription that is a weighting for comparison, not a bill.
+Tokens, cost, turn count and per-model usage come from Claude Code's own JSON result. Cost is its list-price figure, which on a subscription is a weighting for comparison rather than a bill.
+
+A run that hits the account's session limit returns HTTP 429 without attempting its task. The runner marks those invalid and deletes the result file so the next invocation retries them, and `bench/RESULTS.md` lists any still excluded when it is generated. Anyone rerunning this on a subscription will hit the same wall.
 
 ## What "done" means, fixed in advance
 
@@ -48,15 +52,13 @@ Tokens, cost, turn count and per-model usage come from Claude Code's own JSON re
 
 Two rules guard against reading noise as signal. Any verdict that would flip if a single run flipped is replicated to three runs per cell, and the verdict then uses pass counts and median cost. Cost is compared as cost per completed task, which is mean cost divided by pass rate, so a cheap setting that fails one run in three is charged for the retry.
 
-## Corrections made during the run
+## What this harness cannot measure
 
-Three, all recorded in the scope file's revision history.
+The per-model prompt cache. `claude -p --resume` starts a new process, so a resume on the *same* model already rewrites the whole prefix to cache, reading 15K tokens and writing 65K. Neither the original design nor a redesign could separate that from the per-model behaviour the claim was about, so C7's verdict is "not testable here" and the claim stays in the skill on the documentation's authority.
 
-**A usage limit is not a task failure.** The first replication attempt hit the account's session limit and 23 runs returned HTTP 429 without attempting their task. The summariser initially counted them as failures, which produced zero-dollar medians and flipped several verdicts. The runner now marks such runs invalid and deletes their result file so they are retried, and the report carries a "Runs excluded" table listing any still excluded when it runs. All 23 completed on retry, so it currently reads "None".
+## Changes to the graders and criteria
 
-**The false-positive rule was wrong.** Hand-reading the four review answers agreed with the keyword grader on every defect found and missed, but the grader charged false positives where the hand count was zero, because a defect explained across several paragraphs was counted once per paragraph. The rule now checks every planted defect against each block. Hand grades are recorded in `bench/results/hand-grades.json`, shown next to the grader's figures, and decide pass or fail for those runs.
-
-**One claim proved untestable.** The per-model prompt cache cannot be measured through this harness. `claude -p --resume` starts a new process, so the control resume on the *same* model already rewrote the whole prefix, reading 15K tokens and writing 65K. A redesign failed too: by the time a later Sonnet resume ran, Sonnet had cached the conversation during an earlier switch. The verdict is "not testable here" and the claim stays in the skill on the documentation's authority, cited as documentation.
+Several graders and criteria changed after runs had been seen, two of them after publication. `bench/SCOPE.md`'s revision history dates each change, says what it was, and records what it did to the verdicts; the two post-publication changes were re-graded to confirm they moved none.
 
 ## Reproducing it
 

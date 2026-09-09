@@ -9,7 +9,7 @@ Task or phase to route: $ARGUMENTS
 
 If that is empty, route the task the user most recently described. `reference.md` in this directory holds the evidence and sources. Read it only when the user asks why.
 
-## Three facts that decide everything
+## Three facts the recommendations rest on
 
 1. Every API call re-sends the whole conversation. A turn costs context size multiplied by calls, plus output, and thinking is output. Across 140 sessions on one machine, input outweighed output 444 to 1, and 99% of input was cached context re-read on every call. Anything that enters the main context is paid for on every later call.
 2. The prompt cache is per model. Switching model on a warm context re-processes all of it, and Claude Code asks you to confirm when that is about to happen. A switch after `/clear` costs nothing. (Documented behaviour; not measured by the bench.)

@@ -19,7 +19,7 @@ Two facts shape the advice. The prompt cache is per model, so a `/model` switch 
 - the signal that says move up a tier, using Anthropic's rule: didn't know enough means change model, didn't try hard enough means raise effort
 - what "done" is for that phase, as one check you can run before trusting the cheaper setting
 
-The skill also loads on its own at phase changes and whenever tokens, cost or quota come up. There is nothing to set up: no files to create, no hooks, no configuration. `skills/route/reference.md` carries the measurements and sources.
+The skill also loads on its own at phase changes and whenever tokens, cost or quota come up. There is nothing to set up. `skills/route/reference.md` carries the measurements and sources.
 
 ## Does it work
 
@@ -34,8 +34,8 @@ What the bench cannot show: all 52 graded runs passed, so it measures cost at eq
 ## Documentation
 
 - [User guide](docs/guide.md) — day-to-day use, what to run where, the two settings worth changing.
-- [Findings](docs/findings.md) — what the bench measured, claim by claim, and where the pre-registration went wrong.
-- [Methodology](docs/methodology.md) — fixture, graders, run conditions, corrections made mid-run.
+- [Findings](docs/findings.md) — what the bench measured, claim by claim, and the two verdicts that need a caveat.
+- [Methodology](docs/methodology.md) — fixture, graders, run conditions, and what the harness cannot measure.
 
 ## Install
 

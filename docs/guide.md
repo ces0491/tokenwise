@@ -1,6 +1,6 @@
 # Using tokenwise
 
-The plugin adds one skill. There is nothing to configure, no files to create, and no hooks. This guide covers what it does, when to reach for it, and the two settings worth changing once.
+The plugin adds one skill, with nothing to configure. This guide covers what it does, when to reach for it, and the two settings worth changing once.
 
 ## Install
 
@@ -21,7 +21,7 @@ Idle, the skill costs roughly 150 tokens of context per session — its name and
 
 It answers with the model and effort to use, the exact commands, whether to clear first, what to delegate, one check that tells you the phase is finished, what you give up by going cheaper, and the signal that says move up a tier.
 
-It also loads on its own when you change phase or mention tokens, cost or quota. You can ignore it; it recommends and never acts.
+It also loads on its own when you change phase or mention tokens, cost or quota. It recommends and never acts, so you can ignore it.
 
 ## The one idea
 
@@ -45,7 +45,7 @@ Start at the cheap end and escalate on a failure you can point to.
 | Commits, formatting, chores | haiku or sonnet, low | | no |
 | Labelling or extracting in bulk | a script against the API, not Claude Code | | no |
 
-On the four measured rows, the cheap setting finished the job in every run on a small test project, and the expensive settings cost up to fifteen times more for the same result. The rest are reasoning from the same evidence, not measurements. Everything is in `findings.md`.
+On the four measured rows, the cheap setting finished the job in every run on a small test project, and the expensive settings cost up to fifteen times more for the same result. The rest carry no measurement. The numbers are in `findings.md`.
 
 ## Escalating
 
