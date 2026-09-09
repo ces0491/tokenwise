@@ -6,8 +6,6 @@ Fifty-two graded runs across five task types, plus five ungraded session resumes
 
 On a small, well-specified codebase, every model at every effort level passed every graded run, and the cost of doing so varied by fifteen times. Four of the eight claims the routing table made were wrong, in three different ways: two named a more expensive setting than the work required, one overstated a saving, and one recommended a split that cost more than not splitting.
 
-The routing table has been corrected. Its debug and review rows now start on Sonnet and Opus-at-low respectively, rather than the top model at high effort.
-
 ## Cost at equal outcomes
 
 Every cell in these three cases passed every run.
