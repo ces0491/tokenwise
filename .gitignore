@@ -1,1 +1,6 @@
 bench/results/*.log
+
+# The demo renders are large and go stale whenever the skill's answer changes.
+# demo/build.mjs rebuilds them in seconds, so it is the only tracked file here.
+demo/*
+!demo/build.mjs
