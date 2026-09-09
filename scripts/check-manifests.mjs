@@ -35,6 +35,17 @@ if (plugin) {
   }
 }
 
+// A release where plugin.json and the changelog disagree already happened once: a version bump was
+// left unstaged, so the changelog announced 1.0.0 against a plugin.json that still said 0.1.0, and
+// every other check passed because 0.1.0 is valid semver.
+if (plugin?.version && fs.existsSync(path.join(ROOT, 'CHANGELOG.md'))) {
+  const latest = /^## (\d+\.\d+\.\d+)/m.exec(read('CHANGELOG.md'));
+  if (!latest) fail.push('CHANGELOG.md has no "## <version>" heading');
+  else if (latest[1] !== plugin.version) {
+    fail.push(`CHANGELOG.md's newest entry is ${latest[1]} but plugin.json says ${plugin.version}`);
+  }
+}
+
 if (plugin && market) {
   const entry = market.plugins?.find((p) => p.name === plugin.name);
   if (!entry) fail.push(`marketplace.json has no entry named ${plugin.name}`);
