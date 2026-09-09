@@ -8,15 +8,15 @@ A Claude Code plugin that recommends the model and effort level for the phase of
 
 ## Done
 
-Version 1.0: the documentation matches the data, and a reader can check every claim.
+Version 1.0, released 9 September 2026 as `tokenwise--v1.0.0`: the documentation matches the data, and a reader can check every claim.
 
-- [ ] Every figure quoted in `README.md`, `SCOPE.md`, `docs/` and `skills/route/` traces to a run in `bench/results/` or to a committed script (`bench/summarize.mjs`, `bench/context-profile.mjs`). No number a reader cannot recompute.
-- [ ] Every routing-table row is marked measured or untested, and no row claims a measurement the bench did not make.
-- [ ] `node bench/run.mjs` reproduces the matrix from a clean checkout, and `node bench/summarize.mjs` regenerates `bench/RESULTS.md` with the same verdicts.
-- [ ] `claude plugin validate .` passes, the plugin installs from its marketplace entry, and `/tokenwise:route` answers in the block `SKILL.md` documents.
-- [ ] `node --test` green on `bench/fixture`, and `markdownlint *.md docs/*.md bench/*.md skills/route/*.md --config .markdownlint.json` clean.
-- [ ] Every URL cited in `skills/route/reference.md` resolves.
-- [ ] Tagged `tokenwise--v1.0.0` with `claude plugin tag`, `plugin.json` and the marketplace entry agreeing.
+- [x] Every figure quoted in `README.md`, `SCOPE.md`, `docs/` and `skills/route/` traces to a run in `bench/results/` or to a committed script (`bench/summarize.mjs`, `bench/context-profile.mjs`). No number a reader cannot recompute.
+- [x] Every routing-table row is marked measured or untested, and no row claims a measurement the bench did not make.
+- [x] `node bench/run.mjs` reproduces the matrix from a clean checkout, and `node bench/summarize.mjs` regenerates `bench/RESULTS.md` with the same verdicts.
+- [x] `claude plugin validate .` passes, the plugin installs from its marketplace entry, and `/tokenwise:route` answers in the block `SKILL.md` documents.
+- [x] `node --test` green on `bench/fixture`, and `markdownlint *.md docs/*.md bench/*.md skills/route/*.md --config .markdownlint.json` clean.
+- [x] Every URL cited in `skills/route/reference.md` resolves.
+- [x] Tagged `tokenwise--v1.0.0` with `claude plugin tag`, `plugin.json` and the marketplace entry agreeing.
 
 `.github/workflows/checks.yml` runs the mechanical part of this list on every pull request: the tests, the lint, `claude plugin validate`, and checks that `bench/RESULTS.md` still follows from the run data and that the guide's routing table still matches the skill's. What it cannot check is the first criterion, which is a reading of the prose against the runs.
 
@@ -41,4 +41,5 @@ Ces. A routing row changes only when a graded run says so. A falsified claim edi
 
 ## Revision history
 
+- 2026-09-09: 1.0.0 released. Every criterion above verified, one of them twice: the first release commit announced the version bump without containing it, so the changelog shipped against a plugin.json a version behind. check-manifests.mjs now compares the two.
 - 2026-09-09: initial scope, written after the first documentation audit against the bench data.
