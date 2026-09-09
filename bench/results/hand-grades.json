@@ -1,0 +1,8 @@
+{
+  "note": "Hand reading of review answers against the five planted defects. recall = defects found out of 5; fp = findings that are not planted defects. The proximity grader agrees with every entry here. Where an entry exists it decides pass or fail; the grader's own figure is shown beside it in RESULTS.md.",
+  "review-opus-high": { "recall": 5, "fp": 0, "reader": "six items: the csv defect is explained as code plus the deleted assertions, which are one planted defect, then tier boundary, tier mutation, tax rounding, month timezone" },
+  "review-opus-low": { "recall": 5, "fp": 0, "reader": "six items, same split of the csv defect" },
+  "review-sonnet-high": { "recall": 4, "fp": 0, "reader": "missed the in-place sort in volumeTier; five items otherwise correct" },
+  "review-fable-high": { "recall": 5, "fp": 0, "reader": "six items, same split of the csv defect; explicitly excluded the benign money.js refactor as behaviour-preserving" },
+  "review-sonnet-high#2": { "recall": 4, "fp": 0, "reader": "read after the keyword grader scored it 1/5: the answer finds csv quoting, the deleted csv assertions, the tier boundary and the month timezone, and misses the in-place sort. The low score was the grader splitting **File**/**Defect**/**Concrete input** lines into separate blocks, which is what prompted the move to proximity matching." }
+}

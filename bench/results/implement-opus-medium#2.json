@@ -1,0 +1,110 @@
+{
+ "duration_api_ms": 83975,
+ "stop_reason": "end_turn",
+ "session_id": "8792636a-16fc-4d79-81ba-1cf2b0773bb8",
+ "total_cost_usd": 0.6184965,
+ "usage": {
+  "input_tokens": 16,
+  "cache_creation_input_tokens": 28527,
+  "cache_read_input_tokens": 262695,
+  "output_tokens": 8032,
+  "output_tokens_details": {
+   "thinking_tokens": 1031
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 28527,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 572,
+    "cache_read_input_tokens": 43133,
+    "cache_creation_input_tokens": 709,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 709
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard"
+ },
+ "modelUsage": {
+  "claude-haiku-4-5-20251001": {
+   "inputTokens": 944,
+   "outputTokens": 11,
+   "cacheReadInputTokens": 0,
+   "cacheCreationInputTokens": 0,
+   "webSearchRequests": 0,
+   "costUSD": 0.0009989999999999999,
+   "contextWindow": 200000,
+   "maxOutputTokens": 32000,
+   "thinkingTokens": 0,
+   "canonicalModel": "claude-haiku-4-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  },
+  "claude-opus-5": {
+   "inputTokens": 16,
+   "outputTokens": 8032,
+   "cacheReadInputTokens": 262695,
+   "cacheCreationInputTokens": 28527,
+   "webSearchRequests": 0,
+   "costUSD": 0.6174975,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 64000,
+   "thinkingTokens": 1031,
+   "canonicalModel": "claude-opus-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "is_error": false,
+ "num_turns": 8,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "Done — `npm test` passes, 42 tests, no existing tests changed.\n\n**`src/creditnote.js`** — `createCreditNote` validates in the spec's precedence order (id → reason → invoice via `validateInvoice` → issuedOn → lines), then returns a frozen note. Line `netCents` is `roundHalfUp(lineNet(original) * qty / original.qty)`, so discounts are taken from the original line rather than recomputed at the credited quantity. Lines are copied out of the original invoice, which isn't touched.\n\n**`src/invoice.js`** — `invoiceTotals` branches on `doc.kind === 'credit'`: sums `netCents`, calls `vatOn` once on that positive sum for the note's region, then negates both. The invoice path is unchanged.\n\n**`src/report.js`** — `monthlySummary` needed no branching (it goes through `invoiceTotals` and `issuedOn`); `topSkus` subtracts `qty` and `netCents` for credit documents.\n\n**`src/index.js`** exports `createCreditNote`. README updated: new rules bullet and module-table row, plus the `invoice.js`/`report.js` descriptions which now cover credit notes.\n\nTest coverage in `test/creditnote.test.js` includes the whole-invoice default, partial credits, the rounding case (a qty-3 line netting 1000c credits 333c at qty 1 and 667c at qty 2, where recomputing the fixed discount would have given 0), non-mutation, each validation error with its type and the precedence between them, negative totals, single-`vatOn` rounding (1405c → 211c VAT), monthly grouping by the note's own month, and `topSkus` subtraction including going negative.",
+ "ttft_ms": 1893,
+ "type": "result",
+ "duration_ms": 85506,
+ "uuid": "6cfcfd09-a1db-4f4c-b1d9-56bca1655cd6",
+ "ttft_stream_ms": 1159,
+ "time_to_request_ms": 38,
+ "first_content_frame_ms": 1159,
+ "queued_turn_count": 0
+}

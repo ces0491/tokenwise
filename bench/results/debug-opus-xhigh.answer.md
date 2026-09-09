@@ -1,0 +1,3 @@
+All 29 tests pass.
+
+`invoiceTotals` summed VAT rounded per line (`lineVat`), so three 3-cent lines at GB 20% each rounded 0.6 up to 1 for a total of 3 instead of the 2 you get by rounding once — contradicting the README's rule that VAT is calculated once on the invoice net total. I changed it to `vatOn(net, invoice.region)` and removed `lineVat`, which was unused elsewhere and existed only to produce the per-line rounding.

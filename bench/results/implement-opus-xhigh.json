@@ -1,0 +1,110 @@
+{
+ "duration_api_ms": 321098,
+ "stop_reason": "end_turn",
+ "session_id": "ed63d8a5-63e1-4406-89ef-1673ffee80ff",
+ "total_cost_usd": 1.6674190000000002,
+ "usage": {
+  "input_tokens": 28,
+  "cache_creation_input_tokens": 59870,
+  "cache_read_input_tokens": 650610,
+  "output_tokens": 29691,
+  "output_tokens_details": {
+   "thinking_tokens": 14568
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 59870,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 819,
+    "cache_read_input_tokens": 73985,
+    "cache_creation_input_tokens": 1200,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 1200
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard"
+ },
+ "modelUsage": {
+  "claude-haiku-4-5-20251001": {
+   "inputTokens": 944,
+   "outputTokens": 11,
+   "cacheReadInputTokens": 0,
+   "cacheCreationInputTokens": 0,
+   "webSearchRequests": 0,
+   "costUSD": 0.0009989999999999999,
+   "contextWindow": 200000,
+   "maxOutputTokens": 32000,
+   "thinkingTokens": 0,
+   "canonicalModel": "claude-haiku-4-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  },
+  "claude-opus-5": {
+   "inputTokens": 28,
+   "outputTokens": 29691,
+   "cacheReadInputTokens": 650610,
+   "cacheCreationInputTokens": 59870,
+   "webSearchRequests": 0,
+   "costUSD": 1.66642,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 64000,
+   "thinkingTokens": 14568,
+   "canonicalModel": "claude-opus-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "is_error": false,
+ "num_turns": 14,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "Done. `npm test` passes: 43 tests, 0 failures (32 pre-existing, 11 new). No existing test file was touched.\n\n**`src/creditnote.js`** (new) — `createCreditNote({ id, invoice, issuedOn, lines, reason })` returns a frozen note in the spec's shape. Validation runs in the spec's precedence order: `id` prefix and `reason` (`TypeError`), then `validateInvoice`, then `issuedOn`, then the line selection. Omitting `lines` credits every line at full quantity. `netCents` is `multiply(lineNet(original), qty / originalQty)`, so the discounted line net is scaled and rounded once with `roundHalfUp` rather than the discounts being re-evaluated at the credited quantity. The invoice is only read; credited lines are fresh objects.\n\n**`src/invoice.js`** — `invoiceTotals(doc)` takes a `kind === 'credit'` branch: net is minus the sum of `netCents`, VAT is one `vatOn` call on that sum for the note's region, gross is their sum. Invoice behaviour is unchanged. The date pattern is now `export const ISO_DATE` so the credit note validates `issuedOn` against the same regex instead of a copy.\n\n**`src/report.js`** — `monthlySummary` needed no logic change (it groups by `issuedOn` and delegates to `invoiceTotals`), so a note lands in its own month with the negative totals. `topSkus` subtracts `qty` and `netCents` for credit-note lines.\n\n**`src/index.js`** — exports `createCreditNote`. **`README.md`** — added the `src/creditnote.js` row, a rule describing credit notes, and updated the `invoice.js`/`report.js` row descriptions.\n\nTwo spec gaps I decided rather than guessed, both flagged here in case you want them the other way:\n\n- A non-array `lines` (e.g. `lines: 'A'`) throws `TypeError`, matching how the codebase splits wrong-type from bad-value; the spec only assigns `RangeError` to the empty case, which I kept.\n- `description` is always copied onto the credited line, so it's present as `undefined` when the original line has none.\n\nThe one non-obvious line is `0 - credited` in `invoiceTotals` — negation would give `-0` for a zero-value credit note and break strict deep-equality against `0`. There's a comment on it and a check that the totals come back as `+0`.",
+ "ttft_ms": 10328,
+ "type": "result",
+ "duration_ms": 325718,
+ "uuid": "3d24fca5-007f-4f14-ba3c-c117e0f31c1c",
+ "ttft_stream_ms": 9872,
+ "time_to_request_ms": 72,
+ "first_content_frame_ms": 9872,
+ "queued_turn_count": 0
+}

@@ -1,0 +1,1 @@
+Where is monetary rounding decided in this codebase, and which modules depend on that decision? Delegate the codebase exploration to a subagent, then answer in under 150 words with file:line references.

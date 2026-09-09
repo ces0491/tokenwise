@@ -1,0 +1,110 @@
+{
+ "duration_api_ms": 63389,
+ "stop_reason": "end_turn",
+ "session_id": "f0b5573b-20d6-47aa-8f13-af0efdda6d0a",
+ "total_cost_usd": 0.16982360000000002,
+ "usage": {
+  "input_tokens": 8,
+  "cache_creation_input_tokens": 21810,
+  "cache_read_input_tokens": 105328,
+  "output_tokens": 6046,
+  "output_tokens_details": {
+   "thinking_tokens": 4419
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 21810,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1033,
+    "cache_read_input_tokens": 34182,
+    "cache_creation_input_tokens": 3125,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 3125
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard"
+ },
+ "modelUsage": {
+  "claude-haiku-4-5-20251001": {
+   "inputTokens": 972,
+   "outputTokens": 14,
+   "cacheReadInputTokens": 0,
+   "cacheCreationInputTokens": 0,
+   "webSearchRequests": 0,
+   "costUSD": 0.001042,
+   "contextWindow": 200000,
+   "maxOutputTokens": 32000,
+   "thinkingTokens": 0,
+   "canonicalModel": "claude-haiku-4-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  },
+  "claude-sonnet-5": {
+   "inputTokens": 8,
+   "outputTokens": 6046,
+   "cacheReadInputTokens": 105328,
+   "cacheCreationInputTokens": 21810,
+   "webSearchRequests": 0,
+   "costUSD": 0.1687816,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 64000,
+   "thinkingTokens": 4419,
+   "canonicalModel": "claude-sonnet-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "is_error": false,
+ "num_turns": 7,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "**Defect 1 — src/csv.js:37**\n`csvField` no longer quotes fields containing `\\r` or `\\n` (regex narrowed from `/[\",\\r\\n]/` to `/[\",]/`). This breaks the CSV writer's own round-trip contract with `parseCsv`, which still treats bare `\\n`/`\\r` as row separators (src/csv.js:24-27). Input: `toCsv([['C-3', 'two\\nlines']])` produces `\"C-3,two\\nlines\\n\"`, which `parseCsv` then reads back as two rows (`['C-3','two']` and `['lines']`) instead of the original row — silent data corruption for any description/field containing a newline.\n\n**Defect 2 — src/discounts.js:20-28**\n`volumeTier` now uses `tier.minQty < qty` (strict) instead of `<=`, contradicting the function's own documented rule at src/discounts.js:8 (\"applies the highest tier whose minQty is less than or equal to the quantity\"). Input: `volumeTier([{minQty: 10, percent: 5}], 10)` returns `null` instead of the 10-qty tier, so a line with quantity exactly 10 gets no volume discount when it should get 5% off.\n\n**Defect 3 — src/tax.js:29-31**\n`netFromGross` now uses `Math.round` instead of `roundHalfUp`, breaking the README rule \"`src/money.js` owns rounding: half away from zero, applied once at the end of a calculation.\" `Math.round` rounds half-way values toward `+Infinity`, not away from zero. Input: `netFromGross(-3, 'GB')` (rate 0.2, divisor 1.2) computes `-3/1.2 = -2.5`; `Math.round(-2.5)` returns `-2`, whereas half-away-from-zero rounding (the documented/previous behaviour) gives `-3`.\n\n**Defect 4 — src/report.js:4-7**\n`monthKey` now parses `issuedOn` with `new Date(...)` and reads `getFullYear()`/`getMonth()`, instead of slicing the string, breaking the README rule \"Monthly reports group by the first seven characters of `issuedOn`.\" `new Date('2024-03-01')` is parsed as UTC midnight, but `getFullYear`/`getMonth` read local time. In any timezone behind UTC (e.g. `America/New_York`, UTC-5), `monthKey({issuedOn: '2024-03-01'})` returns `'2024-02'` instead of `'2024-03'`, misfiling the invoice into the wrong month's report.\n\n**Defect 5 — test/csv.test.js:19-27 (weakened tests)**\nThe assertion `assert.equal(csvField('x\\ny'), '\"x\\ny\"')` was deleted, and the `'C-3', 'two\\nlines'` row was dropped from the `toCsv`/`parseCsv` round-trip fixture. These are exactly the cases that catch Defect 1 — with them removed, `npm test` passes despite `csvField` no longer quoting embedded newlines.",
+ "ttft_ms": 1610,
+ "type": "result",
+ "duration_ms": 63092,
+ "uuid": "a6e1f14d-9c4d-45b8-9792-deba5c60dbb0",
+ "ttft_stream_ms": 1001,
+ "time_to_request_ms": 38,
+ "first_content_frame_ms": 1609,
+ "queued_turn_count": 0
+}

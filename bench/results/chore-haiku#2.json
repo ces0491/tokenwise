@@ -1,0 +1,96 @@
+{
+ "duration_api_ms": 33019,
+ "stop_reason": "end_turn",
+ "session_id": "c9ca7cb7-0de1-4232-9205-8f6d9747109e",
+ "total_cost_usd": 0.0622317,
+ "usage": {
+  "input_tokens": 49,
+  "cache_creation_input_tokens": 15823,
+  "cache_read_input_tokens": 125837,
+  "output_tokens": 3389,
+  "output_tokens_details": {
+   "thinking_tokens": 826
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 15823,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 8,
+    "output_tokens": 327,
+    "cache_read_input_tokens": 26689,
+    "cache_creation_input_tokens": 645,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 645
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard"
+ },
+ "modelUsage": {
+  "claude-haiku-4-5-20251001": {
+   "inputTokens": 982,
+   "outputTokens": 3404,
+   "cacheReadInputTokens": 125837,
+   "cacheCreationInputTokens": 15823,
+   "webSearchRequests": 0,
+   "costUSD": 0.0622317,
+   "contextWindow": 200000,
+   "maxOutputTokens": 32000,
+   "thinkingTokens": 826,
+   "canonicalModel": "claude-haiku-4-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "is_error": false,
+ "num_turns": 17,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "✅ **Refactoring complete!** \n\nI've successfully renamed `vatOn` to `vatAmount` throughout the codebase:\n\n**Files updated:**\n- ✅ `src/tax.js` — function definition and internal call in `grossFromNet`\n- ✅ `src/index.js` — export statement\n- ✅ `src/invoice.js` — import and call in `invoiceTotals`\n- ✅ `test/tax.test.js` — import and all 5 test cases (including test name)\n- ✅ `README.md` — documentation reference\n\n**Test results:** All **29 tests pass** ✓\n\nThe refactoring is complete and verified.",
+ "ttft_ms": 1929,
+ "type": "result",
+ "duration_ms": 33363,
+ "uuid": "e1a7e4be-5283-4bf1-a154-624620bd56fd",
+ "ttft_stream_ms": 923,
+ "time_to_request_ms": 31,
+ "first_content_frame_ms": 1214,
+ "queued_turn_count": 0
+}

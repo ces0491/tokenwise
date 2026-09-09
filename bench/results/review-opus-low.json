@@ -1,0 +1,110 @@
+{
+ "duration_api_ms": 29051,
+ "stop_reason": "end_turn",
+ "session_id": "409e9ae6-75f6-4106-b077-a485f85ac0cd",
+ "total_cost_usd": 0.24700199999999997,
+ "usage": {
+  "input_tokens": 6,
+  "cache_creation_input_tokens": 16159,
+  "cache_read_input_tokens": 72480,
+  "output_tokens": 1924,
+  "output_tokens_details": {
+   "thinking_tokens": 612
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 16159,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1091,
+    "cache_read_input_tokens": 30286,
+    "cache_creation_input_tokens": 1188,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 1188
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard"
+ },
+ "modelUsage": {
+  "claude-haiku-4-5-20251001": {
+   "inputTokens": 972,
+   "outputTokens": 14,
+   "cacheReadInputTokens": 0,
+   "cacheCreationInputTokens": 0,
+   "webSearchRequests": 0,
+   "costUSD": 0.001042,
+   "contextWindow": 200000,
+   "maxOutputTokens": 32000,
+   "thinkingTokens": 0,
+   "canonicalModel": "claude-haiku-4-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  },
+  "claude-opus-5": {
+   "inputTokens": 6,
+   "outputTokens": 1924,
+   "cacheReadInputTokens": 72480,
+   "cacheCreationInputTokens": 16159,
+   "webSearchRequests": 0,
+   "costUSD": 0.24595999999999998,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 64000,
+   "thinkingTokens": 612,
+   "canonicalModel": "claude-opus-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "is_error": false,
+ "num_turns": 3,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "**1. `src/csv.js:37` — newlines no longer quoted, producing broken CSV**\n\n`/[\",]/` drops `\\r\\n` from the trigger set. `csvField('two\\nlines')` returns the raw `two\\nlines` unquoted, so `toCsv([['C-3','two\\nlines']])` emits a record that `parseCsv` reads back as two rows. Round-trip fails for any field containing a line break. The doc comment above was edited to match the bug rather than the behaviour the serialiser needs.\n\n**2. `test/csv.test.js:22,27` — tests weakened to hide defect 1**\n\nThe `csvField('x\\ny')` assertion was deleted and the `'two\\nlines'` row removed from the round-trip fixture. Both were the only coverage of embedded newlines; with them gone the suite passes despite `toCsv`/`parseCsv` no longer round-tripping.\n\n**3. `src/discounts.js:23` — off-by-one: a tier no longer applies at its own `minQty`**\n\n`tier.minQty < qty` replaces `<=`. With `tiers = [{minQty: 10, pct: 5}]` and `qty = 10`, `volumeTier` returns `null`; the tier that documents itself as applying from 10 units up is skipped at exactly 10. It only kicks in at 11.\n\n**4. `src/discounts.js:22` — `tiers.sort()` mutates the caller's array**\n\n`sort` is in place. A caller passing a shared/frozen tier table has its ordering rewritten as a side effect of a query function; `Object.freeze`d arrays throw `TypeError: Cannot assign to read only property '0'`. Calling `volumeTier(Object.freeze([{minQty:10},{minQty:1}]), 5)` throws instead of returning a tier.\n\n**5. `src/report.js:5-6` — `monthKey` now timezone-dependent, and violates the README rule**\n\nREADME: \"Monthly reports group by the first seven characters of `issuedOn`.\" `new Date('2026-01-01')` parses as UTC midnight, and `getFullYear`/`getMonth` are local. In any negative UTC offset (e.g. `TZ=America/New_York`), `monthKey({issuedOn:'2026-01-01'})` returns `'2025-12'`, filing a January invoice into December. The old `.slice(0,7)` was exact.\n\n**6. `src/tax.js:31` — `Math.round` is not half-away-from-zero, and moves rounding out of `money.js`**\n\nREADME: \"`src/money.js` owns rounding: half away from zero.\" `Math.round` rounds ties toward `+∞`. `netFromGross(-3, 'GB')` computes `-3/1.2 = -2.5` and returns `-2`; `roundHalfUp` returned `-3`. Credit notes and refunds are off by one cent on every half-cent tie.",
+ "ttft_ms": 2033,
+ "type": "result",
+ "duration_ms": 28964,
+ "uuid": "8ea080aa-c76f-4ea5-bd44-afec103ffd25",
+ "ttft_stream_ms": 1282,
+ "time_to_request_ms": 38,
+ "first_content_frame_ms": 1282,
+ "queued_turn_count": 0
+}

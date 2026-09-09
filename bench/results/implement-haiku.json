@@ -1,0 +1,96 @@
+{
+ "duration_api_ms": 120746,
+ "stop_reason": "end_turn",
+ "session_id": "9cd0fea3-8ab6-4e7b-847c-40f5a1f2b11c",
+ "total_cost_usd": 0.16664120000000002,
+ "usage": {
+  "input_tokens": 129,
+  "cache_creation_input_tokens": 29711,
+  "cache_read_input_tokens": 438462,
+  "output_tokens": 12449,
+  "output_tokens_details": {
+   "thinking_tokens": 2153
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 29711,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 8,
+    "output_tokens": 670,
+    "cache_read_input_tokens": 40444,
+    "cache_creation_input_tokens": 778,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 778
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard"
+ },
+ "modelUsage": {
+  "claude-haiku-4-5-20251001": {
+   "inputTokens": 1073,
+   "outputTokens": 12460,
+   "cacheReadInputTokens": 438462,
+   "cacheCreationInputTokens": 29711,
+   "webSearchRequests": 0,
+   "costUSD": 0.16664120000000002,
+   "contextWindow": 200000,
+   "maxOutputTokens": 32000,
+   "thinkingTokens": 2153,
+   "canonicalModel": "claude-haiku-4-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "is_error": false,
+ "num_turns": 19,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "Excellent! All **51 tests pass**, including the 22 new credit note tests and all 29 existing tests. Here's a summary of what was implemented:\n\n## Implementation Summary\n\n### 1. **Created `src/creditnote.js`**\n   - `createCreditNote({ id, invoice, issuedOn, lines, reason })` function\n   - Validates all inputs per spec (id starts with `CN-`, non-empty reason, valid invoice, YYYY-MM-DD date)\n   - Supports full credit (omit lines) or partial credit (specify lines with skus and quantities)\n   - Calculates `netCents` as: `lineNet * qty / originalQty`, rounded once with `roundHalfUp`\n   - Returns a frozen credit note with shape: `{ id, kind: 'credit', invoiceId, region, issuedOn, reason, lines }`\n\n### 2. **Updated `src/invoice.js`**\n   - Modified `invoiceTotals(doc)` to handle both invoices and credit notes\n   - For credit notes: returns negative amounts (`net` = -sum of netCents, `vat` = -vatOn, `gross` = net + vat)\n\n### 3. **Updated `src/report.js`**\n   - `monthlySummary`: now processes credit notes by their `issuedOn` month, incrementing count and adding negative totals\n   - `topSkus`: subtracts credited `qty` and `netCents` from SKU totals for credit notes\n\n### 4. **Updated `src/index.js`**\n   - Exported `createCreditNote` function\n\n### 5. **Added comprehensive tests** in `test/creditnote.test.js`\n   - 22 new tests covering:\n     - Validation of all required fields (id, reason, issuedOn, invoice)\n     - Full and partial credit scenarios\n     - Rounding of netCents calculations\n     - Error cases (duplicate SKUs, invalid quantities, unknown SKUs, empty lines)\n     - Integration with `invoiceTotals`, `monthlySummary`, and `topSkus`\n     - Immutability of original invoice\n\nAll requirements from the spec have been implemented exactly as specified, and the implementation passes all existing tests plus the new comprehensive test suite.",
+ "ttft_ms": 1860,
+ "type": "result",
+ "duration_ms": 122334,
+ "uuid": "ae6531eb-4a19-485a-a354-37399f8cce49",
+ "ttft_stream_ms": 907,
+ "time_to_request_ms": 29,
+ "first_content_frame_ms": 1200,
+ "queued_turn_count": 0
+}

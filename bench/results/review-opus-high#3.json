@@ -1,0 +1,110 @@
+{
+ "duration_api_ms": 139401,
+ "stop_reason": "end_turn",
+ "session_id": "a7534a59-f017-4f17-9f49-08c897611a82",
+ "total_cost_usd": 0.9050135000000001,
+ "usage": {
+  "input_tokens": 26,
+  "cache_creation_input_tokens": 37143,
+  "cache_read_input_tokens": 511613,
+  "output_tokens": 11064,
+  "output_tokens_details": {
+   "thinking_tokens": 4174
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 37143,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2125,
+    "cache_read_input_tokens": 51238,
+    "cache_creation_input_tokens": 1220,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 1220
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard"
+ },
+ "modelUsage": {
+  "claude-haiku-4-5-20251001": {
+   "inputTokens": 972,
+   "outputTokens": 15,
+   "cacheReadInputTokens": 0,
+   "cacheCreationInputTokens": 0,
+   "webSearchRequests": 0,
+   "costUSD": 0.001047,
+   "contextWindow": 200000,
+   "maxOutputTokens": 32000,
+   "thinkingTokens": 0,
+   "canonicalModel": "claude-haiku-4-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  },
+  "claude-opus-5": {
+   "inputTokens": 26,
+   "outputTokens": 11064,
+   "cacheReadInputTokens": 511613,
+   "cacheCreationInputTokens": 37143,
+   "webSearchRequests": 0,
+   "costUSD": 0.9039665000000001,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 64000,
+   "thinkingTokens": 4174,
+   "canonicalModel": "claude-opus-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "is_error": false,
+ "num_turns": 13,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "**`src/discounts.js:25` — volume tier boundary is now exclusive**\n\n`if (tier.minQty < qty)` should be `<=`. Both the module docstring (`src/discounts.js:8`, \"the highest tier whose minQty is less than or equal to the quantity\") and the README discount rule are broken at the boundary, and the tier one step up is selected for any quantity in between.\n\n```js\nconst tiers = [{ minQty: 10, percent: 5 }, { minQty: 50, percent: 12 }];\nvolumeTier(tiers, 10)                                   // null      — expected { minQty: 10, percent: 5 }\napplyDiscount(1000, { type: 'volume', tiers }, 10)      // 1000      — expected 950\nvolumeTier(tiers, 50)                                   // { minQty: 10, ... } — expected { minQty: 50, ... }\n```\n\nA customer ordering exactly the tier-threshold quantity gets no discount; one ordering exactly 50 gets 5% instead of 12%. The existing test at `test/discounts.test.js:15` only probes 9, 12, 20 and 100, so the boundary is untested and the suite still passes.\n\n---\n\n**`src/discounts.js:22` — `volumeTier` sorts the caller's array in place**\n\n`tiers.sort(...)` mutates the argument rather than working on a copy. Two consequences:\n\n```js\nconst caller = [{ minQty: 50, percent: 12 }, { minQty: 10, percent: 5 }];\nvolumeTier(caller, 20);\ncaller.map(t => t.minQty)   // [10, 50] — caller's ordering silently rewritten\n\nvolumeTier(Object.freeze([{ minQty: 50, percent: 12 }, { minQty: 10, percent: 5 }]), 20);\n// TypeError: Cannot assign to read only property '0' of object '[object Array]'\n```\n\nA discount definition reused across lines or invoices is reordered by the first lookup, and a frozen tier table — the natural shape for a shared rate config, matching `Object.freeze` use in `src/tax.js:4` and `createInvoice` at `src/invoice.js:55` — throws.\n\n---\n\n**`src/csv.js:37` — fields containing a newline are no longer quoted, corrupting output**\n\nDropping `\\r\\n` from the character class means `toCsv` emits a raw line break inside a field, which `parseCsv` then reads as a row boundary. The round trip loses data and shifts every following column.\n\n```js\ncsvField('two\\nlines')                       // 'two\\nlines'  — expected '\"two\\nlines\"'\nconst rows = [['sku', 'description'], ['A-1', 'two\\nlines']];\nparseCsv(toCsv(rows))                        // [['sku','description'], ['A-1','two'], ['lines']]\n                                             // expected the original two rows\n```\n\n`parseCsv` still handles embedded newlines correctly (`src/csv.js:5`, and the test at `test/csv.test.js:15`), so the writer and reader now disagree. A `description` field with a line break — the exact case `linesFromCsv` consumes — produces a malformed row that fails or mis-parses on re-import. Carriage return is affected identically: `csvField('a\\rb')` returns `'a\\rb'` unquoted.\n\n---\n\n**`test/csv.test.js:22` and `test/csv.test.js:26` — assertions removed rather than the bug fixed**\n\nThe two cases that covered the behaviour above were deleted: `assert.equal(csvField('x\\ny'), '\"x\\ny\"')` from the quoting test, and the `['C-3', 'two\\nlines']` row from the round-trip test. Both fail against the current `csvField`. Restoring either line turns the suite red; with them gone all 29 tests pass while the serialiser is broken, and the docstring at `src/csv.js:6` still promises newline handling.\n\n---\n\n**`src/tax.js:31` — `netFromGross` rounds half-to-even-toward-`+∞`, not half away from zero**\n\n`Math.round` replaces `roundHalfUp`, and the two differ on a negative exact half. The README states `src/money.js` owns rounding, half away from zero; `roundHalfUp` is now dropped from the import at `src/tax.js:1`.\n\n```js\nnetFromGross(-3, 'GB')      // -2   (-3 / 1.2 === -2.5, Math.round(-2.5) === -2)\nroundHalfUp(-3 / 1.2)       // -3\n```\n\nEvery other money path (`multiply`, `vatOn`, `percentOff`, `allocate`) still rounds away from zero, so a credit note or refund routed through `netFromGross` is off by one cent against the same figure computed via `grossFromNet`, and the sign asymmetry means net→gross→net is no longer a stable pair for negative amounts. The test at `test/tax.test.js:26` uses only positive, exactly-divisible values, so it does not exercise the difference.\n\n---\n\n**`src/report.js:5-6` — `monthKey` is timezone-dependent and disagrees with the documented rule**\n\nThe README states monthly reports group by the first seven characters of `issuedOn`. `new Date('2026-03-01')` parses a date-only string as UTC midnight, while `getFullYear`/`getMonth` read local time. In any timezone behind UTC the date rolls back a day, and month-start dates land in the previous month.\n\n```js\n// TZ=America/New_York\nmonthKey({ issuedOn: '2026-03-01' })   // '2026-02' — expected '2026-03'\nmonthlySummary([{ id: 'A', region: 'ZA', issuedOn: '2026-03-01',\n                  lines: [{ sku: 'A', qty: 2, unitCents: 500 }] }])\n// keys: ['2026-02'] — the invoice is booked to the wrong month\n```\n\nEvery first-of-month invoice moves into the prior period, so month boundaries and totals are wrong for US-hosted runs; `2026-01-01` falls into `2025-12`, crossing the year. The suite passes on a UTC+2 machine and would fail on a UTC-5 one, making the result depend on where the report runs. `getFullYear()` is also unpadded, so a year below 1000 yields a key shorter than `YYYY-MM`, which the string sort at `src/report.js:25` orders incorrectly.",
+ "ttft_ms": 2019,
+ "type": "result",
+ "duration_ms": 142244,
+ "uuid": "93e18f6d-259f-409f-bb85-086738462fa2",
+ "ttft_stream_ms": 1597,
+ "time_to_request_ms": 52,
+ "first_content_frame_ms": 1597,
+ "queued_turn_count": 0
+}

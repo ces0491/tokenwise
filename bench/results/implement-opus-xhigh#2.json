@@ -1,0 +1,110 @@
+{
+ "duration_api_ms": 269658,
+ "stop_reason": "end_turn",
+ "session_id": "74baaa01-e3e2-47c9-8aee-fbc4cac80336",
+ "total_cost_usd": 1.5527665000000002,
+ "usage": {
+  "input_tokens": 36,
+  "cache_creation_input_tokens": 50675,
+  "cache_read_input_tokens": 824975,
+  "output_tokens": 25294,
+  "output_tokens_details": {
+   "thinking_tokens": 10234
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 50675,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1231,
+    "cache_read_input_tokens": 65099,
+    "cache_creation_input_tokens": 891,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 891
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard"
+ },
+ "modelUsage": {
+  "claude-haiku-4-5-20251001": {
+   "inputTokens": 944,
+   "outputTokens": 11,
+   "cacheReadInputTokens": 0,
+   "cacheCreationInputTokens": 0,
+   "webSearchRequests": 0,
+   "costUSD": 0.0009989999999999999,
+   "contextWindow": 200000,
+   "maxOutputTokens": 32000,
+   "thinkingTokens": 0,
+   "canonicalModel": "claude-haiku-4-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  },
+  "claude-opus-5": {
+   "inputTokens": 36,
+   "outputTokens": 25294,
+   "cacheReadInputTokens": 824975,
+   "cacheCreationInputTokens": 50675,
+   "webSearchRequests": 0,
+   "costUSD": 1.5517675,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 64000,
+   "thinkingTokens": 10234,
+   "canonicalModel": "claude-opus-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "is_error": false,
+ "num_turns": 18,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "All 39 tests pass (exit 0), and no existing test file was touched.\n\n## What I added\n\n**`src/creditnote.js`** — `createCreditNote({ id, invoice, issuedOn, lines, reason })` returns a frozen note. Validation runs in the spec's order: `id` must be a string starting with `CN-` (TypeError), `reason` a non-empty string (TypeError), `invoice` through `validateInvoice`, `issuedOn` against the same `YYYY-MM-DD` regex invoices use (RangeError), then the credited lines (RangeError for empty/non-array, unknown sku, repeated sku, or a `qty` outside 1..original). Omitting `lines` credits every line in full.\n\n`netCents` per line is `roundHalfUp((lineNet(original) * qty) / original.qty)` — one rounding, on the original line's already-discounted net, so a volume tier earned at qty 10 still applies to a single credited unit (900 → 90, not 100). `description` is copied from the original line; the invoice is only read, never mutated.\n\n**`invoiceTotals(doc)`** now branches on `doc.kind === 'credit'`: sums `netCents`, negates it for `net`, calls `vatOn` once on the positive sum for `-vat`, and returns `net + vat` as gross. Invoice behaviour is unchanged.\n\n**`report.js`** — `monthlySummary` needed no logic change; it already groups by `issuedOn` and adds whatever `invoiceTotals` returns, so a credit note counts in its own month with negative totals. `topSkus` now subtracts `qty` and `netCents` for credit-note lines.\n\n**`src/index.js`** exports `createCreditNote`. **README** gets a rules bullet and a `src/creditnote.js` row; the `src/report.js` row now says \"across invoices and credit notes\".\n\n## Two spec gaps I decided rather than guessed\n\n- Credit-note lines come out in the order you pass them, not invoice order (invoice order when `lines` is omitted).\n- A SKU that appears only on credit notes still shows up in `topSkus` with negative totals, sorting below everything positive.\n\nBoth are unspecified; say the word if you want either the other way.\n\nOne judgement call worth flagging: `description` is copied verbatim, so crediting an invoice line that has no description yields a line with `description: undefined` present as a key. That matters only if something downstream does a strict deep-equal against a three-key object.",
+ "ttft_ms": 2416,
+ "type": "result",
+ "duration_ms": 276637,
+ "uuid": "58768c53-a229-483d-ac2a-10e265bb1a98",
+ "ttft_stream_ms": 1628,
+ "time_to_request_ms": 47,
+ "first_content_frame_ms": 1628,
+ "queued_turn_count": 0
+}

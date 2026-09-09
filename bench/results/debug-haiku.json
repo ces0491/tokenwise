@@ -1,0 +1,96 @@
+{
+ "duration_api_ms": 28472,
+ "stop_reason": "end_turn",
+ "session_id": "80be0b64-28fb-46ad-a373-b2a4486b191d",
+ "total_cost_usd": 0.061228,
+ "usage": {
+  "input_tokens": 65,
+  "cache_creation_input_tokens": 15978,
+  "cache_read_input_tokens": 174120,
+  "output_tokens": 2162,
+  "output_tokens_details": {
+   "thinking_tokens": 1276
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 15978,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 8,
+    "output_tokens": 137,
+    "cache_read_input_tokens": 26635,
+    "cache_creation_input_tokens": 854,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 854
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard"
+ },
+ "modelUsage": {
+  "claude-haiku-4-5-20251001": {
+   "inputTokens": 995,
+   "outputTokens": 2173,
+   "cacheReadInputTokens": 174120,
+   "cacheCreationInputTokens": 15978,
+   "webSearchRequests": 0,
+   "costUSD": 0.061228,
+   "contextWindow": 200000,
+   "maxOutputTokens": 32000,
+   "thinkingTokens": 1276,
+   "canonicalModel": "claude-haiku-4-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "is_error": false,
+ "num_turns": 8,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "All tests pass ✓\n\nThe bug was calculating VAT per line and then summing (1+1+1=3), rather than calculating VAT once on the invoice total (20% of 9 = 1.8 → rounds to 2). The fix changes `invoiceTotals` to compute VAT on the total net amount, not on each line individually.",
+ "ttft_ms": 1933,
+ "type": "result",
+ "duration_ms": 29665,
+ "uuid": "b66c6ce0-83ac-4a7a-b936-7b2fee740ce7",
+ "ttft_stream_ms": 980,
+ "time_to_request_ms": 48,
+ "first_content_frame_ms": 1160,
+ "queued_turn_count": 0
+}

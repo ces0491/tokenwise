@@ -1,0 +1,3 @@
+All 29 tests pass.
+
+`invoiceTotals` calculated VAT per line and summed the results, so each line's rounding error accumulated — three 3-cent lines at GB 20% rounded to 1 cent of VAT apiece (3) instead of one rounding of 20% on the 9-cent net total (2). I changed it to call `vatOn` once on the invoice net, matching the rule the README already states, and dropped the now-unused `lineVat` helper (it wasn't in `src/index.js`'s public exports and nothing else referenced it); no README change was needed since it already documents this behaviour.

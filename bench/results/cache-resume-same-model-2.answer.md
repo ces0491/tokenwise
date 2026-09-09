@@ -1,0 +1,1 @@
+`src/creditnote.js` holds the construction logic; the negative totals live in `invoiceTotals` in `src/invoice.js` and the reporting side in `src/report.js`.

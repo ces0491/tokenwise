@@ -1,0 +1,1 @@
+Implement the credit notes feature by following docs/plan.md, which was written against docs/spec.md. Where the plan and the spec disagree, the spec wins. Add the tests the plan lists under test/ and run npm test until everything passes. Do not change existing tests.

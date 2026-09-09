@@ -1,0 +1,3 @@
+All 29 tests pass. The README already documents "VAT is calculated once on the invoice net total, never per line", so it needed no change — the code now matches it.
+
+`invoiceTotals` computed VAT per line and summed the results, so each line's rounding error compounded — three 3-cent lines at the GB 20% rate each rounded 0.6 up to 1 cent, giving 3 instead of the 2 you get by taking 20% of the 9-cent net once. I changed it to call `vatOn(net, region)` on the invoice total and removed the now-unused `lineVat` helper, which only existed to feed that per-line path and invited the same mistake again.

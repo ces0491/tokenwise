@@ -1,0 +1,110 @@
+{
+ "duration_api_ms": 225511,
+ "stop_reason": "end_turn",
+ "session_id": "8e45d328-61bb-449f-b6f9-37e9963fe53e",
+ "total_cost_usd": 0.6222219999999999,
+ "usage": {
+  "input_tokens": 30,
+  "cache_creation_input_tokens": 52268,
+  "cache_read_input_tokens": 732655,
+  "output_tokens": 26556,
+  "output_tokens_details": {
+   "thinking_tokens": 15856
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 52268,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 599,
+    "cache_read_input_tokens": 67129,
+    "cache_creation_input_tokens": 636,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 636
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard"
+ },
+ "modelUsage": {
+  "claude-haiku-4-5-20251001": {
+   "inputTokens": 944,
+   "outputTokens": 11,
+   "cacheReadInputTokens": 0,
+   "cacheCreationInputTokens": 0,
+   "webSearchRequests": 0,
+   "costUSD": 0.0009989999999999999,
+   "contextWindow": 200000,
+   "maxOutputTokens": 32000,
+   "thinkingTokens": 0,
+   "canonicalModel": "claude-haiku-4-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  },
+  "claude-sonnet-5": {
+   "inputTokens": 30,
+   "outputTokens": 26556,
+   "cacheReadInputTokens": 732655,
+   "cacheCreationInputTokens": 52268,
+   "webSearchRequests": 0,
+   "costUSD": 0.621223,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 64000,
+   "thinkingTokens": 15856,
+   "canonicalModel": "claude-sonnet-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "is_error": false,
+ "num_turns": 25,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "All 44 tests pass, and none of the pre-existing test files were touched (confirmed by git status — only `src/*` and `README.md` modified, plus two new files).\n\n## Summary\n\nImplemented per `docs/spec.md`:\n\n- **`src/creditnote.js`** (new) — `createCreditNote({ id, invoice, issuedOn, lines, reason })`, validating in the spec's precedence order (id → reason → invoice → issuedOn → lines) and returning a frozen credit note. `netCents` per line is the original discounted `lineNet` scaled by `qty / originalQty` via `money.js`'s `multiply` (single `roundHalfUp` rounding, discounts never recomputed).\n- **`src/invoice.js`** — `invoiceTotals` now branches on `doc.kind === 'credit'`, returning negative `net`/`vat`/`gross` computed from the credit note's summed `netCents`; invoice behavior unchanged.\n- **`src/report.js`** — `topSkus` subtracts credited `qty`/`netCents` for credit notes; `monthlySummary` required no logic change since it already delegates to `invoiceTotals`/`monthKey`, both of which now handle credit notes generically.\n- **`src/index.js`** — exports `createCreditNote`.\n- **`README.md`** — added the `creditnote.js` module row and a rules bullet on credit note scaling/rounding and negative totals.\n- **`test/creditnote.test.js`** (new) — 15 tests covering full and partial credit notes, discount-not-recomputed behavior, half-away-from-zero rounding, immutability of the original invoice, every validation error (including precedence), and integration with `invoiceTotals`, `monthlySummary`, and `topSkus`.\n\nNo existing test files were modified.",
+ "ttft_ms": 2044,
+ "type": "result",
+ "duration_ms": 226242,
+ "uuid": "041c8225-40c8-496c-a38a-40d9780bab06",
+ "ttft_stream_ms": 1473,
+ "time_to_request_ms": 35,
+ "first_content_frame_ms": 2042,
+ "queued_turn_count": 0
+}

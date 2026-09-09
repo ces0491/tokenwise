@@ -1,0 +1,13 @@
+All defects confirmed by running the changed code. The money.js refactor (the `sign` helper) is behaviour-preserving and is not listed.
+
+**src/csv.js:37** — `csvField` no longer quotes fields containing `\r` or `\n`, so `toCsv` emits a line break inside a field as a row break and the output does not round-trip through `parseCsv`. Input: `toCsv([['C-3', 'two\nlines']])` produces `"C-3,two\nlines\n"`, which `parseCsv` reads back as `[['C-3','two'],['lines']]` instead of one row.
+
+**test/csv.test.js:22 and :27** — the two assertions covering line breaks inside fields (`csvField('x\ny')` and the `'two\nlines'` round-trip row) were deleted rather than updated, which is what lets the csv.js defect above pass the suite. Restoring either assertion against the current working tree fails.
+
+**src/discounts.js:25** — the tier condition changed from `<=` to `<`, so a quantity exactly equal to a tier's `minQty` no longer qualifies. This contradicts the module's own doc comment ("less than or equal to the quantity") and the README's volume-tier rule. Input: `volumeTier([{minQty:10,percent:5},{minQty:50,percent:12}], 10)` returns `null` (was the 10-tier); `volumeTier(sameTiers, 50)` returns the 5% tier instead of the 12% tier, so `applyDiscount(1000, {type:'volume', tiers}, 50)` yields 950 instead of 880.
+
+**src/discounts.js:22** — `tiers.sort(...)` sorts the caller's array in place. It reorders the discount definition passed in, and it throws when the tiers array is frozen. Input: `volumeTier(Object.freeze([{minQty:50,percent:12},{minQty:10,percent:5}]), 5)` throws `TypeError: Cannot assign to read only property '0'`; with an unfrozen array `[{minQty:50},{minQty:10}]` the caller's array is left as `[{minQty:10},{minQty:50}]`.
+
+**src/tax.js:31** — `netFromGross` now uses `Math.round`, which rounds negative halves toward positive infinity, breaking the README rule that rounding is half away from zero via `src/money.js`. Input: `netFromGross(-3, 'GB')` computes -3/1.2 = -2.5 and returns -2; the committed version returns -3. Likewise `netFromGross(-9, 'GB')` returns -7 instead of -8. Credit notes and refunds hit this.
+
+**src/report.js:5** — `monthKey` parses `issuedOn` with `new Date(...)`, which treats a `YYYY-MM-DD` string as UTC midnight, then reads the month with local-time getters. In any timezone west of UTC the first of the month lands in the previous month, so `monthlySummary` buckets invoices wrongly. The README requires grouping by the first seven characters of `issuedOn`. Input: with `TZ=America/New_York`, `monthKey({issuedOn:'2026-03-01'})` returns `'2026-02'`.
