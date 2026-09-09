@@ -4,7 +4,9 @@ A one-skill Claude Code plugin for choosing the model and effort level per phase
 
 ## Why
 
-Every API call re-sends the whole conversation. Across 140 sessions measured on one machine, input tokens outweighed output 444 to 1, and 99% of input was cached context re-read on every call. The longest sessions carried 400K to 535K tokens of context per call. Context size multiplied by call count is the bill; model and effort set the price per token on top. `node bench/context-profile.mjs` prints the same table for your own transcripts.
+Every API call re-sends the whole conversation. Across 140 sessions on one machine, input tokens outweighed output 444 to 1, and 99% of input was cached context re-read on every call. The longest sessions carried 400K to 535K tokens of context per call. Context size multiplied by call count is the bill; model and effort set the price per token on top.
+
+Those are one machine's numbers, dated 9 September 2026. `node bench/context-profile.mjs` produces the same table from your own transcripts, so you can check the shape of it rather than take mine.
 
 Two facts shape the advice. The prompt cache is per model, so a `/model` switch on a warm context re-processes all of it. And nothing can switch the running session's model for you: hooks can nudge or change the next session's settings, but the mid-session switch is your own `/model` and `/effort`. So the useful tool is one that tells you what to run, when, and what the cheaper option gives up.
 
@@ -27,7 +29,21 @@ Four of the routing table's nine rows were run against a small test project wher
 
 Fifty-two graded runs later, four of the eight claims the routing table made were wrong. Debugging and reviewing named a more expensive setting than the work needed. Forcing subagents onto Haiku saved 30% where the claim was 40%. And splitting a small task into a planning session and an implementation session cost more than doing it in one. The table has been corrected. Implementing a feature from a spec cost $0.17 on Haiku and $2.63 on Fable at xhigh, and both passed the same 37 tests. Reviewing a diff on Opus at low effort found all five planted defects in 3 turns; the same model at high effort found the same five in 13 turns for 3.3 times the cost.
 
-Pass/fail thresholds were fixed before the results were read (`bench/SCOPE.md`) and the verdicts are computed from them. Full numbers in [docs/findings.md](docs/findings.md), method in [docs/methodology.md](docs/methodology.md), raw runs in `bench/results/`. Rerun it with `node bench/run.mjs`.
+Pass/fail thresholds were fixed before the results were read (`bench/SCOPE.md`) and the verdicts are computed from them. Full numbers in [docs/findings.md](docs/findings.md), method in [docs/methodology.md](docs/methodology.md), raw runs in `bench/results/`.
+
+## Checking the figures
+
+Every number above comes from a file in this repository or from a script in it. Two of the three checks are free and take seconds.
+
+```sh
+git clone https://github.com/ces0491/tokenwise && cd tokenwise
+
+node bench/summarize.mjs --check     # do the published tables follow from the published runs?
+node bench/context-profile.mjs       # the token figures above, against your own transcripts
+node bench/run.mjs                   # re-run the matrix on your account: about $30 and 90 minutes
+```
+
+`--check` regenerates `bench/RESULTS.md` from `bench/results/runs.jsonl` and fails if the committed report differs, so you can confirm the tables were not edited by hand without spending anything. `context-profile.mjs` reports on your machine, not mine, so expect different numbers: the ratio and the cache share are the parts that should look familiar. Only the third command costs money.
 
 What the bench cannot show: all 52 graded runs passed, so it measures cost at equal outcomes and never reaches the point where an expensive setting earns its price. The fixture is small, so it says nothing about long-context sessions.
 
