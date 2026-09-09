@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Offline sanity check on the plugin's manifests and skill frontmatter, for CI and for local use.
-// This is not a substitute for `claude plugin validate .`, which knows the real schema and should
-// still be run before a release; it catches the things that break a publish and cost nothing to check.
+// `claude plugin validate .` runs alongside this in CI, but it checks the marketplace manifest only.
+// This covers what that leaves out: plugin.json's required fields, and every skill's frontmatter.
 //
 //   node scripts/check-manifests.mjs
 

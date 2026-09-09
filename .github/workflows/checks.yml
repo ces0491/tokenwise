@@ -1,8 +1,8 @@
 name: checks
 
-# The automatable half of SCOPE.md's Done criteria. Everything here runs offline against committed
-# files: no Claude account, no API calls, no bench runs. `claude plugin validate .` stays manual,
-# because it needs the Claude Code CLI, which this workflow deliberately does not install.
+# The automatable half of SCOPE.md's Done criteria. Everything here runs against committed files with
+# no Claude account and no bench runs. The last step installs the Claude Code CLI, which is the only
+# network dependency beyond npm.
 
 on:
   pull_request:
@@ -38,9 +38,10 @@ jobs:
       - name: Guide routing table matches the skill
         run: node scripts/sync-routing-table.mjs --check
 
-      # The real schema check, which scripts/check-manifests.mjs only approximates. It needs the CLI,
-      # so it runs last and under a timeout: an unauthenticated runner is exactly the environment this
-      # has to work in, and a hang would otherwise burn the job's full allowance.
+      # The real schema check. It needs the CLI installed but no account — verified working on an
+      # unauthenticated runner — so it runs last, under a timeout in case a future version starts
+      # asking for credentials. It validates the marketplace manifest only, which is why
+      # check-manifests.mjs runs alongside it rather than being replaced by it.
       - name: claude plugin validate
         timeout-minutes: 3
         run: |
