@@ -77,6 +77,10 @@ Documentation is part of the change, not a follow-up: the README, guide, finding
 2. Add the entry to `CHANGELOG.md`. `check-manifests.mjs` fails if the newest heading and `plugin.json` disagree, which is a check that exists because they once did.
 3. Merge, then `claude plugin tag --push -m 'tokenwise %s'` from a clean `main`.
 
+## The demo
+
+`demo/build.mjs` renders the terminal demo from a real captured answer. The MP4 and GIF it produces are not committed: they are large and go stale whenever the skill's answer changes, so the repository carries the generator rather than the output. The capture and render commands are in that file's header. It needs ffmpeg built with libfreetype.
+
 ## Reporting something wrong
 
 A figure that does not reproduce is the most useful bug report this project can get. Include the command you ran and what it printed. A disagreement with a recommendation is more useful with a task the bench could grade than with an argument about it.
