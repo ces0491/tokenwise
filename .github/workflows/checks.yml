@@ -1,0 +1,37 @@
+name: checks
+
+# The automatable half of SCOPE.md's Done criteria. Everything here runs offline against committed
+# files: no Claude account, no API calls, no bench runs. `claude plugin validate .` stays manual,
+# because it needs the Claude Code CLI, which this workflow deliberately does not install.
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Fixture tests
+        working-directory: bench/fixture
+        run: node --test --test-reporter=tap 'test/**/*.test.js'
+
+      - name: Markdown lint
+        run: npx --yes markdownlint-cli@0.47.0 '*.md' 'docs/*.md' 'bench/*.md' 'skills/route/*.md' --config .markdownlint.json
+
+      - name: Report matches the run data
+        run: node bench/summarize.mjs --check
+
+      - name: Manifests and skill frontmatter
+        run: node scripts/check-manifests.mjs
