@@ -1,0 +1,110 @@
+{
+ "duration_api_ms": 315916,
+ "stop_reason": "end_turn",
+ "session_id": "23c216a1-3d89-4883-be9d-f8d6b8db4952",
+ "total_cost_usd": 2.6279992500000002,
+ "usage": {
+  "input_tokens": 418,
+  "cache_creation_input_tokens": 48629,
+  "cache_read_input_tokens": 634761,
+  "output_tokens": 29831,
+  "output_tokens_details": {
+   "thinking_tokens": 9685
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 48629,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 32,
+    "output_tokens": 736,
+    "cache_read_input_tokens": 63259,
+    "cache_creation_input_tokens": 687,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 687
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard"
+ },
+ "modelUsage": {
+  "claude-haiku-4-5-20251001": {
+   "inputTokens": 944,
+   "outputTokens": 11,
+   "cacheReadInputTokens": 0,
+   "cacheCreationInputTokens": 0,
+   "webSearchRequests": 0,
+   "costUSD": 0.0009989999999999999,
+   "contextWindow": 200000,
+   "maxOutputTokens": 32000,
+   "thinkingTokens": 0,
+   "canonicalModel": "claude-haiku-4-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  },
+  "claude-fable-5-1": {
+   "inputTokens": 418,
+   "outputTokens": 29831,
+   "cacheReadInputTokens": 634761,
+   "cacheCreationInputTokens": 48629,
+   "webSearchRequests": 0,
+   "costUSD": 2.62700025,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 64000,
+   "thinkingTokens": 9685,
+   "canonicalModel": "claude-fable-5-1",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "is_error": false,
+ "num_turns": 14,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "The credit notes feature is implemented and the full suite passes. Nothing is committed, per your rules.\n\n**Test result**\n\n| Metric | Value |\n|---|---|\n| Tests | 45 |\n| Pass | 45 |\n| Fail | 0 |\n\n**What changed**\n\n- `src/creditnote.js` (new) exports `createCreditNote`. Validation runs in the spec's precedence order: id prefix and reason throw TypeError, then the invoice goes through `validateInvoice`, then issuedOn and the optional lines throw RangeError. Each credited line takes the original line net times credited over original quantity, rounded once with `roundHalfUp`, so discounts are never recomputed. The note, its lines array and each line are frozen.\n- `src/invoice.js` now branches in `invoiceTotals` on a document with kind `credit`. It sums the credited net, applies `vatOn` once for the note's region, and returns the negated figures. The date regex is exported as `DATE` so the credit note validates issuedOn with the same rule as an invoice.\n- `src/report.js` handles credit notes in `topSkus` by subtracting the credited quantity and net. The monthly summary needed no code change since it already goes through `invoiceTotals` and the note's own `issuedOn`. Doc comments updated.\n- `src/index.js` re-exports `createCreditNote`.\n- `test/creditnote.test.js` (new, 16 tests) covers every validation rule and the precedence order, whole and partial credits, discount non-recomputation, half-up rounding, freezing and non-mutation, negative totals with VAT rounded once on the sum, and both reports. Existing test files are untouched.\n- `README.md` gained a rule describing credit notes and the module table lists the new file.\n\n**Two judgement calls worth knowing about**\n\n- Negation uses subtraction from zero so a credit note whose lines net to zero returns plain zero rather than negative zero. Strict deep equality treats those as different values, and there is a test pinning this.\n- If an invoice lists the same SKU on two lines, an explicit credit line matches the first one. The spec does not cover that case.\n\nLine-ending warnings from git are the usual autocrlf conversion on commit and need no action.",
+ "ttft_ms": 3483,
+ "type": "result",
+ "duration_ms": 319046,
+ "uuid": "9c3acad8-1ef9-4dde-92fa-222670199f3f",
+ "ttft_stream_ms": 2733,
+ "time_to_request_ms": 60,
+ "first_content_frame_ms": 3480,
+ "queued_turn_count": 0
+}

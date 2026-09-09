@@ -1,0 +1,1 @@
+Added `src/creditnote.js` with `createCreditNote`, exported it from `src/index.js`, taught `invoiceTotals` and `topSkus` to handle credit notes, and covered it all in `test/creditnote.test.js` (43 tests passing) plus a README update.

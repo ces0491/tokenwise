@@ -1,0 +1,1 @@
+Implemented credit notes end-to-end: new `src/creditnote.js`, updates to `src/invoice.js`, `src/report.js`, `src/index.js`, and README, backed by `test/creditnote.test.js`.

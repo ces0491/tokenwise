@@ -2,20 +2,31 @@
 
 Evidence and sources behind `SKILL.md`. Read this when a recommendation is challenged or the user asks why.
 
+Two kinds of evidence appear here. The token measurements below are observational, parsed from real Claude Code transcripts on one machine by `bench/context-profile.mjs`. The per-row model and effort recommendations were tested separately on a benchmark of graded tasks; that is in `../../docs/findings.md`, and it corrected four of the table's rows. Where the two disagree, the benchmark wins for anything it covers, which is task-level model and effort choice on a small codebase. It does not cover long-context sessions, which is what the numbers below describe.
+
 ## Where the tokens go
 
-Measured from Claude Code transcripts on one machine: 15 sessions, September 2026, mostly Opus 5 with some Fable 5.1, parsed from the per-response `usage` fields in `~/.claude/projects`. The official `session-report` plugin and ccusage produce comparable figures for any machine.
+Parsed from the per-response `usage` fields in `~/.claude/projects` on one machine, 9 September 2026, by `bench/context-profile.mjs`. Run it yourself for the same table on your own transcripts:
+
+```sh
+node bench/context-profile.mjs
+```
 
 | | |
-|---|---|
-| API calls | 3,604, of which 14% by subagents |
-| Input tokens | 1.13 billion: 0% uncached, 1% cache writes, 99% cache reads |
-| Output tokens | 2.8 million, of which 33% thinking |
-| Average context per call, review sessions | 370K to 530K |
-| Average context per call, feature sessions | 280K to 355K |
-| Fixed overhead per call on that setup (system prompt, CLAUDE.md files, tool and MCP schemas) | about 67K tokens |
+| --- | --- |
+| Sessions | 140, over four months, mostly Opus 5 with some Fable 5.1 and Haiku 4.5 |
+| API calls | 34,709, of which 6% by subagents |
+| Input tokens | 12.11 billion: 0% uncached, 1% cache writes, 99% cache reads |
+| Output tokens | 27.3 million, of which 28% thinking |
+| Input to output | 444 to 1 |
+| Context per call, median session | 234K |
+| Fixed overhead per call, median session (system prompt, CLAUDE.md files, tool and MCP schemas) | 59K tokens |
 
-The review sessions had the largest context per call and the most calls. A review reads much of the repo into context early, then every later call carries it. That is the mechanism behind "a review of a small repo costs as much as building a feature". The costs docs say the same thing in one line: a one-line question in a session that has been open all day still draws usage for the whole conversation.
+One API response is written to the transcript as several lines, one per content block, each repeating the same `usage` object, so the script counts calls by `requestId`. Counting lines instead inflates both calls and tokens by the average number of blocks per response, which on the largest transcript here is 1.7.
+
+The overhead figure is the cheapest main-loop call in a session, which is a proxy: the first call of a session carries the system prompt, the tool and MCP schemas and the CLAUDE.md files, and little else. `/context` gives the exact breakdown for a live session.
+
+Context per call grows with the session, and the longest sessions on this machine average 400K to 535K per call. A session that reads much of a repo early carries it on every later call. The costs docs say the same thing in one line: a one-line question in a session that has been open all day still draws usage for the whole conversation.
 
 ## Per-token prices and what they imply
 
@@ -45,6 +56,8 @@ The vision docs give an image's cost as ceil(width / 28) times ceil(height / 28)
 
 From the API docs on effort: `xhigh` is the strongest setting for most coding and agentic work on current models and the Claude Code default; `low` suits subagents and routine tasks, with fewer and more consolidated tool calls and less preamble; `max` earns its cost only where measurement shows headroom at the level below. Lower effort on the newest models often matches or exceeds a prior-generation model at high effort. Anthropic's July 2026 post frames effort as thoroughness rather than thinking time: it controls how many files Claude reads and how far it pushes through a task.
 
+The benchmark found that thoroughness is not free and does not always pay. On a six-file review diff, Opus at high effort took 13 turns to find the same five defects Opus at low effort found in 3, for 3.3 times the cost. On implementation from a written spec, raising effort on Sonnet cost less per completed task than upgrading to Opus at lower effort, which is the measured form of "raise effort before you change model".
+
 ## Related tools
 
 - `/usage` (subscription plans): attribution by skill, subagent, plugin and MCP server; behaviour flags for long context and cache misses; prompt-cache statistics from v2.1.251.
@@ -57,14 +70,14 @@ This skill covers what those do not: model and effort together per phase, the co
 
 ## Sources
 
-- Manage costs effectively, Claude Code docs: https://code.claude.com/docs/en/costs
-- Prompt caching, Claude Code docs: https://code.claude.com/docs/en/prompt-caching
-- Model configuration, Claude Code docs: https://code.claude.com/docs/en/model-config
-- Create custom subagents, Claude Code docs: https://code.claude.com/docs/en/sub-agents
-- Claude Code effort level and model selection, Anthropic blog, 7 July 2026: https://claude.com/blog/claude-model-and-effort-level-in-claude-code
-- API pricing: https://platform.claude.com/docs/en/pricing
-- Image token cost: https://platform.claude.com/docs/en/vision
-- session-report plugin: https://github.com/anthropics/claude-plugins-official/tree/main/plugins/session-report
-- ccusage: https://github.com/ryoppippi/ccusage
-- effort-router: https://github.com/cfitzgerald-pd/effort-router
-- claude-model-router-hook: https://github.com/tzachbon/claude-model-router-hook
+- Manage costs effectively, Claude Code docs: <https://code.claude.com/docs/en/costs>
+- Prompt caching, Claude Code docs: <https://code.claude.com/docs/en/prompt-caching>
+- Model configuration, Claude Code docs: <https://code.claude.com/docs/en/model-config>
+- Create custom subagents, Claude Code docs: <https://code.claude.com/docs/en/sub-agents>
+- Claude Code effort level and model selection, Anthropic blog, 7 July 2026: <https://claude.com/blog/claude-model-and-effort-level-in-claude-code>
+- API pricing: <https://platform.claude.com/docs/en/about-claude/pricing>
+- Image token cost: <https://platform.claude.com/docs/en/vision>
+- session-report plugin: <https://github.com/anthropics/claude-plugins-official/tree/main/plugins/session-report>
+- ccusage: <https://github.com/ryoppippi/ccusage>
+- effort-router: <https://github.com/cfitzgerald-pd/effort-router>
+- claude-model-router-hook: <https://github.com/tzachbon/claude-model-router-hook>

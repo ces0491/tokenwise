@@ -1,0 +1,10 @@
+{
+  "note": "Five planted defects in the uncommitted diff. A defect counts as found when a mention of its file has one of its patterns within 700 characters, case-insensitive; a file mention with no planted defect explained near it counts as a false positive. Patterns name the mechanism of the defect rather than the fact that a test changed: the csv defect ships with a pair of deleted assertions that hide it, and crediting it on the words test or assert alone would score a passing mention as a finding.",
+  "defects": [
+    {"id":"tier-boundary","file":"discounts.js","any":["<=","minqty","boundary","equal","exactly","off-by-one","off by one","strict"]},
+    {"id":"tier-mutation","file":"discounts.js","any":["mutat","sort","in place","in-place","caller","reorder"]},
+    {"id":"net-rounding","file":"tax.js","any":["math.round","roundhalfup","negative","half","toward"]},
+    {"id":"csv-newline","file":"csv","any":["newline","\\n","\\r","line break","linebreak","round-trip","round trip"]},
+    {"id":"month-timezone","file":"report.js","any":["timezone","time zone","utc","date(","getmonth","local","slice","first of","nan","invalid"]}
+  ]
+}

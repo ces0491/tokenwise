@@ -1,0 +1,110 @@
+{
+ "duration_api_ms": 82156,
+ "stop_reason": "end_turn",
+ "session_id": "36191d92-4099-4464-a200-12be74313a61",
+ "total_cost_usd": 0.23988579999999998,
+ "usage": {
+  "input_tokens": 14,
+  "cache_creation_input_tokens": 29111,
+  "cache_read_input_tokens": 221359,
+  "output_tokens": 7810,
+  "output_tokens_details": {
+   "thinking_tokens": 5114
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 29111,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1262,
+    "cache_read_input_tokens": 44034,
+    "cache_creation_input_tokens": 574,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 574
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard"
+ },
+ "modelUsage": {
+  "claude-haiku-4-5-20251001": {
+   "inputTokens": 972,
+   "outputTokens": 14,
+   "cacheReadInputTokens": 0,
+   "cacheCreationInputTokens": 0,
+   "webSearchRequests": 0,
+   "costUSD": 0.001042,
+   "contextWindow": 200000,
+   "maxOutputTokens": 32000,
+   "thinkingTokens": 0,
+   "canonicalModel": "claude-haiku-4-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  },
+  "claude-sonnet-5": {
+   "inputTokens": 14,
+   "outputTokens": 7810,
+   "cacheReadInputTokens": 221359,
+   "cacheCreationInputTokens": 29111,
+   "webSearchRequests": 0,
+   "costUSD": 0.2388438,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 64000,
+   "thinkingTokens": 5114,
+   "canonicalModel": "claude-sonnet-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "is_error": false,
+ "num_turns": 11,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "All confirmed against the running code.\n\n**src/csv.js:34-38 — `csvField` no longer quotes newlines**\n`csvField` was narrowed from `/[\",\\r\\n]/` to `/[\",]/`, so a field containing `\\n` or `\\r` is emitted unquoted. `toCsv` joins rows with `\\n`, so an embedded newline is indistinguishable from a row separator on the way back out. Concrete input: `toCsv([['line1\\nline2']])` → `\"line1\\nline2\\n\"`, which `parseCsv` reads back as two rows `[['line1'], ['line2']]` instead of the original single row/field. This also contradicts `parseCsv`'s own doc comment (csv.js:5) that the module round-trips \"commas and newlines inside quotes.\"\n\n**test/csv.test.js:19-25 — weakened tests hide the csvField/toCsv newline bug**\nThe assertion `assert.equal(csvField('x\\ny'), '\"x\\ny\"')` was deleted, and the `'C-3', 'two\\nlines'` row was removed from the round-trip test. These were exactly the cases that would have caught the regression above; with them gone, `npm test` passes despite CSV serialisation being broken for any field containing a newline.\n\n**src/discounts.js:20-28 — `volumeTier` boundary changed from `<=` to `<`, contradicting its own docstring**\nThe module comment (discounts.js:8) and function comment both say a tier applies when \"minQty is less than or equal to\" qty, but the loop now uses `tier.minQty < qty`. Concrete input: `volumeTier([{ minQty: 10, percent: 5 }], 10)` now returns `null` instead of the tier, so `applyDiscount(1000, { type: 'volume', tiers: [{ minQty: 10, percent: 5 }] }, 10)` returns `1000` (no discount) instead of `950`.\n\n**src/discounts.js:22 — `volumeTier` mutates the caller's `tiers` array**\n`tiers.sort(...)` sorts in place rather than on a copy, silently reordering the discount configuration object passed in by the caller (e.g. a line's `discounts[i].tiers`) as a side effect of merely computing a tier.\n\n**src/report.js:4-7 — `monthKey` no longer matches the documented \"first seven characters\" rule and is timezone-dependent**\nREADME.md:14 states \"Monthly reports group by the first seven characters of `issuedOn`.\" The new implementation parses `issuedOn` with `new Date(...)` (interpreted as UTC midnight) and then reads it back with local-timezone getters (`getFullYear`/`getMonth`). Concrete input: in a UTC-negative timezone (e.g. US Eastern, UTC-5), `monthKey({ issuedOn: '2026-03-01' })` returns `'2026-02'` instead of `'2026-03'`, because `2026-03-01T00:00:00Z` local-converts to `2026-02-28T19:00:00`.\n\n**src/tax.js:29-31 — `netFromGross` uses `Math.round` instead of `roundHalfUp`, breaking the \"half away from zero\" rounding rule**\nREADME.md:11 states rounding is half-away-from-zero and owned by `src/money.js`, applied once. `netFromGross` now rounds with plain `Math.round`, which for negative ties rounds toward +Infinity rather than away from zero. Concrete input: `netFromGross(-3, 'GB')` computes `-3 / 1.2 = -2.5`; `Math.round(-2.5)` gives `-2`, but `roundHalfUp(-2.5)` (and the documented rule) gives `-3` — a real discrepancy for negative gross amounts such as credit notes/refunds.",
+ "ttft_ms": 1620,
+ "type": "result",
+ "duration_ms": 82856,
+ "uuid": "087f6cf2-c702-4ee7-993d-9dda73a3131e",
+ "ttft_stream_ms": 1100,
+ "time_to_request_ms": 99,
+ "first_content_frame_ms": 1617,
+ "queued_turn_count": 0
+}

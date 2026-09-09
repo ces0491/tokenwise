@@ -1,0 +1,1 @@
+Review the uncommitted changes in this repository (git diff) for defects: behaviour that is wrong, tests that were weakened, and changes that break documented rules in README.md. For each defect give the file and line, what goes wrong, and a concrete input that shows it. Do not fix anything and do not comment on style. One block per defect, nothing else.

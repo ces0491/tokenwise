@@ -1,0 +1,1 @@
+Implement the credit notes feature specified in docs/spec.md. Follow the spec exactly: file names, exports, error types and rounding rules. Add tests for it under test/ and run npm test until everything passes. Do not change existing tests.

@@ -1,0 +1,110 @@
+{
+ "duration_api_ms": 122961,
+ "stop_reason": "end_turn",
+ "session_id": "e2504aa8-5ff6-442b-8d0a-31459fbeff0b",
+ "total_cost_usd": 0.8635664999999999,
+ "usage": {
+  "input_tokens": 22,
+  "cache_creation_input_tokens": 33941,
+  "cache_read_input_tokens": 406545,
+  "output_tokens": 12791,
+  "output_tokens_details": {
+   "thinking_tokens": 674
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 33941,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 719,
+    "cache_read_input_tokens": 48685,
+    "cache_creation_input_tokens": 571,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 571
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard"
+ },
+ "modelUsage": {
+  "claude-haiku-4-5-20251001": {
+   "inputTokens": 944,
+   "outputTokens": 11,
+   "cacheReadInputTokens": 0,
+   "cacheCreationInputTokens": 0,
+   "webSearchRequests": 0,
+   "costUSD": 0.0009989999999999999,
+   "contextWindow": 200000,
+   "maxOutputTokens": 32000,
+   "thinkingTokens": 0,
+   "canonicalModel": "claude-haiku-4-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  },
+  "claude-opus-5": {
+   "inputTokens": 22,
+   "outputTokens": 12791,
+   "cacheReadInputTokens": 406545,
+   "cacheCreationInputTokens": 33941,
+   "webSearchRequests": 0,
+   "costUSD": 0.8625674999999999,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 64000,
+   "thinkingTokens": 674,
+   "canonicalModel": "claude-opus-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "is_error": false,
+ "num_turns": 11,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "Done. All 52 tests pass (`npm test`), including the 26 pre-existing ones, which I didn't touch.\n\n**`src/creditnote.js`** — `createCreditNote({ id, invoice, issuedOn, lines, reason })` returns a frozen note. Validation runs in spec order: `id` prefix (`TypeError`), `reason` (`TypeError`), `validateInvoice`, `issuedOn` against the same date regex as invoices (`RangeError`), then lines (`RangeError` for empty, unknown sku, duplicate sku, out-of-range qty). Omitting `lines` credits every line at full quantity. `netCents = roundHalfUp(lineNet(original) * qty / original.qty)` — one rounding, no discount recomputation. The original invoice is only read from, never mutated.\n\n**`src/invoice.js`** — `invoiceTotals` branches on `doc.kind === 'credit'`: sums the positive `netCents`, negates, and applies `vatOn` once to the summed credited net before negating. The invoice path is unchanged. I implemented the branch inline rather than importing `creditnote.js` to avoid a circular import (`creditnote.js` needs `lineNet` and `validateInvoice`).\n\n**`src/report.js`** — `monthlySummary` groups by whatever the doc's own `issuedOn` says, so credit notes land in their own month and add negative totals via `invoiceTotals`. `topSkus` subtracts `line.qty` and `line.netCents` for credit-note lines.\n\n**`src/index.js`** — re-exports `createCreditNote`.\n\n**README** — added the credit-note rule to the rules list, added the `src/creditnote.js` row, and updated the `invoice.js` and `report.js` row descriptions. Install steps and the `npm test` command were already accurate.\n\nOne judgement call worth flagging: the spec doesn't say whether a fully-credited SKU should drop out of `topSkus` or stay at zero. I kept it in the map, so it appears with `qty: 0, net: 0` and sorts accordingly. Removing zero or negative entries would be a small change if you'd rather they not show.",
+ "ttft_ms": 2313,
+ "type": "result",
+ "duration_ms": 125265,
+ "uuid": "d9683476-219b-401c-9b10-6b28e65e77d9",
+ "ttft_stream_ms": 1565,
+ "time_to_request_ms": 53,
+ "first_content_frame_ms": 1565,
+ "queued_turn_count": 0
+}

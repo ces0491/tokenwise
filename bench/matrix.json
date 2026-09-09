@@ -1,0 +1,52 @@
+{
+  "defaults": {
+    "maxBudgetUsd": 6,
+    "timeoutMinutes": 25
+  },
+  "cases": {
+    "implement": { "hidden": "implement", "restoreTests": true, "grader": "tests" },
+    "debug": { "hidden": "debug", "restoreTests": true, "grader": "tests" },
+    "review": { "overlayUncommitted": true, "grader": "review" },
+    "explore": { "grader": "explore" },
+    "chore": { "grader": "chore" }
+  },
+  "runs": [
+    { "id": "chore-haiku", "case": "chore", "model": "haiku" },
+    { "id": "chore-sonnet-low", "case": "chore", "model": "sonnet", "effort": "low" },
+    { "id": "chore-opus-xhigh", "case": "chore", "model": "opus", "effort": "xhigh" },
+
+    { "id": "explore-opus-inherit", "case": "explore", "model": "opus", "effort": "xhigh" },
+    { "id": "explore-opus-haiku-sub", "case": "explore", "model": "opus", "effort": "xhigh",
+      "env": { "CLAUDE_CODE_SUBAGENT_MODEL": "haiku", "CLAUDE_CODE_SUBAGENT_MODEL_FORCE": "1" } },
+
+    { "id": "debug-haiku", "case": "debug", "model": "haiku" },
+    { "id": "debug-sonnet-medium", "case": "debug", "model": "sonnet", "effort": "medium" },
+    { "id": "debug-sonnet-xhigh", "case": "debug", "model": "sonnet", "effort": "xhigh" },
+    { "id": "debug-opus-high", "case": "debug", "model": "opus", "effort": "high" },
+    { "id": "debug-opus-xhigh", "case": "debug", "model": "opus", "effort": "xhigh" },
+
+    { "id": "review-sonnet-high", "case": "review", "model": "sonnet", "effort": "high" },
+    { "id": "review-opus-low", "case": "review", "model": "opus", "effort": "low" },
+    { "id": "review-opus-high", "case": "review", "model": "opus", "effort": "high" },
+    { "id": "review-fable-high", "case": "review", "model": "fable", "effort": "high" },
+
+    { "id": "implement-haiku", "case": "implement", "model": "haiku" },
+    { "id": "implement-sonnet-low", "case": "implement", "model": "sonnet", "effort": "low" },
+    { "id": "implement-sonnet-medium", "case": "implement", "model": "sonnet", "effort": "medium" },
+    { "id": "implement-sonnet-high", "case": "implement", "model": "sonnet", "effort": "high" },
+    { "id": "implement-sonnet-xhigh", "case": "implement", "model": "sonnet", "effort": "xhigh" },
+    { "id": "implement-opus-medium", "case": "implement", "model": "opus", "effort": "medium" },
+    { "id": "implement-opus-xhigh", "case": "implement", "model": "opus", "effort": "xhigh" },
+    { "id": "implement-fable-xhigh", "case": "implement", "model": "fable", "effort": "xhigh" },
+
+    { "id": "split-plan-opus-xhigh", "case": "implement", "model": "opus", "effort": "xhigh", "prompt": "prompt-plan.md", "grader": "plan" },
+    { "id": "split-impl-sonnet-medium", "case": "implement", "model": "sonnet", "effort": "medium", "prompt": "prompt-implement-plan.md", "dirFrom": "split-plan-opus-xhigh" },
+
+    { "id": "cache-resume-same-model", "resumeFrom": "implement-opus-xhigh", "model": "opus", "effort": "xhigh", "promptText": "In one line, what did you change?", "grader": "none" },
+    { "id": "cache-resume-switch-model", "resumeFrom": "implement-opus-xhigh", "model": "sonnet", "effort": "xhigh", "promptText": "In one line, what did you change?", "grader": "none", "after": "cache-resume-same-model" },
+
+    { "id": "cache-resume-same-model-2", "resumeFrom": "implement-opus-xhigh", "model": "opus", "effort": "xhigh", "promptText": "In one line, which file holds the credit note logic?", "grader": "none", "after": "cache-resume-switch-model" },
+    { "id": "cache-resume-same-model-3", "resumeFrom": "implement-opus-xhigh", "model": "opus", "effort": "xhigh", "promptText": "In one line, which test file did you add?", "grader": "none", "after": "cache-resume-same-model-2" },
+    { "id": "cache-resume-switch-model-2", "resumeFrom": "implement-opus-xhigh", "model": "sonnet", "effort": "xhigh", "promptText": "In one line, which function computes credit totals?", "grader": "none", "after": "cache-resume-same-model-3" }
+  ]
+}

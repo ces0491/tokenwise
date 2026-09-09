@@ -1,0 +1,1 @@
+Renamed `vatOn` → `vatAmount` in `src/tax.js`, `src/index.js`, `src/invoice.js`, `test/tax.test.js`, and `README.md`. `npm test` passes: 29/29.

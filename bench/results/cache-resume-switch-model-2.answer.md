@@ -1,0 +1,1 @@
+`invoiceTotals` in `src/invoice.js` — it branches on `doc.kind === 'credit'` to return negative net/vat/gross.

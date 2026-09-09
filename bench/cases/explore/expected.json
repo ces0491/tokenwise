@@ -1,0 +1,4 @@
+{
+  "mustMention": ["roundHalfUp", "money.js"],
+  "atLeast": { "n": 2, "of": ["tax.js", "discounts.js", "invoice.js"] }
+}

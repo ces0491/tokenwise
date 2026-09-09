@@ -1,0 +1,112 @@
+{
+ "duration_api_ms": 164919,
+ "stop_reason": "end_turn",
+ "session_id": "ec22d0e4-0582-463d-81c1-acebbde902db",
+ "total_cost_usd": 0.861001,
+ "usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 16129,
+  "cache_read_input_tokens": 42107,
+  "output_tokens": 1229,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 16129,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 502,
+    "cache_read_input_tokens": 26792,
+    "cache_creation_input_tokens": 4652,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 4652
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard"
+ },
+ "modelUsage": {
+  "claude-haiku-4-5-20251001": {
+   "inputTokens": 939,
+   "outputTokens": 16,
+   "cacheReadInputTokens": 0,
+   "cacheCreationInputTokens": 0,
+   "webSearchRequests": 0,
+   "costUSD": 0.001019,
+   "contextWindow": 200000,
+   "maxOutputTokens": 32000,
+   "thinkingTokens": 0,
+   "canonicalModel": "claude-haiku-4-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  },
+  "claude-opus-5": {
+   "inputTokens": 24,
+   "outputTokens": 12852,
+   "cacheReadInputTokens": 270094,
+   "cacheCreationInputTokens": 54885,
+   "webSearchRequests": 0,
+   "costUSD": 0.859982,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 64000,
+   "thinkingTokens": 3631,
+   "canonicalModel": "claude-opus-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 1,
+  "requested": {
+   "background": 0,
+   "foreground": 1,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 1,
+  "spawned_by_subagents": 0,
+  "completed": 1,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {
+   "Explore": 1
+  }
+ },
+ "is_error": false,
+ "num_turns": 2,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "**Decision point:** `src/money.js:10-13` — `roundHalfUp` uses half-away-from-zero via `value < 0 ? -Math.round(-value) : Math.round(value)`. Money is integer cents (`cents()`, `src/money.js:4-7`). Precision is not a constant: `2` is hardcoded in the parse regex `src/money.js:31` and the `100` scale factor at `:34`/`:42`, so a 0- or 3-decimal currency can't be added without editing this file.\n\nTwo other policies live alongside it: `allocate()` uses floor + largest-remainder (`src/money.js:56-65`) to preserve sums, and `fromDecimal` rejects >2 decimals rather than rounding (`:31`).\n\n**Direct dependents:** `src/tax.js:21,31` (`vatOn`, `netFromGross` — the only external `roundHalfUp` caller), `src/discounts.js:16` (`percentOff`), and `src/index.js:1`, which re-exports it as public API.\n\n**Transitive:** `src/invoice.js:40-48`, `src/report.js:16-21,34`, `src/csv.js:64`.\n\nNo module bypasses it — the only rounding operators in the tree are inside `money.js`. But `README.md:11` claims rounding is \"applied once at the end\"; `src/discounts.js:51-54` rounds per discount in a loop, making stacked discounts order-dependent — pinned as intended by `test/discounts.test.js:31-35`.",
+ "ttft_ms": 2269,
+ "type": "result",
+ "duration_ms": 166385,
+ "uuid": "bcc1f10f-6b7b-4e07-8105-31970c373ba7",
+ "ttft_stream_ms": 1483,
+ "time_to_request_ms": 236,
+ "first_content_frame_ms": 1484,
+ "queued_turn_count": 0
+}

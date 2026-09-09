@@ -6,5 +6,5 @@
   "homepage": "https://github.com/ces0491/tokenwise",
   "repository": "https://github.com/ces0491/tokenwise",
   "license": "MIT",
-  "keywords": ["tokens", "cost", "effort", "model-routing", "usage", "statusline", "claude-code"]
+  "keywords": ["tokens", "cost", "effort", "model-routing", "usage", "claude-code"]
 }

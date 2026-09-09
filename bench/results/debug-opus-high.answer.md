@@ -1,0 +1,3 @@
+All 29 tests pass, with a one-line change in `src/invoice.js:52`.
+
+`invoiceTotals` computed VAT per line and summed the results, so each line's rounding error compounded — three GB lines of 3c each rounded 0.6c up to 1c apiece, giving 3c of VAT instead of 2c. The fix computes VAT once on the invoice net total via `vatOn(net, invoice.region)`, which matches the rounding rule the README and the rest of `src/money.js` follow: round once at the end of a calculation.

@@ -1,0 +1,110 @@
+{
+ "duration_api_ms": 302928,
+ "stop_reason": "end_turn",
+ "session_id": "00c2659f-f6d6-4967-8dd7-2a942967b0ce",
+ "total_cost_usd": 1.6468705000000001,
+ "usage": {
+  "input_tokens": 32,
+  "cache_creation_input_tokens": 55952,
+  "cache_read_input_tokens": 774883,
+  "output_tokens": 27950,
+  "output_tokens_details": {
+   "thinking_tokens": 13330
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 55952,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 806,
+    "cache_read_input_tokens": 70835,
+    "cache_creation_input_tokens": 432,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 432
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard"
+ },
+ "modelUsage": {
+  "claude-haiku-4-5-20251001": {
+   "inputTokens": 944,
+   "outputTokens": 11,
+   "cacheReadInputTokens": 0,
+   "cacheCreationInputTokens": 0,
+   "webSearchRequests": 0,
+   "costUSD": 0.0009989999999999999,
+   "contextWindow": 200000,
+   "maxOutputTokens": 32000,
+   "thinkingTokens": 0,
+   "canonicalModel": "claude-haiku-4-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  },
+  "claude-opus-5": {
+   "inputTokens": 32,
+   "outputTokens": 27950,
+   "cacheReadInputTokens": 774883,
+   "cacheCreationInputTokens": 55952,
+   "webSearchRequests": 0,
+   "costUSD": 1.6458715000000002,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 64000,
+   "thinkingTokens": 13330,
+   "canonicalModel": "claude-opus-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "is_error": false,
+ "num_turns": 16,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "Done. `npm test`: 40 pass, 0 fail — 11 new tests plus the 29 that existed (no existing test file touched).\n\n**`src/creditnote.js`** — `createCreditNote({ id, invoice, issuedOn, lines, reason })` validates in the spec's precedence order: `id` (string starting `CN-`, `TypeError`) → `reason` (non-empty string, `TypeError`) → `invoice` via `validateInvoice` → `issuedOn` (`RangeError`) → credited `lines` (`RangeError` for empty/non-array, unknown sku, repeated sku, and `qty` outside 1..original). Omitting `lines` credits every line at full quantity. Each result line carries `netCents = roundHalfUp(lineNet(original) × qty / originalQty)` via `multiply`, so discounts are prorated rather than recomputed, and `description` is copied across. The result is frozen; the invoice is only read.\n\n**`src/invoice.js`** — `invoiceTotals` branches on `doc.kind === 'credit'`: net is the negated sum of `netCents`, VAT is one `vatOn` call on that sum negated, gross is their sum. Invoice behaviour is byte-identical. The date regex is now behind an exported `isDateString` so the credit note validates its date against the same rule instead of a copy; that helper is deliberately not re-exported from `src/index.js`, which gains only `createCreditNote`.\n\n**`src/report.js`** — `monthlySummary` needed no logic change once totals handle credit notes (it groups on the document's own `issuedOn` and counts it). `topSkus` subtracts `line.qty` and `line.netCents` for credit notes.\n\nTwo judgement calls worth flagging:\n\n- Totals subtract from zero (`0 - credited`) rather than negating. Plain `-vatOn(...)` yields `-0` for a US credit note (0% VAT), which `assert.deepStrictEqual` treats as unequal to `0`. There's a test pinning this.\n- A credited line entry that isn't an object throws `TypeError` (\"not an object\"), matching `validateLine`. The spec doesn't cover that case; the enumerated line failures all throw `RangeError` as specified.\n\nREADME updated: new `src/creditnote.js` row, a Rules bullet on credit note sign conventions, and the `src/report.js` row now mentions credit notes. No commit made.",
+ "ttft_ms": 1521,
+ "type": "result",
+ "duration_ms": 307501,
+ "uuid": "5f31c6e7-3844-44f3-8225-183b5ba57273",
+ "ttft_stream_ms": 1071,
+ "time_to_request_ms": 45,
+ "first_content_frame_ms": 1072,
+ "queued_turn_count": 0
+}

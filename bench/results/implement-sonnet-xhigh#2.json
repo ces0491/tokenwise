@@ -1,0 +1,110 @@
+{
+ "duration_api_ms": 276395,
+ "stop_reason": "end_turn",
+ "session_id": "dec022b2-e3eb-4912-886b-52bc180625dc",
+ "total_cost_usd": 0.7405912000000001,
+ "usage": {
+  "input_tokens": 34,
+  "cache_creation_input_tokens": 60833,
+  "cache_read_input_tokens": 926011,
+  "output_tokens": 31099,
+  "output_tokens_details": {
+   "thinking_tokens": 18196
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 60833,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 580,
+    "cache_read_input_tokens": 75569,
+    "cache_creation_input_tokens": 761,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 761
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard"
+ },
+ "modelUsage": {
+  "claude-haiku-4-5-20251001": {
+   "inputTokens": 944,
+   "outputTokens": 11,
+   "cacheReadInputTokens": 0,
+   "cacheCreationInputTokens": 0,
+   "webSearchRequests": 0,
+   "costUSD": 0.0009989999999999999,
+   "contextWindow": 200000,
+   "maxOutputTokens": 32000,
+   "thinkingTokens": 0,
+   "canonicalModel": "claude-haiku-4-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  },
+  "claude-sonnet-5": {
+   "inputTokens": 34,
+   "outputTokens": 31099,
+   "cacheReadInputTokens": 926011,
+   "cacheCreationInputTokens": 60833,
+   "webSearchRequests": 0,
+   "costUSD": 0.7395922000000001,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 64000,
+   "thinkingTokens": 18196,
+   "canonicalModel": "claude-sonnet-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "is_error": false,
+ "num_turns": 29,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "No existing test files were touched, and no lint script exists in this project (only `test`). Everything is implemented and verified.\n\n## Summary\n\nImplemented the credit notes feature per `docs/spec.md`:\n\n- **`src/creditnote.js`** (new) — `createCreditNote({ id, invoice, issuedOn, lines, reason })`, validating in the spec's order (id → reason → invoice via `validateInvoice` → issuedOn → lines), returning a frozen credit note. Line `netCents` uses `multiply()` from `money.js` (proportional scale of the original `lineNet`, rounded once — discounts not recomputed).\n- **`src/invoice.js`** — `invoiceTotals` now branches on `doc.kind === 'credit'`, returning negative `net`/`vat`/`gross` with VAT computed once on the summed credited amount. Invoice behavior unchanged.\n- **`src/report.js`** — `topSkus` now subtracts credited qty/netCents for credit-note lines. `monthlySummary` needed no code change — it already delegates to `invoiceTotals` and groups by `issuedOn`, so it picked up credit-note support for free.\n- **`src/index.js`** — exports `createCreditNote`.\n- **`README.md`** — added the new module and credit-note rule to the modules table and rules list.\n- **`test/creditnote.test.js`** (new, 19 tests) — covers all validation rules and their precedence order, default (whole-invoice) vs. partial credit, discount-not-recomputed rounding, immutability of the original invoice, frozen output, `invoiceTotals` sign/VAT behavior, and both report functions.\n\nNo existing files under `test/` were modified. `npm test` passes: 47/47.",
+ "ttft_ms": 1803,
+ "type": "result",
+ "duration_ms": 277695,
+ "uuid": "bb36891f-c221-4824-9e4c-c1bfd6cd3f35",
+ "ttft_stream_ms": 1165,
+ "time_to_request_ms": 46,
+ "first_content_frame_ms": 1788,
+ "queued_turn_count": 0
+}

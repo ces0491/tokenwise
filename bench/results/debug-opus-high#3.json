@@ -1,0 +1,110 @@
+{
+ "duration_api_ms": 32678,
+ "stop_reason": "end_turn",
+ "session_id": "233e98c4-b938-4d8f-890d-eec3068f0493",
+ "total_cost_usd": 0.38432000000000005,
+ "usage": {
+  "input_tokens": 14,
+  "cache_creation_input_tokens": 22043,
+  "cache_read_input_tokens": 205370,
+  "output_tokens": 2406,
+  "output_tokens_details": {
+   "thinking_tokens": 587
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 22043,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 310,
+    "cache_read_input_tokens": 36376,
+    "cache_creation_input_tokens": 982,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 982
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard"
+ },
+ "modelUsage": {
+  "claude-haiku-4-5-20251001": {
+   "inputTokens": 930,
+   "outputTokens": 11,
+   "cacheReadInputTokens": 0,
+   "cacheCreationInputTokens": 0,
+   "webSearchRequests": 0,
+   "costUSD": 0.000985,
+   "contextWindow": 200000,
+   "maxOutputTokens": 32000,
+   "thinkingTokens": 0,
+   "canonicalModel": "claude-haiku-4-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  },
+  "claude-opus-5": {
+   "inputTokens": 14,
+   "outputTokens": 2406,
+   "cacheReadInputTokens": 205370,
+   "cacheCreationInputTokens": 22043,
+   "webSearchRequests": 0,
+   "costUSD": 0.38333500000000004,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 64000,
+   "thinkingTokens": 587,
+   "canonicalModel": "claude-opus-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "is_error": false,
+ "num_turns": 9,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "All 29 tests pass. The README already documents \"VAT is calculated once on the invoice net total, never per line\", so it needed no change — the code now matches it.\n\n`invoiceTotals` computed VAT per line and summed the results, so each line's rounding error compounded — three 3-cent lines at the GB 20% rate each rounded 0.6 up to 1 cent, giving 3 instead of the 2 you get by taking 20% of the 9-cent net once. I changed it to call `vatOn(net, region)` on the invoice total and removed the now-unused `lineVat` helper, which only existed to feed that per-line path and invited the same mistake again.",
+ "ttft_ms": 1872,
+ "type": "result",
+ "duration_ms": 35995,
+ "uuid": "e2673962-bcbd-44b5-8b38-b1c44cf404b9",
+ "ttft_stream_ms": 1359,
+ "time_to_request_ms": 93,
+ "first_content_frame_ms": 1359,
+ "queued_turn_count": 0
+}

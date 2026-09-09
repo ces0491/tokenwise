@@ -1,0 +1,1 @@
+Renamed `vatOn` → `vatAmount` across `src/tax.js`, `src/index.js`, `src/invoice.js`, `test/tax.test.js`, and README.md. No remaining references to the old name. `npm test` passes: 29/29.

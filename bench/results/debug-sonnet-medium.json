@@ -1,0 +1,110 @@
+{
+ "duration_api_ms": 20804,
+ "stop_reason": "end_turn",
+ "session_id": "b5fc6af4-64e5-4337-a80f-57833a2ec1c3",
+ "total_cost_usd": 0.1193062,
+ "usage": {
+  "input_tokens": 14,
+  "cache_creation_input_tokens": 16693,
+  "cache_read_input_tokens": 191756,
+  "output_tokens": 1317,
+  "output_tokens_details": {
+   "thinking_tokens": 218
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 16693,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 117,
+    "cache_read_input_tokens": 31584,
+    "cache_creation_input_tokens": 606,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 606
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard"
+ },
+ "modelUsage": {
+  "claude-haiku-4-5-20251001": {
+   "inputTokens": 930,
+   "outputTokens": 11,
+   "cacheReadInputTokens": 0,
+   "cacheCreationInputTokens": 0,
+   "webSearchRequests": 0,
+   "costUSD": 0.000985,
+   "contextWindow": 200000,
+   "maxOutputTokens": 32000,
+   "thinkingTokens": 0,
+   "canonicalModel": "claude-haiku-4-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  },
+  "claude-sonnet-5": {
+   "inputTokens": 14,
+   "outputTokens": 1317,
+   "cacheReadInputTokens": 191756,
+   "cacheCreationInputTokens": 16693,
+   "webSearchRequests": 0,
+   "costUSD": 0.11832120000000002,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 64000,
+   "thinkingTokens": 218,
+   "canonicalModel": "claude-sonnet-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "is_error": false,
+ "num_turns": 7,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "All 29 tests pass now.\n\n`invoiceTotals` was computing VAT per line and rounding each line's VAT before summing, so three £0.03 lines each rounded 0.6p up to 1p, overcharging by a penny. I changed it to sum the net first and apply VAT rounding once to the total, matching how `net` and `gross` are already computed.",
+ "ttft_ms": 1674,
+ "type": "result",
+ "duration_ms": 22341,
+ "uuid": "349e3f2e-fbeb-46ea-a538-9f14c5255edc",
+ "ttft_stream_ms": 1231,
+ "time_to_request_ms": 44,
+ "first_content_frame_ms": 1280,
+ "queued_turn_count": 0
+}

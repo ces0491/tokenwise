@@ -1,0 +1,110 @@
+{
+ "duration_api_ms": 21837,
+ "stop_reason": "end_turn",
+ "session_id": "8647dd6f-0dd7-4391-966a-9c3e205cd8bc",
+ "total_cost_usd": 0.25444700000000003,
+ "usage": {
+  "input_tokens": 10,
+  "cache_creation_input_tokens": 15417,
+  "cache_read_input_tokens": 128338,
+  "output_tokens": 1402,
+  "output_tokens_details": {
+   "thinking_tokens": 209
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 15417,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 253,
+    "cache_read_input_tokens": 29837,
+    "cache_creation_input_tokens": 895,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 895
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard"
+ },
+ "modelUsage": {
+  "claude-haiku-4-5-20251001": {
+   "inputTokens": 933,
+   "outputTokens": 15,
+   "cacheReadInputTokens": 0,
+   "cacheCreationInputTokens": 0,
+   "webSearchRequests": 0,
+   "costUSD": 0.001008,
+   "contextWindow": 200000,
+   "maxOutputTokens": 32000,
+   "thinkingTokens": 0,
+   "canonicalModel": "claude-haiku-4-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  },
+  "claude-opus-5": {
+   "inputTokens": 10,
+   "outputTokens": 1402,
+   "cacheReadInputTokens": 128338,
+   "cacheCreationInputTokens": 15417,
+   "webSearchRequests": 0,
+   "costUSD": 0.253439,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 64000,
+   "thinkingTokens": 209,
+   "canonicalModel": "claude-opus-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "is_error": false,
+ "num_turns": 5,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "Rename done. `vatOn` → `vatAmount` across 5 files, 13 occurrences:\n\n- `src/tax.js:20` — the definition, plus the internal call at line 26 in `grossFromNet`\n- `src/index.js:2` — the public re-export\n- `src/invoice.js` — the import at line 2 and the call at line 47\n- `test/tax.test.js` — import, test name, and 5 assertions\n- `README.md:21` — the file-summary table entry\n\nNo occurrences remain, and there was no pre-existing `vatAmount` to collide with. `npm test` passes: 29 tests, 0 failures.\n\nNothing else in the README describes this function beyond that table row, so no other doc updates were needed. Changes are unstaged — no commit made.",
+ "ttft_ms": 2172,
+ "type": "result",
+ "duration_ms": 26678,
+ "uuid": "14e67257-efb8-482e-b554-55061ddad9ca",
+ "ttft_stream_ms": 1446,
+ "time_to_request_ms": 230,
+ "first_content_frame_ms": 1447,
+ "queued_turn_count": 0
+}

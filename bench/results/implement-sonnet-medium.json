@@ -1,0 +1,110 @@
+{
+ "duration_api_ms": 65676,
+ "stop_reason": "end_turn",
+ "session_id": "b99f4a36-09f8-4f76-b835-743ffd397b91",
+ "total_cost_usd": 0.25597600000000004,
+ "usage": {
+  "input_tokens": 20,
+  "cache_creation_input_tokens": 28590,
+  "cache_read_input_tokens": 336285,
+  "output_tokens": 7332,
+  "output_tokens_details": {
+   "thinking_tokens": 1241
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 28590,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 330,
+    "cache_read_input_tokens": 42748,
+    "cache_creation_input_tokens": 1339,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 1339
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard"
+ },
+ "modelUsage": {
+  "claude-haiku-4-5-20251001": {
+   "inputTokens": 944,
+   "outputTokens": 11,
+   "cacheReadInputTokens": 0,
+   "cacheCreationInputTokens": 0,
+   "webSearchRequests": 0,
+   "costUSD": 0.0009989999999999999,
+   "contextWindow": 200000,
+   "maxOutputTokens": 32000,
+   "thinkingTokens": 0,
+   "canonicalModel": "claude-haiku-4-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  },
+  "claude-sonnet-5": {
+   "inputTokens": 20,
+   "outputTokens": 7332,
+   "cacheReadInputTokens": 336285,
+   "cacheCreationInputTokens": 28590,
+   "webSearchRequests": 0,
+   "costUSD": 0.254977,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 64000,
+   "thinkingTokens": 1241,
+   "canonicalModel": "claude-sonnet-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "is_error": false,
+ "num_turns": 17,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "All 38 tests pass, including 9 new ones for credit notes, and existing tests are untouched.\n\nImplemented per spec:\n- `src/creditnote.js` — `createCreditNote` with validation precedence (id → reason → invoice → issuedOn → lines), no mutation of the original invoice, frozen result.\n- `src/index.js` — exports `createCreditNote`.\n- `src/invoice.js` — `invoiceTotals` now branches on `doc.kind === 'credit'` to return negative net/vat/gross computed from the credit note's `netCents` lines and its own region's VAT.\n- `src/report.js` — `topSkus` subtracts credited qty/netCents for credit note docs; `monthlySummary` needed no change since it already delegates to `invoiceTotals`/`monthKey` generically.\n- `test/creditnote.test.js` — new tests covering validation order, non-mutation, whole-invoice vs partial-line crediting with rounding, totals, and report integration.",
+ "ttft_ms": 1723,
+ "type": "result",
+ "duration_ms": 67184,
+ "uuid": "e18a3850-6da9-4cae-95fd-d9d09a63a7be",
+ "ttft_stream_ms": 1167,
+ "time_to_request_ms": 46,
+ "first_content_frame_ms": 1714,
+ "queued_turn_count": 0
+}

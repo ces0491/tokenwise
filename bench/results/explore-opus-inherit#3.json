@@ -1,0 +1,112 @@
+{
+ "duration_api_ms": 79379,
+ "stop_reason": "end_turn",
+ "session_id": "f1a93718-8a32-48cf-91c6-3945b638e4da",
+ "total_cost_usd": 0.47031699999999993,
+ "usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 14037,
+  "cache_read_input_tokens": 42108,
+  "output_tokens": 1049,
+  "output_tokens_details": {
+   "thinking_tokens": 0
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 14037,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 525,
+    "cache_read_input_tokens": 26793,
+    "cache_creation_input_tokens": 2559,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 2559
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard"
+ },
+ "modelUsage": {
+  "claude-haiku-4-5-20251001": {
+   "inputTokens": 939,
+   "outputTokens": 15,
+   "cacheReadInputTokens": 0,
+   "cacheCreationInputTokens": 0,
+   "webSearchRequests": 0,
+   "costUSD": 0.001014,
+   "contextWindow": 200000,
+   "maxOutputTokens": 32000,
+   "thinkingTokens": 0,
+   "canonicalModel": "claude-haiku-4-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  },
+  "claude-opus-5": {
+   "inputTokens": 14,
+   "outputTokens": 6399,
+   "cacheReadInputTokens": 121451,
+   "cacheCreationInputTokens": 31343,
+   "webSearchRequests": 0,
+   "costUSD": 0.46930299999999997,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 64000,
+   "thinkingTokens": 1561,
+   "canonicalModel": "claude-opus-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 1,
+  "requested": {
+   "background": 0,
+   "foreground": 1,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 1,
+  "spawned_by_subagents": 0,
+  "completed": 1,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {
+   "Explore": 1
+  }
+ },
+ "is_error": false,
+ "num_turns": 2,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "**Canonical decision:** `src/money.js:10-13` — `roundHalfUp` rounds half *away from zero* (the negative branch flips `Math.round`'s toward-+∞ bias). Precision is whole cents, hardcoded as the literal `100` at `src/money.js:34` and `src/money.js:42`; there's no precision constant or config key. `multiply()` at `src/money.js:16-20` is the wrapper business code goes through.\n\n**Dependents:** `src/tax.js:21` (`vatOn`) and `src/discounts.js:16` (`percentOff`) call `multiply`; `src/invoice.js:46-47` calls `vatOn`/`sum`; `src/report.js:16,34` builds on `invoiceTotals`/`lineNet`. `src/csv.js:64` depends on `fromDecimal` only. `src/index.js:1` re-exports the primitive publicly.\n\n**Divergences:**\n- `src/money.js:56` — `allocate()` truncates toward zero with largest-remainder redistribution, deliberately not using `roundHalfUp`.\n- `src/tax.js:31` — `netFromGross` calls `roundHalfUp` directly on a division, bypassing `multiply`; makes it non-inverse with `grossFromNet`.\n- `src/money.js:31` — `fromDecimal` throws on 3+ decimals rather than rounding.\n- `src/report.js:19-21` — sums already-rounded per-invoice VAT, so monthly VAT ≠ `vatOn(monthlyNet)`.",
+ "ttft_ms": 2103,
+ "type": "result",
+ "duration_ms": 78702,
+ "uuid": "b9ee7fde-cc97-44af-a8ac-278413271728",
+ "ttft_stream_ms": 1360,
+ "time_to_request_ms": 75,
+ "first_content_frame_ms": 1360,
+ "queued_turn_count": 0
+}
