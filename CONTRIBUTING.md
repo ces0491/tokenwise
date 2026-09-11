@@ -30,6 +30,17 @@ A row changes when a graded run says so, not when it reads better. `bench/SCOPE.
 
 Five of the nine rows carry no measurement. Adding evidence for one of them is the most useful contribution available, and it means adding a case rather than editing prose.
 
+## Changing the skill's text
+
+What a route costs depends on `SKILL.md`: how much the model thinks, what it reads, and what the answer leaves in the user's context. After a change that could alter how the skill answers, measure it again and update the figures in `docs/findings.md`, `docs/guide.md` and the README:
+
+```sh
+node bench/skill-cost.mjs --label <version> --sessions invoked,unprompted   # about $1 at list price on 11 September 2026
+node bench/skill-cost.mjs --compare <previous>,<version>@<previous>
+```
+
+A change to the skill's name or description also needs the `idle` and `mention` sessions, since those are all that loads until the skill fires. Each transcript records a hash of the `SKILL.md` it ran against, so a figure can be traced to the text that produced it.
+
 ## Adding a bench case
 
 A case is a task with a grader that checks a fact. No grader reads for quality.
