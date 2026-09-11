@@ -79,16 +79,16 @@ The task runs above load no plugins, so none of their costs include the skill. `
 
 | | 1.0.1 | 1.1.0 draft without the fork | 1.1.2 |
 | --- | --- | --- | --- |
-| Context the plugin adds while never used | 122 tokens | 122 tokens | 129 tokens |
+| Context the plugin adds while never used | 122 tokens | 122 tokens | 131 tokens |
 | A route in a session already under way | $0.165 | $0.114 | $0.137 |
-| Context every later call carries after one route | 9.6K | 6.8K | 826 |
+| Context every later call carries after one route | 9.6K | 6.8K | 828 |
 | The next reply after that route (a session never routed: $0.023) | $0.072 | $0.050 | $0.031 |
 | A route as a session's first message, plus the reply after it | $0.441 | $0.321 | $0.439 |
 | "Which model and effort should I use?" in plain words: turn cost, then context carried | $0.309, 7.8K | $0.246, 5.3K | $0.331, 1.6K |
 
 In 1.0.1 most of what a route left behind was its answer and the thinking behind it, not the skill's text. The skill added about 3K tokens; the routing turn wrote 6,447 tokens of output, 5,368 of them thinking. It also ran a shell command to check the subagent environment variables.
 
-Version 1.1 makes two changes. The skill tells the model to route from its own text and the user's description, without reading files, running commands or checking settings, and to keep its reasoning short. In a draft of 1.1.0 run without the fork, whose `SKILL.md` is saved beside its transcripts in `../bench/results/skill-cost/1.1.0-inline/`, that cut a warm routing turn's output from 4,361 tokens to 2,293. And the skill runs in a forked subagent (`context: fork`), so its text and reasoning stay in the subagent and only the answer returns: 826 tokens.
+Version 1.1 makes two changes. The skill tells the model to route from its own text and the user's description, without reading files, running commands or checking settings, and to keep its reasoning short. In a draft of 1.1.0 run without the fork, whose `SKILL.md` is saved beside its transcripts in `../bench/results/skill-cost/1.1.0-inline/`, that cut a warm routing turn's output from 4,361 tokens to 2,293. And the skill runs in a forked subagent (`context: fork`), so its text and reasoning stay in the subagent and only the answer returns: 828 tokens.
 
 The fork costs more on a session's first message, because the subagent builds its own context: $0.439 against $0.321 without it. The API pricing page puts an Opus 5 cache read at $0.50 per million tokens, so carrying 6.0K fewer tokens saves $0.003 on each later call, and the difference is repaid on the 40th. In a session already under way, a route and the reply after it cost $0.167 against $0.164 without the fork, repaid on the second later call.
 
@@ -102,9 +102,9 @@ A route runs on the session's own model and effort, so its cost depends on the s
 
 | Asking from | A route in a session already under way | Context carried after one route | A route as a session's first message, plus the reply after it |
 | --- | --- | --- | --- |
-| Opus 5, xhigh | $0.137 | 826 | $0.439 |
-| Opus 5, high | $0.105 | 620 | $0.249 |
-| Sonnet 5, medium | $0.040 | 687 | $0.163 |
+| Opus 5, xhigh | $0.137 | 828 | $0.439 |
+| Opus 5, high | $0.105 | 622 | $0.249 |
+| Sonnet 5, medium | $0.040 | 689 | $0.163 |
 
 Claude Code's model configuration docs give `high` as the default effort on every model except Opus 4.7, and Opus 5 as the default model on Max, Team Premium, Enterprise and the API, so the Opus 5 at high row is where those plans start. Pro and Team Standard default to Sonnet 5 at high, which was not measured.
 

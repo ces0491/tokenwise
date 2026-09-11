@@ -94,17 +94,17 @@
 <line x1="190.00" y1="638.00" x2="275.03" y2="638.00" stroke="#c3c2b7" stroke-width="2"/>
 <circle cx="275.03" cy="638.00" r="5" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"><title>Sonnet 5, medium: $0.04 (1.1.2-sonnet-medium)</title></circle>
 <text x="287.03" y="642.00" font-size="13" fill="#0b0b0b" font-weight="400" text-anchor="start">$0.04</text>
-<text x="650.00" y="642.00" font-size="13" fill="#0b0b0b" font-weight="400" text-anchor="start">687 tokens</text>
+<text x="650.00" y="642.00" font-size="13" fill="#0b0b0b" font-weight="400" text-anchor="start">689 tokens</text>
 <text x="180.00" y="672.00" font-size="13" fill="#52514e" font-weight="400" text-anchor="end">Opus 5, high</text>
 <line x1="190.00" y1="668.00" x2="409.45" y2="668.00" stroke="#c3c2b7" stroke-width="2"/>
 <circle cx="409.45" cy="668.00" r="5" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"><title>Opus 5, high: $0.10 (1.1.2-opus-high)</title></circle>
 <text x="421.45" y="672.00" font-size="13" fill="#0b0b0b" font-weight="400" text-anchor="start">$0.10</text>
-<text x="650.00" y="672.00" font-size="13" fill="#0b0b0b" font-weight="400" text-anchor="start">620 tokens</text>
+<text x="650.00" y="672.00" font-size="13" fill="#0b0b0b" font-weight="400" text-anchor="start">622 tokens</text>
 <text x="180.00" y="702.00" font-size="13" fill="#52514e" font-weight="400" text-anchor="end">Opus 5, xhigh</text>
 <line x1="190.00" y1="698.00" x2="476.76" y2="698.00" stroke="#c3c2b7" stroke-width="2"/>
 <circle cx="476.76" cy="698.00" r="5" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"><title>Opus 5, xhigh: $0.14 (1.1.2)</title></circle>
 <text x="488.76" y="702.00" font-size="13" fill="#0b0b0b" font-weight="400" text-anchor="start">$0.14</text>
-<text x="650.00" y="702.00" font-size="13" fill="#0b0b0b" font-weight="400" text-anchor="start">826 tokens</text>
+<text x="650.00" y="702.00" font-size="13" fill="#0b0b0b" font-weight="400" text-anchor="start">828 tokens</text>
 <text x="40.00" y="776.00" font-size="18" fill="#0b0b0b" font-weight="600" text-anchor="start">Where a route pays for itself</text>
 <text x="40.00" y="798.00" font-size="13" fill="#52514e" font-weight="400" text-anchor="start">By what the task would cost on the setting you are on. The recommended setting saved a median 70% on the four tasks above. The bands assume</text>
 <text x="40.00" y="816.00" font-size="13" fill="#52514e" font-weight="400" text-anchor="start">the same share at any size. Each dot is one of those tasks, on its starting setting.</text>
