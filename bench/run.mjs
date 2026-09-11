@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 // tokenwise bench runner: drives `claude -p` over the cases in matrix.json and records tokens, cost and grades.
 //
-//   node bench/run.mjs [--results DIR] [--only id,id,...] [--repeat N] [--concurrency 2] [--force] [--dry]
-//                      [--runs-root DIR] [--matrix FILE] [--regrade]
+//   node bench/run.mjs [--results DIR] [--only id,id,...] [--models alias,...] [--repeat N] [--concurrency 2]
+//                      [--force] [--dry] [--runs-root DIR] [--matrix FILE] [--regrade]
 //
 // matrix.json lists every run, and a run's `repeat` field sets how many runs its cell gets, so the
 // expanded matrix names exactly the published runs (scripts/check-matrix.mjs checks this). matrix.mjs
@@ -10,6 +10,10 @@
 // replicated to at least N, adding <id>#2 .. <id>#N.
 //
 // --only selects runs by id. A base id brings its cell's replicates with it; <id>#k selects one replicate.
+//
+// --models selects every run on the named aliases, with the runs they need or feed (matrix.mjs,
+// selectForModels). When Anthropic points an alias at a new model, `--force --models <alias>` re-runs what that
+// change affects, into bench/results; CONTRIBUTING.md has the rest of the procedure.
 //
 // --results DIR writes results somewhere other than bench/results. Reproducing the matrix goes to a
 // fresh directory, so nothing is skipped and the published data is left as it was:
@@ -35,7 +39,7 @@ import path from 'node:path';
 import os from 'node:os';
 import { spawn, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { MATRIX, cellOf, expandRuns, loadMatrix } from './matrix.mjs';
+import { MATRIX, cellOf, expandRuns, loadMatrix, selectForModels, usesModel } from './matrix.mjs';
 import { CASES, DIR_GRADERS, FIXTURE, git, grade } from './graders.mjs';
 import { loadRuns } from './records.mjs';
 
@@ -47,6 +51,7 @@ const RESULTS = args.results ? path.resolve(args.results) : path.join(HERE, 'res
 const matrix = loadMatrix(args.matrix ? path.resolve(args.matrix) : MATRIX);
 const RUNS_ROOT = args['runs-root'] ? path.resolve(args['runs-root']) : path.join(os.tmpdir(), 'tokenwise-bench');
 const only = args.only ? new Set(String(args.only).split(',')) : null;
+const models = args.models ? new Set(String(args.models).split(',')) : null;
 const concurrency = Number(args.concurrency || 2);
 fs.mkdirSync(RESULTS, { recursive: true });
 fs.mkdirSync(RUNS_ROOT, { recursive: true });
@@ -235,8 +240,16 @@ function regrade() {
 
 async function main() {
   if (args.regrade) return regrade();
-  const selected = expandRuns(matrix, { repeat: Number(args.repeat || 1) })
-    .filter((r) => !only || only.has(r.id) || only.has(cellOf(r.id)));
+  let selected = expandRuns(matrix, { repeat: Number(args.repeat || 1) });
+  if (models) {
+    const unknownModels = [...models].filter((m) => !selected.some((r) => usesModel(r, new Set([m]))));
+    if (unknownModels.length) { log(`no run in the matrix uses: ${unknownModels.join(', ')}`); process.exitCode = 1; return; }
+    const direct = new Set(selected.filter((r) => usesModel(r, models)).map((r) => r.id));
+    selected = selectForModels(selected, models);
+    const joined = selected.filter((r) => !direct.has(r.id)).map((r) => r.id);
+    log(`--models ${[...models].join(',')}: ${direct.size} run(s) on those models${joined.length ? `, plus ${joined.join(', ')}, which they need or feed` : ''}`);
+  }
+  selected = selected.filter((r) => !only || only.has(r.id) || only.has(cellOf(r.id)));
   if (only) {
     const unknown = [...only].filter((id) => !selected.some((r) => r.id === id || cellOf(r.id) === id));
     if (unknown.length) { log(`no run in the matrix matches: ${unknown.join(', ')}`); process.exitCode = 1; return; }
@@ -248,8 +261,12 @@ async function main() {
   }
   if (skip.size) log(`skipping ${skip.size} run(s) with existing results (use --force to rerun)`);
   const pending = selected.filter((r) => !skip.has(r.id));
-  // dirFrom / resumeFrom need the other run's output; `after` only orders runs (used by the cache test).
-  const depsMet = (r) => [r.dirFrom, r.resumeFrom, r.after].filter(Boolean).every((d) => done.has(d) || fs.existsSync(path.join(RESULTS, `${d}.json`)));
+  // dirFrom / resumeFrom need the other run's output; `after` only orders runs (used by the cache test). A
+  // dependency that this invocation is about to re-run has to finish first: with --force its old result file is
+  // still on disk, and a resume would otherwise pick up the old session.
+  const scheduled = new Set(pending.map((r) => r.id));
+  const depsMet = (r) => [r.dirFrom, r.resumeFrom, r.after].filter(Boolean)
+    .every((d) => done.has(d) || (!scheduled.has(d) && fs.existsSync(path.join(RESULTS, `${d}.json`))));
   const active = new Map();
   while (pending.length || active.size) {
     while (active.size < concurrency) {

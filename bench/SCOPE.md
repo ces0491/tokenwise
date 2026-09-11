@@ -40,7 +40,7 @@ Each claim gets a recorded verdict of **holds**, **falsified**, or **not testabl
 
 ## Bar
 
-Research experiment. Correct on this fixture, reproducible from the repo with `node bench/run.mjs --results bench/rerun`, results published whatever they show. Not a general benchmark of the models.
+Research experiment. Correct on this fixture, reproducible from the repo with `node bench/run.mjs --results bench/rerun` while the models it measured are still what the aliases resolve to, results published whatever they show. Not a general benchmark of the models.
 
 ## Decision
 
@@ -48,6 +48,7 @@ Ces, after reading `RESULTS.md` and the per-claim verdicts. A falsified claim ch
 
 ## Revision history
 
+- 2026-09-11, after publication: **the bar names the models reproduction depends on.** `matrix.json` asks for aliases, so a re-run measures whatever each alias resolves to on the day. The runs used `claude-haiku-4-5-20251001`, `claude-sonnet-5`, `claude-opus-5` and `claude-fable-5-1`. `scripts/check-models.mjs --live` reports whether the aliases still resolve to them, and `run.mjs --models` re-runs the cells an alias change affects. No run, grade or verdict changed.
 - 2026-09-11, after publication: **four graders tightened and two stopping rules corrected; no grade or verdict changed.**
   - **Review.** A defect counted as found when any mention of its file had one of its patterns within 700 characters. A one-line answer naming four files beside "exactly", "negative", "round-trip" and "local" scored 4 of 5 and passed. A finding about the sort alone also credited the tier boundary, through the pattern "minqty". And three invented findings appended to a real answer added no false positives. The grader now splits an answer into findings, each led by a code file:line reference, matches only patterns that name a defect's mechanism, and counts a finding that matches no planted defect as a false positive. The "false-positive blocks" in the definition above are those findings. All ten review answers were re-graded from their saved text: every recall and false-positive figure is unchanged, and the grader agrees with every hand grade. `bench/graders.test.mjs` keeps the gaming answers as cases.
   - **Chore.** A run that deleted test files passed, with 25 tests or with none. The grader now runs the original tests with the rename applied and fails a run missing an original test file. Working copies are not kept, so the published chore runs cannot be re-graded. Each of them ran all 29 original tests, and their session transcripts, on the machine that ran the bench, show every change to a test was the rename. A reader cannot repeat that transcript check.
