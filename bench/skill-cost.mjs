@@ -229,7 +229,7 @@ const usd = (n) => (n == null ? '?' : `$${n.toFixed(4)}`);
 
 // A label written name@base reads any session name lacks from base. The idle and mention sessions depend only on the
 // skill's name and description, which is all that loads until it fires, so a change to the skill's body can reuse them.
-function figures(spec) {
+export function figures(spec) {
   const [label, base] = spec.split('@');
   const s = Object.fromEntries(SESSIONS.map((x) => {
     const own = readSession(label, x.id);
@@ -301,7 +301,10 @@ function compare(labels) {
   process.stdout.write(`${lines.join('\n')}\n`);
 }
 
-if (typeof args.compare === 'string') compare(args.compare.split(','));
-else if (typeof args.report === 'string') report(args.report);
-else if (typeof args.label === 'string') run(args.label).then(() => report(args.label));
-else { process.stderr.write('usage: --label <name> to run, --report <label>, or --compare <label,label>\n'); process.exit(1); }
+// breakeven.mjs imports the figures, so the command line only runs when this file is the entry point.
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  if (typeof args.compare === 'string') compare(args.compare.split(','));
+  else if (typeof args.report === 'string') report(args.report);
+  else if (typeof args.label === 'string') run(args.label).then(() => report(args.label));
+  else { process.stderr.write('usage: --label <name> to run, --report <label>, or --compare <label,label>\n'); process.exit(1); }
+}

@@ -73,7 +73,7 @@ The task runs load no plugins, so their costs leave out the skill. `bench/skill-
 | mention | a question about how many tokens the session has used, "Reply with OK." | Whether the skill runs when nobody asked for a route |
 | no-description | `/tokenwise:route` with nothing after it, "Reply with OK." | What the forked skill does with nothing to route |
 
-Context per call comes from each API call's usage, and each turn's output, thinking and cost from the result Claude Code writes when the turn ends, subagents included. Transcripts keep only those, with working directories, session ids and local paths removed, and each records a hash of the SKILL.md it ran against. The idle and mention sessions depend only on the skill's name and description, so versions that change neither reuse them. Each case ran once.
+Context per call comes from each API call's usage, and each turn's output, thinking and cost from the result Claude Code writes when the turn ends, subagents included. Transcripts keep only those, with working directories, session ids and local paths removed, and each records a hash of the SKILL.md it ran against. The idle and mention sessions depend only on the skill's name and description, so versions that change neither reuse them. Each case ran once per version. The 1.1.1 routing sessions also ran a second time on identical text (`1.1.1-r2`), to show how much a single run moves, and its invoked session ran on Opus 5 at high and Sonnet 5 at medium (`1.1.1-opus-high`, `1.1.1-sonnet-medium`). The 1.1.2 invoked session ran on Opus 5 at high and Sonnet 5 at medium as well as xhigh, to show how a route's cost depends on the setting it is asked from. `bench/breakeven.mjs` combines those routes with the task runs into the chart in `findings.md`, and fails if any route it uses ran against a `SKILL.md` other than the one in the checkout.
 
 ## Reproducing it
 
@@ -85,8 +85,9 @@ node bench/run.mjs --regrade                                               # re-
 node --test bench/graders.test.mjs bench/matrix.test.mjs                   # graders against gaming cases; matrix expansion
 node scripts/check-matrix.mjs                                              # matrix.json names exactly the published runs
 node scripts/check-models.mjs --live                                       # whether each alias still resolves to its measured model
-node bench/skill-cost.mjs --compare 1.0.1,1.1.0-inline@1.0.1,1.1.1@1.0.1    # what routing itself costs, from the saved sessions
+node bench/skill-cost.mjs --compare 1.0.1,1.1.0-inline@1.0.1,1.1.2@1.0.1    # what routing itself costs, from the saved sessions
 node bench/skill-cost.mjs --label <name> --sessions invoked,unprompted     # measure the current skill; about $1 at list price
+node bench/breakeven.mjs --check                                           # the breakeven chart follows from the saved runs
 node bench/context-profile.mjs                                             # the observational table in skills/route/reference.md
 ```
 

@@ -16,7 +16,7 @@ Route from this file and that description. Do not read other files, run commands
 ## Three facts the recommendations rest on
 
 1. Every API call re-sends the whole conversation. A turn costs context size multiplied by calls, plus output, and thinking is output. The model sets the price per token; effort changes how many tokens are spent, through thinking and extra turns. Across 137 sessions on one machine, input outweighed output 428 to 1, and 99% of input was cached context re-read on every call.
-2. The prompt cache is per model. Switching model on a warm context re-processes all of it, and Claude Code asks you to confirm when that is about to happen. A switch after `/clear` costs nothing. (Documented behaviour; not measured by the bench.)
+2. The prompt cache is per model and, on most models, per effort level. Changing either on a warm context re-processes all of it, and Claude Code asks you to confirm while the cache is warm. On Fable 5.1 with an API key or a Claude subscription, an effort change keeps the cache. Straight after `/clear` no conversation is left to re-process, so a change then costs what starting a new session costs. (Documented behaviour; not measured by the bench.)
 3. Nothing can switch the running session's model or effort for you. Hooks and plugins can recommend, or change settings for the next session. You run `/model` and `/effort`.
 
 ## Classify on two axes
@@ -54,6 +54,8 @@ Anthropic's rule, from its July 2026 post on model and effort: if Claude failed 
 
 Raise effort on the model you are on before upgrading the model. On the bench, sonnet at xhigh cost less per completed task than opus at medium, with both passing every run. Judge by cost per completed task, which counts the retries a cheaper setting needs.
 
+Either move re-processes a warm context on most models (fact 2). On a large context, write down where the work stands and `/clear` before moving.
+
 ## Effort ladder (`/effort <level>`)
 
 | Level | What changes |
@@ -75,7 +77,7 @@ Higher effort is not uniformly better. On the review case it bought 10 extra tur
 4. `/model <alias>` then `/effort <level>`.
 5. Start the next phase from the file, not from memory.
 
-Switch at a boundary so the model change does not re-process a warm cache. Splitting a small task into a planning session and an implementation session cost more than doing it in one session on the expensive model, because the plan is written, read and paid for. Split when the phases are long enough that carrying the first one's context through the second would cost more than rebuilding it.
+Switch at a boundary so neither the model change nor the effort change re-processes a warm cache. Splitting a small task into a planning session and an implementation session cost more than doing it in one session on the expensive model, because the plan is written, read and paid for. Split when the phases are long enough that carrying the first one's context through the second would cost more than rebuilding it.
 
 ## Keep reading out of the main context
 
@@ -94,10 +96,10 @@ A short block, no preamble:
 
 - Phase:
 - Model and effort: the exact `/model` and `/effort` commands
-- Boundary: whether to `/clear` or `/compact` first, and what the switch costs if not. Say that this answer stays in the user's context until their next `/clear`, so routing just before one costs least.
+- Boundary: whether to `/clear` or `/compact` first, and what changing model or effort costs if not. Say that this answer stays in the user's context until their next `/clear`, so routing just before one costs least.
 - Delegate: what to push into subagents, if anything
 - Done when: the one check that says this phase is finished, stated so the user can run it. Tests green with no test file edited; every finding carries a file:line and a failing input; the plan names files, signatures and test cases; a grep shows no old name. Run the check before the next phase starts.
 - You give up: the concrete tradeoff of the cheaper choice
 - Escalate when: the signal, per the rule above
 
-Quote the cost of a warm switch as the user's whole current context re-processed, and point to `/context` for its size, which this skill cannot see. Do not invent multipliers or dollar figures. Never report a switch you did not see the user make.
+Quote the cost of a model or effort change on a warm context as the user's whole current context re-processed, except an effort change on Fable 5.1 with an API key or a subscription, and point to `/context` for its size, which this skill cannot see. Do not invent multipliers or dollar figures. Never report a switch you did not see the user make.

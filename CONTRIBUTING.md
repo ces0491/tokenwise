@@ -11,6 +11,7 @@ cd bench/fixture && node --test 'test/**/*.test.js' && cd ../..
 node --test bench/graders.test.mjs bench/matrix.test.mjs   # graders against gaming cases; matrix expansion and --models
 npx markdownlint-cli@0.49.1 '*.md' 'docs/*.md' 'bench/*.md' 'skills/route/*.md' --config .markdownlint.json
 node bench/summarize.mjs --check       # RESULTS.md still follows from results/runs.jsonl
+node bench/breakeven.mjs --check       # docs/breakeven.svg still follows from the saved runs and SKILL.md
 node scripts/check-matrix.mjs          # matrix.json expands to exactly the published runs
 node scripts/check-models.mjs          # the docs name exactly the models the published runs used
 node scripts/check-manifests.mjs       # manifests agree, changelog matches plugin.json
@@ -40,6 +41,14 @@ node bench/skill-cost.mjs --compare <previous>,<version>@<previous>
 ```
 
 A change to the skill's name or description also needs the `idle` and `mention` sessions, since those are all that loads until the skill fires. Each transcript records a hash of the `SKILL.md` it ran against, so a figure can be traced to the text that produced it.
+
+`bench/breakeven.mjs --check` fails on any change to `SKILL.md` until the routes it charts are measured again, because a route's price is what the chart is about. Re-run the invoked session from each setting it uses, point `ROUTES` in that script at the new labels, and regenerate the chart. The four sessions cost $1.86 at list price on 11 September 2026.
+
+```sh
+node bench/skill-cost.mjs --label <version>-opus-high --sessions invoked --model opus --effort high
+node bench/skill-cost.mjs --label <version>-sonnet-medium --sessions invoked --model sonnet --effort medium
+node bench/breakeven.mjs
+```
 
 ## Adding a bench case
 

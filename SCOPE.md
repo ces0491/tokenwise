@@ -10,7 +10,7 @@ A Claude Code plugin that recommends the model and effort level for the phase of
 
 Version 1.0, released 9 September 2026 as `tokenwise--v1.0.0`: the documentation matches the data, and a reader can check every claim.
 
-- [x] Every figure quoted in `README.md`, `SCOPE.md`, `docs/` and `skills/route/` traces to a run in `bench/results/` or to a committed script (`bench/summarize.mjs`, `bench/skill-cost.mjs`, `bench/context-profile.mjs`).
+- [x] Every figure quoted in `README.md`, `SCOPE.md`, `docs/` and `skills/route/` traces to a run in `bench/results/` or to a committed script (`bench/summarize.mjs`, `bench/skill-cost.mjs`, `bench/breakeven.mjs`, `bench/context-profile.mjs`).
 - [x] What the skill itself costs a session is measured on the shipped `SKILL.md` and published beside the task costs, since those runs load no plugins.
 - [x] Every routing-table row is marked measured or untested, and no row claims a measurement the bench did not make.
 - [x] `SKILL.md`, `docs/guide.md` and `docs/findings.md` name the exact models the published runs used (`node scripts/check-models.mjs`), and `node scripts/check-models.mjs --live` shows every alias the bench uses still resolving to its measured model.

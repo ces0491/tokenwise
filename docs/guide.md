@@ -25,10 +25,10 @@ Claude also runs it without being asked by name when you ask which model or effo
 
 ## What routing costs
 
-The skill runs in its own subagent context. Its text and its reasoning stay there, and only the answer comes back into your conversation, where it is carried on every later call like anything else in context. Measured on Opus 5 at xhigh effort, the first route left 754 tokens behind, and a route in a session already under way cost $0.155. The numbers are in `findings.md`.
+The skill runs in its own subagent context. Its text and its reasoning stay there, and only the answer comes back into your conversation, where it is carried on every later call like anything else in context. The skill runs on your session's model and effort. A route in a session already under way cost $0.04 asked from Sonnet 5 at medium, $0.12 from Opus 5 at high and $0.17 from Opus 5 at xhigh, and the first route left 590 to 889 tokens behind. `findings.md` has the numbers, and a chart of the task sizes where a route pays for itself.
 
 - Route just before a `/clear`, at a phase boundary, and nothing it returns is carried.
-- For a single small chore, pick Sonnet or Haiku at low effort yourself. On the bench, moving a rename from Opus at xhigh to Sonnet at low saved $0.17, about what asking costs.
+- For a single small chore, pick Sonnet or Haiku at low effort yourself. On the bench, moving a rename from Opus at xhigh to Sonnet at low saved $0.17, about what asking costs on Opus.
 - Describe the work after the command. The skill cannot see your conversation, so `/tokenwise:route` on its own only asks for a description.
 
 ## The one idea
@@ -69,7 +69,7 @@ Judge by cost per completed task, which counts the retries a cheaper setting nee
 
 ## Switching mid-session
 
-The prompt cache is per model, so switching model on a warm context makes Claude Code re-process all of it. Claude Code will ask you to confirm when that is about to happen.
+The prompt cache is per model, and on most models per effort level too, so changing either on a warm context makes Claude Code re-process all of it. Claude Code asks you to confirm while the cache is warm. Fable 5.1 on an API key or a Claude subscription keeps its cache when effort changes.
 
 Switch at a phase boundary:
 
@@ -79,9 +79,11 @@ Switch at a phase boundary:
 4. `/model sonnet` then `/effort medium`.
 5. Start from the file.
 
-A switch on a cleared context costs nothing.
+A switch on a cleared context costs what starting a new session costs: the system prompt and project context, with no conversation behind them.
 
-Split work across sessions so a model change does not re-process a warm cache. On a small task, planning on Opus and implementing on Sonnet cost more than one Opus session, because the plan has to be written, read and paid for. Split when the phases are long enough that carrying the first one's context through the second would cost more than rebuilding it.
+The same holds for escalating mid-task. Raising effort re-processes a warm context on most models just as changing model does, so on a large context write down where the work stands and `/clear` first.
+
+Split work across sessions so a model or effort change does not re-process a warm cache. On a small task, planning on Opus and implementing on Sonnet cost more than one Opus session, because the plan has to be written, read and paid for. Split when the phases are long enough that carrying the first one's context through the second would cost more than rebuilding it.
 
 ## Two environment variables worth setting
 
