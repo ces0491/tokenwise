@@ -32,6 +32,9 @@ jobs:
       - name: Report matches the run data
         run: node bench/summarize.mjs --check
 
+      - name: Matrix names exactly the published runs
+        run: node scripts/check-matrix.mjs
+
       - name: Manifests and skill frontmatter
         run: node scripts/check-manifests.mjs
 

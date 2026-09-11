@@ -2,6 +2,12 @@
 
 Versions follow the bar in `SCOPE.md`: a changed recommendation is a minor bump, a changed answer format or a removed section is a major one.
 
+## Unreleased
+
+No routing recommendation changed.
+
+- **The bench reproduces.** `bench/matrix.json` sets each cell's size, so it expands to exactly the 57 published runs. `node bench/run.mjs --results bench/rerun` runs all of them into a fresh directory, and `scripts/check-matrix.mjs` fails in CI if the matrix and the published runs diverge. Before this, the committed runner could not produce two of the published replicates, and on a clean clone it ran nothing.
+
 ## 1.0.0 — 2026-09-09
 
 The routing table is now backed by a published benchmark, and every figure in the plugin traces to a run or to a script in the repository.

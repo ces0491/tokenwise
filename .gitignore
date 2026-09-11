@@ -1,5 +1,8 @@
 bench/results/*.log
 
+# A reproduction of the matrix (node bench/run.mjs --results bench/rerun) stays local.
+bench/rerun/
+
 # The demo renders are large and go stale whenever the skill's answer changes.
 # demo/build.mjs rebuilds them in seconds, so it is the only tracked file here.
 demo/*

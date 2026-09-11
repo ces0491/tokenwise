@@ -1,15 +1,19 @@
 #!/usr/bin/env node
 // Summarise bench/results/runs.jsonl into RESULTS.md: per-cell pass rates and costs, and a verdict for
 // each claim in SCOPE.md computed from the thresholds written there. Prints the Markdown as well.
-//   node bench/summarize.mjs [--out bench/RESULTS.md]
+//   node bench/summarize.mjs [--results DIR] [--out bench/RESULTS.md] [--check]
+//
+// --results reads runs from a directory other than bench/results, such as a reproduction of the matrix.
 
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
-const src = path.join(HERE, 'results', 'runs.jsonl');
-const outPath = process.argv.includes('--out') ? path.resolve(process.argv[process.argv.indexOf('--out') + 1]) : path.join(HERE, 'RESULTS.md');
+const argOf = (name) => (process.argv.includes(name) ? path.resolve(process.argv[process.argv.indexOf(name) + 1]) : null);
+const RESULTS = argOf('--results') ?? path.join(HERE, 'results');
+const src = path.join(RESULTS, 'runs.jsonl');
+const outPath = argOf('--out') ?? path.join(HERE, 'RESULTS.md');
 
 // ---- load: last record per run id, then group replicates (id#2, id#3) into cells ---------------
 
@@ -40,7 +44,7 @@ for (const r of runs) {
 
 // Hand grades (results/hand-grades.json) override the keyword grader for the review runs they cover.
 let HAND = {};
-try { HAND = JSON.parse(fs.readFileSync(path.join(HERE, 'results', 'hand-grades.json'), 'utf8')); } catch { /* none */ }
+try { HAND = JSON.parse(fs.readFileSync(path.join(RESULTS, 'hand-grades.json'), 'utf8')); } catch { /* none */ }
 const handOf = (r) => (HAND[r.id] && typeof HAND[r.id] === 'object' ? HAND[r.id] : null);
 
 function reviewScore(r) {

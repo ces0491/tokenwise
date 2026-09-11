@@ -23,16 +23,18 @@ Five extra runs resume the finished `implement-opus-xhigh` session with one shor
 ## Run it
 
 ```sh
-node bench/run.mjs                      # every run in matrix.json, skipping ones with results
-node bench/run.mjs --repeat 3           # three runs per cell, as the replication rule requires
-node bench/run.mjs --only debug-haiku   # a subset
-node bench/run.mjs --force              # rerun everything
-node bench/run.mjs --regrade            # re-grade saved review answers with the current grader
-node bench/summarize.mjs                # rebuild RESULTS.md
-node bench/context-profile.mjs          # the observational table in skills/route/reference.md
+node bench/run.mjs --results bench/rerun          # every published run, into a fresh directory
+node bench/summarize.mjs --results bench/rerun --out bench/rerun/RESULTS.md
+node bench/run.mjs --only debug-haiku             # a subset; a base id brings its cell's replicates
+node bench/run.mjs --only review-opus-low#3       # one replicate
+node bench/run.mjs --force                        # rerun into bench/results, replacing the published runs
+node bench/run.mjs --regrade                      # re-grade saved review answers with the current grader
+node bench/summarize.mjs                          # rebuild RESULTS.md
+node scripts/check-matrix.mjs                     # matrix.json names exactly the published runs
+node bench/context-profile.mjs                    # the observational table in skills/route/reference.md
 ```
 
-Runs go to `<tmp>/tokenwise-bench/<run id>` (`--runs-root` overrides). Sessions run on your own Claude account; the published matrix cost roughly $30 at list price and took about ninety minutes at the default `--concurrency 2`. A session limit will interrupt it, and the runs it kills are retried on the next invocation.
+Each run in `matrix.json` sets its cell's size with `repeat`, so the matrix expands to exactly the published runs, and `run.mjs` skips any run whose result file already exists. Pointed at the committed `results/`, it runs nothing; `--results` with a fresh directory runs everything. Working copies go to `<tmp>/tokenwise-bench/<run id>` (`--runs-root` overrides). Sessions run on your own Claude account. The published runs cost $28.47 at list price, across 91 minutes of session time at the default `--concurrency 2`. A session limit will interrupt a re-run, and the runs it kills are retried on the next invocation.
 
 ## Limits
 

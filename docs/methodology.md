@@ -63,12 +63,12 @@ Several graders and criteria changed after runs had been seen, two of them after
 ## Reproducing it
 
 ```sh
-node bench/run.mjs                 # every run in matrix.json, skipping ones with results
-node bench/run.mjs --repeat 3      # three runs per cell
-node bench/run.mjs --only <ids>    # a subset
-node bench/run.mjs --regrade       # re-grade saved review answers
-node bench/summarize.mjs           # rebuild RESULTS.md
-node bench/context-profile.mjs     # the observational table in skills/route/reference.md
+node bench/run.mjs --results bench/rerun                                   # the 57 published runs, into a fresh directory
+node bench/summarize.mjs --results bench/rerun --out bench/rerun/RESULTS.md  # the report and verdicts from your runs
+node bench/run.mjs --only <ids>                                            # a subset
+node bench/run.mjs --regrade                                               # re-grade saved review answers
+node scripts/check-matrix.mjs                                              # matrix.json names exactly the published runs
+node bench/context-profile.mjs                                             # the observational table in skills/route/reference.md
 ```
 
-Runs write to `<tmp>/tokenwise-bench/<run id>`. The full matrix at three runs per cell is roughly $30 at list price and about ninety minutes at two concurrent sessions. Sessions run on your own account, so a session limit will interrupt it; excluded runs are retried on the next invocation.
+`matrix.json` lists every run, and `repeat: 3` on a run gives its cell three runs, so the matrix expands to exactly the 57 published runs. Writing to a fresh results directory runs all of them and leaves the published data in `bench/results/` untouched. Working copies go to `<tmp>/tokenwise-bench/<run id>`. The published runs cost $28.47 at list price, across 91 minutes of session time. Sessions run on your own account, so a session limit will interrupt a re-run; excluded runs are retried on the next invocation.

@@ -1,20 +1,27 @@
 #!/usr/bin/env node
 // tokenwise bench runner: drives `claude -p` over the cases in matrix.json and records tokens, cost and grades.
 //
-//   node bench/run.mjs [--only id,id,...] [--repeat N] [--concurrency 2] [--force] [--dry]
+//   node bench/run.mjs [--results DIR] [--only id,id,...] [--repeat N] [--concurrency 2] [--force] [--dry]
 //                      [--runs-root DIR] [--matrix FILE] [--regrade]
 //
-// --repeat N adds replicate runs named <id>#2 .. <id>#N, so a cell can reach n = 3 as SCOPE.md's
-// replication rule requires. A run is replicated only if it stands alone: one that reads another run's
-// output (dirFrom, resumeFrom) is skipped, and so is one whose output another run reads, since a
-// replicate of it would have no partner and would leave an orphan cell in the report.
+// matrix.json lists every run, and a run's `repeat` field sets how many runs its cell gets, so the
+// expanded matrix names exactly the published runs (scripts/check-matrix.mjs checks this). matrix.mjs
+// does the expansion and says which runs can be replicated. --repeat N raises every run that can be
+// replicated to at least N, adding <id>#2 .. <id>#N.
+//
+// --only selects runs by id. A base id brings its cell's replicates with it; <id>#k selects one replicate.
+//
+// --results DIR writes results somewhere other than bench/results. Reproducing the matrix goes to a
+// fresh directory, so nothing is skipped and the published data is left as it was:
+//   node bench/run.mjs --results bench/rerun
+//   node bench/summarize.mjs --results bench/rerun --out bench/rerun/RESULTS.md
 //
 // --regrade re-grades saved review answers with the current grader and appends the new records,
 // leaving the originals in place. --matrix runs a matrix file other than bench/matrix.json.
 //
 // Each run gets a fresh copy of bench/fixture with the case overlay applied, in <runs-root>/<id>
-// (default: <tmp>/tokenwise-bench). Raw JSON results land in bench/results/<id>.json, answers in
-// bench/results/<id>.answer.md, and one summary line per run is appended to bench/results/runs.jsonl.
+// (default: <tmp>/tokenwise-bench). Raw JSON results land in <results>/<id>.json, answers in
+// <results>/<id>.answer.md, and one summary line per run is appended to <results>/runs.jsonl.
 // Runs whose result file already exists are skipped unless --force is given.
 
 import fs from 'node:fs';
@@ -22,15 +29,16 @@ import path from 'node:path';
 import os from 'node:os';
 import { spawn, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { MATRIX, cellOf, expandRuns, loadMatrix } from './matrix.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const FIXTURE = path.join(HERE, 'fixture');
 const CASES = path.join(HERE, 'cases');
-const RESULTS = path.join(HERE, 'results');
 const CLAUDE = process.env.CLAUDE_BIN || 'claude';
 
 const args = parseArgs(process.argv.slice(2));
-const matrix = JSON.parse(fs.readFileSync(args.matrix ? path.resolve(args.matrix) : path.join(HERE, 'matrix.json'), 'utf8'));
+const RESULTS = args.results ? path.resolve(args.results) : path.join(HERE, 'results');
+const matrix = loadMatrix(args.matrix ? path.resolve(args.matrix) : MATRIX);
 const RUNS_ROOT = args['runs-root'] ? path.resolve(args['runs-root']) : path.join(os.tmpdir(), 'tokenwise-bench');
 const only = args.only ? new Set(String(args.only).split(',')) : null;
 const concurrency = Number(args.concurrency || 2);
@@ -103,8 +111,10 @@ function claudeArgs(run) {
     '--dangerously-skip-permissions', '--max-budget-usd', String(run.maxBudgetUsd ?? d.maxBudgetUsd)];
   if (run.effort) a.push('--effort', run.effort);
   if (run.resumeFrom) {
-    const prev = JSON.parse(fs.readFileSync(path.join(RESULTS, `${run.resumeFrom}.json`), 'utf8'));
-    a.push('--resume', prev.session_id);
+    const prevFile = path.join(RESULTS, `${run.resumeFrom}.json`);
+    // A dry run prints the plan before anything has run, so the session to resume may not exist yet.
+    if (args.dry && !fs.existsSync(prevFile)) a.push('--resume', `<session of ${run.resumeFrom}>`);
+    else a.push('--resume', JSON.parse(fs.readFileSync(prevFile, 'utf8')).session_id);
   }
   return a;
 }
@@ -329,18 +339,11 @@ function regrade() {
 
 async function main() {
   if (args.regrade) return regrade();
-  let selected = matrix.runs.filter((r) => !only || only.has(r.id));
-  const repeat = Number(args.repeat || 1);
-  if (repeat > 1) {
-    // A run another run consumes cannot be replicated on its own: split-plan feeds split-impl, so a
-    // second plan run would produce a cell with no implementation to pair with.
-    const consumed = new Set(matrix.runs.flatMap((r) => [r.dirFrom, r.resumeFrom]).filter(Boolean));
-    const extra = [];
-    for (const r of selected) {
-      if (r.dirFrom || r.resumeFrom || consumed.has(r.id)) continue;
-      for (let k = 2; k <= repeat; k++) extra.push({ ...r, id: `${r.id}#${k}` });
-    }
-    selected = [...selected, ...extra];
+  const selected = expandRuns(matrix, { repeat: Number(args.repeat || 1) })
+    .filter((r) => !only || only.has(r.id) || only.has(cellOf(r.id)));
+  if (only) {
+    const unknown = [...only].filter((id) => !selected.some((r) => r.id === id || cellOf(r.id) === id));
+    if (unknown.length) { log(`no run in the matrix matches: ${unknown.join(', ')}`); process.exitCode = 1; return; }
   }
   const done = new Set();
   const skip = new Set();
