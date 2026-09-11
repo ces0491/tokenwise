@@ -4,9 +4,9 @@ A one-skill Claude Code plugin for choosing the model and effort level per phase
 
 ## Why
 
-Every API call re-sends the whole conversation. Across 140 sessions on one machine, input tokens outweighed output 444 to 1, and 99% of input was cached context re-read on every call. The longest sessions carried 400K to 535K tokens of context per call. Context size multiplied by call count is the bill. The model sets the price per token, and effort changes how many tokens get spent, through thinking and extra turns.
+Every API call re-sends the whole conversation. Across 137 sessions on one machine, input tokens outweighed output 428 to 1, and 99% of input was cached context re-read on every call. Of the ten sessions with the most calls, seven carried 396K to 535K tokens of context per call. Context size multiplied by call count is the bill. The model sets the price per token, and effort changes how many tokens get spent, through thinking and extra turns.
 
-Those are one machine's numbers, dated 9 September 2026. `node bench/context-profile.mjs` produces the same table from your own transcripts, so you can check the shape of it rather than take mine.
+Those are one machine's numbers, dated 11 September 2026. `node bench/context-profile.mjs` produces the same table from your own transcripts, so you can check the shape of it rather than take mine.
 
 Two facts shape the advice. The prompt cache is per model, so a `/model` switch on a warm context re-processes all of it. And nothing can switch the running session's model for you: hooks can nudge or change the next session's settings, but the mid-session switch is your own `/model` and `/effort`. So the useful tool is one that tells you what to run, when, and what the cheaper option gives up.
 

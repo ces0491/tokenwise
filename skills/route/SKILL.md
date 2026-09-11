@@ -11,7 +11,7 @@ If that is empty, route the task the user most recently described. `reference.md
 
 ## Three facts the recommendations rest on
 
-1. Every API call re-sends the whole conversation. A turn costs context size multiplied by calls, plus output, and thinking is output. The model sets the price per token; effort changes how many tokens are spent, through thinking and extra turns. Across 140 sessions on one machine, input outweighed output 444 to 1, and 99% of input was cached context re-read on every call. Anything that enters the main context is paid for on every later call.
+1. Every API call re-sends the whole conversation. A turn costs context size multiplied by calls, plus output, and thinking is output. The model sets the price per token; effort changes how many tokens are spent, through thinking and extra turns. Across 137 sessions on one machine, input outweighed output 428 to 1, and 99% of input was cached context re-read on every call. Anything that enters the main context is paid for on every later call.
 2. The prompt cache is per model. Switching model on a warm context re-processes all of it, and Claude Code asks you to confirm when that is about to happen. A switch after `/clear` costs nothing. (Documented behaviour; not measured by the bench.)
 3. Nothing can switch the running session's model or effort for you. Hooks and plugins can recommend, or change settings for the next session. You run `/model` and `/effort`.
 

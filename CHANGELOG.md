@@ -7,6 +7,7 @@ Versions follow the bar in `SCOPE.md`: a changed recommendation is a minor bump,
 No routing recommendation changed.
 
 - **The bench reproduces.** `bench/matrix.json` sets each cell's size, so it expands to exactly the 57 published runs. `node bench/run.mjs --results bench/rerun` runs all of them into a fresh directory, and `scripts/check-matrix.mjs` fails in CI if the matrix and the published runs diverge. Before this, the committed runner could not produce two of the published replicates, and on a clean clone it ran nothing.
+- **`context-profile.mjs` attributes subagent transcripts to their project.** It had been naming their project `subagents`, which let the bench's own subagents into the default report and dropped subagents from `--match` reports. The observational figures in the README, skill and reference are re-run with the fixed script and dated 11 September 2026.
 - **Model and effort cost in different ways.** The model sets the price per token; effort changes how many tokens a task spends. `docs/findings.md` shows both from the run data, and records that no run used `max` effort or ultracode.
 - **Documentation corrected against the data.** Changes include re-run costs quoted from the published runs, ratios recomputed from unrounded medians, the debug hidden tests and review overlay described as they are, and the falsified claims attributed to the skill rather than the routing table.
 

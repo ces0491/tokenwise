@@ -6,7 +6,7 @@ Two kinds of evidence appear here. The token measurements below are observationa
 
 ## Where the tokens go
 
-Parsed from the per-response `usage` fields in `~/.claude/projects` on one machine, 9 September 2026, by `bench/context-profile.mjs`. Run it yourself for the same table on your own transcripts:
+Parsed from the per-response `usage` fields in `~/.claude/projects` on one machine, 11 September 2026, by `bench/context-profile.mjs`. Run it yourself for the same table on your own transcripts:
 
 ```sh
 node bench/context-profile.mjs
@@ -14,19 +14,19 @@ node bench/context-profile.mjs
 
 | | |
 | --- | --- |
-| Sessions | 140, over four months, mostly Opus 5 with some Fable 5.1 and Haiku 4.5 |
-| API calls | 34,709, of which 6% by subagents |
-| Input tokens | 12.11 billion: 0% uncached, 1% cache writes, 99% cache reads |
-| Output tokens | 27.3 million, of which 28% thinking |
-| Input to output | 444 to 1 |
-| Context per call, median session | 234K |
-| Fixed overhead per call, median session (system prompt, CLAUDE.md files, tool and MCP schemas) | 59K tokens |
+| Sessions | 137, over three months, mostly Opus 5 with some Fable 5, Fable 5.1 and Opus 4.8 |
+| API calls | 34,139, of which 6% by subagents |
+| Input tokens | 12.07 billion: 0% uncached, 1% cache writes, 99% cache reads |
+| Output tokens | 28.2 million, of which 33% thinking |
+| Input to output | 428 to 1 |
+| Context per call, median session | 255K |
+| Fixed overhead per call, median session (system prompt, CLAUDE.md files, tool and MCP schemas) | 60K tokens |
 
 One API response is written to the transcript as several lines, one per content block, each repeating the same `usage` object, so the script counts calls by `requestId`. Counting lines instead inflates both calls and tokens by the average number of blocks per response, which on the largest transcript here is 1.7.
 
 The overhead figure is the cheapest main-loop call in a session, which is a proxy: the first call of a session carries the system prompt, the tool and MCP schemas and the CLAUDE.md files, and little else. `/context` gives the exact breakdown for a live session.
 
-Context per call grows with the session, and the longest sessions on this machine average 400K to 535K per call. A session that reads much of a repo early carries it on every later call. The costs docs say the same thing in one line: a one-line question in a session that has been open all day still draws usage for the whole conversation.
+Context per call grows with the session. Of the ten sessions on this machine with the most calls, seven averaged 396K to 535K per call. A session that reads much of a repo early carries it on every later call. The costs docs say the same thing in one line: a one-line question in a session that has been open all day still draws usage for the whole conversation.
 
 ## Per-token prices and what they imply
 

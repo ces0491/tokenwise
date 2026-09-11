@@ -14,7 +14,13 @@
 //
 // One API response is written to the transcript as several lines — a thinking block, a text block, one
 // per tool call — each carrying the same usage object. Counting lines would inflate both calls and
-// tokens by roughly the average number of blocks per response, so calls are deduplicated by requestId.
+// tokens by roughly the average number of blocks per response, so calls are deduplicated by requestId,
+// across files as well as within one.
+//
+// Subagent transcripts sit below their session, at <project>/<session>/subagents/agent-*.jsonl, so a
+// transcript's project is the first directory under --dir, not the directory holding the file. Taking the
+// parent directory named every subagent file's project "subagents", which let the bench's own subagents
+// past the default exclusion and dropped every subagent call from a --match report.
 
 import fs from 'node:fs';
 import path from 'node:path';
@@ -50,15 +56,15 @@ function* transcripts(dir) {
 const sessions = new Map(); // sessionId -> { project, calls: [...] }
 let filesRead = 0;
 let filesSkipped = 0;
+const seen = new Set();
 
 for (const file of transcripts(ROOT)) {
-  const project = path.basename(path.dirname(file));
+  const project = path.relative(ROOT, file).split(path.sep)[0];
   if (MATCH && !MATCH.some((x) => project.includes(x))) { filesSkipped++; continue; }
   if (EXCLUDE.some((x) => project.includes(x))) { filesSkipped++; continue; }
   let text;
   try { text = fs.readFileSync(file, 'utf8'); } catch { filesSkipped++; continue; }
   filesRead++;
-  const seen = new Set();
   for (const line of text.split('\n')) {
     if (!line) continue;
     let o;
