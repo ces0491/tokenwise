@@ -1,0 +1,163 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 1242" width="960" height="1242" font-family="system-ui, -apple-system, &quot;Segoe UI&quot;, sans-serif" role="img" aria-labelledby="t d">
+<title id="t">When is a route worth asking for?</title>
+<desc id="d">What each model and effort setting cost on four bench tasks, what a tokenwise route costs from three session settings, and the task sizes at which a route costs more than it saves, saves less than it costs, or saves more.</desc>
+<rect width="960" height="1242" fill="#fcfcfb"/>
+<text x="40.00" y="44.00" font-size="26" fill="#0b0b0b" font-weight="600" text-anchor="start">When is a route worth asking for?</text>
+<text x="40.00" y="70.00" font-size="14" fill="#52514e" font-weight="400" text-anchor="start">A tokenwise route recommends a model and effort level for a piece of work. The answer has a price of its own,</text>
+<text x="40.00" y="90.00" font-size="14" fill="#52514e" font-weight="400" text-anchor="start">so it pays only on work big enough for the cheaper setting to save more than that.</text>
+<text x="40.00" y="140.00" font-size="18" fill="#0b0b0b" font-weight="600" text-anchor="start">What each setting cost, task by task</text>
+<text x="40.00" y="162.00" font-size="13" fill="#52514e" font-weight="400" text-anchor="start">Median list-price cost per run, 1 to 3 runs per setting. Every run shown passed its grader.</text>
+<rect x="40.00" y="174.00" width="12" height="12" rx="2" fill="#2a78d6"/>
+<text x="58.00" y="184.00" font-size="13" fill="#52514e" font-weight="400" text-anchor="start">the setting a route recommends</text>
+<rect x="270.00" y="174.00" width="12" height="12" rx="2" fill="#898781"/>
+<text x="288.00" y="184.00" font-size="13" fill="#52514e" font-weight="400" text-anchor="start">the setting it moves you from</text>
+<rect x="490.00" y="174.00" width="12" height="12" rx="2" fill="#c3c2b7"/>
+<text x="508.00" y="184.00" font-size="13" fill="#52514e" font-weight="400" text-anchor="start">other settings measured</text>
+<text x="40.00" y="218.00" font-size="14" fill="#0b0b0b" font-weight="600" text-anchor="start">Implement a feature from a written spec</text>
+<text x="160.00" y="243.00" font-size="12" fill="#52514e" font-weight="400" text-anchor="end">Haiku 4.5</text>
+<path d="M168.00 232.00H178.58Q182.58 232.00 182.58 236.00V242.00Q182.58 246.00 178.58 246.00H168.00Z" fill="#c3c2b7"><title>implement, Haiku 4.5: $0.17 median of 1</title></path>
+<text x="188.58" y="243.00" font-size="12" fill="#0b0b0b" font-weight="400" text-anchor="start">$0.17</text>
+<text x="160.00" y="265.00" font-size="12" fill="#52514e" font-weight="400" text-anchor="end">Sonnet 5, low</text>
+<path d="M168.00 254.00H185.12Q189.12 254.00 189.12 258.00V264.00Q189.12 268.00 185.12 268.00H168.00Z" fill="#c3c2b7"><title>implement, Sonnet 5, low: $0.24 median of 1</title></path>
+<text x="195.12" y="265.00" font-size="12" fill="#0b0b0b" font-weight="400" text-anchor="start">$0.24</text>
+<text x="160.00" y="287.00" font-size="12" fill="#52514e" font-weight="400" text-anchor="end">Sonnet 5, medium</text>
+<path d="M168.00 276.00H188.86Q192.86 276.00 192.86 280.00V286.00Q192.86 290.00 188.86 290.00H168.00Z" fill="#2a78d6"><title>implement, Sonnet 5, medium: $0.28 median of 3</title></path>
+<text x="198.86" y="287.00" font-size="12" fill="#0b0b0b" font-weight="400" text-anchor="start">$0.28</text>
+<text x="160.00" y="309.00" font-size="12" fill="#52514e" font-weight="400" text-anchor="end">Sonnet 5, high</text>
+<path d="M168.00 298.00H200.90Q204.90 298.00 204.90 302.00V308.00Q204.90 312.00 200.90 312.00H168.00Z" fill="#c3c2b7"><title>implement, Sonnet 5, high: $0.42 median of 1</title></path>
+<text x="210.90" y="309.00" font-size="12" fill="#0b0b0b" font-weight="400" text-anchor="start">$0.42</text>
+<text x="160.00" y="331.00" font-size="12" fill="#52514e" font-weight="400" text-anchor="end">Sonnet 5, xhigh</text>
+<path d="M168.00 320.00H218.46Q222.46 320.00 222.46 324.00V330.00Q222.46 334.00 218.46 334.00H168.00Z" fill="#c3c2b7"><title>implement, Sonnet 5, xhigh: $0.62 median of 3</title></path>
+<text x="228.46" y="331.00" font-size="12" fill="#0b0b0b" font-weight="400" text-anchor="start">$0.62</text>
+<text x="160.00" y="353.00" font-size="12" fill="#52514e" font-weight="400" text-anchor="end">Opus 5, medium</text>
+<path d="M168.00 342.00H239.58Q243.58 342.00 243.58 346.00V352.00Q243.58 356.00 239.58 356.00H168.00Z" fill="#c3c2b7"><title>implement, Opus 5, medium: $0.86 median of 3</title></path>
+<text x="249.58" y="353.00" font-size="12" fill="#0b0b0b" font-weight="400" text-anchor="start">$0.86</text>
+<text x="160.00" y="375.00" font-size="12" fill="#52514e" font-weight="400" text-anchor="end">Opus 5, xhigh</text>
+<path d="M168.00 364.00H308.13Q312.13 364.00 312.13 368.00V374.00Q312.13 378.00 308.13 378.00H168.00Z" fill="#898781"><title>implement, Opus 5, xhigh: $1.65 median of 3</title></path>
+<text x="318.13" y="375.00" font-size="12" fill="#0b0b0b" font-weight="400" text-anchor="start">$1.65</text>
+<text x="160.00" y="397.00" font-size="12" fill="#52514e" font-weight="400" text-anchor="end">Fable 5.1, xhigh</text>
+<path d="M168.00 386.00H394.00Q398.00 386.00 398.00 390.00V396.00Q398.00 400.00 394.00 400.00H168.00Z" fill="#c3c2b7"><title>implement, Fable 5.1, xhigh: $2.63 median of 1</title></path>
+<text x="404.00" y="397.00" font-size="12" fill="#0b0b0b" font-weight="400" text-anchor="start">$2.63</text>
+<text x="40.00" y="428.00" font-size="14" fill="#0b0b0b" font-weight="600" text-anchor="start">Rename a function across code, tests and README</text>
+<text x="160.00" y="453.00" font-size="12" fill="#52514e" font-weight="400" text-anchor="end">Haiku 4.5</text>
+<path d="M168.00 442.00H170.52Q173.05 442.00 173.05 444.52V453.48Q173.05 456.00 170.52 456.00H168.00Z" fill="#c3c2b7"><title>chore, Haiku 4.5: $0.06 median of 3</title></path>
+<text x="179.05" y="453.00" font-size="12" fill="#0b0b0b" font-weight="400" text-anchor="start">$0.06</text>
+<text x="160.00" y="475.00" font-size="12" fill="#52514e" font-weight="400" text-anchor="end">Sonnet 5, low</text>
+<path d="M168.00 464.00H171.65Q175.31 464.00 175.31 467.65V474.35Q175.31 478.00 171.65 478.00H168.00Z" fill="#2a78d6"><title>chore, Sonnet 5, low: $0.08 median of 3</title></path>
+<text x="181.31" y="475.00" font-size="12" fill="#0b0b0b" font-weight="400" text-anchor="start">$0.08</text>
+<text x="160.00" y="497.00" font-size="12" fill="#52514e" font-weight="400" text-anchor="end">Opus 5, xhigh</text>
+<path d="M168.00 486.00H186.27Q190.27 486.00 190.27 490.00V496.00Q190.27 500.00 186.27 500.00H168.00Z" fill="#898781"><title>chore, Opus 5, xhigh: $0.25 median of 3</title></path>
+<text x="196.27" y="497.00" font-size="12" fill="#0b0b0b" font-weight="400" text-anchor="start">$0.25</text>
+<text x="500.00" y="218.00" font-size="14" fill="#0b0b0b" font-weight="600" text-anchor="start">Fix a planted bug with a failing test</text>
+<text x="620.00" y="243.00" font-size="12" fill="#52514e" font-weight="400" text-anchor="end">Haiku 4.5</text>
+<path d="M628.00 232.00H630.68Q633.36 232.00 633.36 234.68V243.32Q633.36 246.00 630.68 246.00H628.00Z" fill="#c3c2b7"><title>debug, Haiku 4.5: $0.06 median of 1</title></path>
+<text x="639.36" y="243.00" font-size="12" fill="#0b0b0b" font-weight="400" text-anchor="start">$0.06</text>
+<text x="620.00" y="265.00" font-size="12" fill="#52514e" font-weight="400" text-anchor="end">Sonnet 5, medium</text>
+<path d="M628.00 254.00H634.81Q638.81 254.00 638.81 258.00V264.00Q638.81 268.00 634.81 268.00H628.00Z" fill="#2a78d6"><title>debug, Sonnet 5, medium: $0.12 median of 3</title></path>
+<text x="644.81" y="265.00" font-size="12" fill="#0b0b0b" font-weight="400" text-anchor="start">$0.12</text>
+<text x="620.00" y="287.00" font-size="12" fill="#52514e" font-weight="400" text-anchor="end">Sonnet 5, xhigh</text>
+<path d="M628.00 276.00H637.72Q641.72 276.00 641.72 280.00V286.00Q641.72 290.00 637.72 290.00H628.00Z" fill="#c3c2b7"><title>debug, Sonnet 5, xhigh: $0.16 median of 1</title></path>
+<text x="647.72" y="287.00" font-size="12" fill="#0b0b0b" font-weight="400" text-anchor="start">$0.16</text>
+<text x="620.00" y="309.00" font-size="12" fill="#52514e" font-weight="400" text-anchor="end">Opus 5, high</text>
+<path d="M628.00 298.00H660.16Q664.16 298.00 664.16 302.00V308.00Q664.16 312.00 660.16 312.00H628.00Z" fill="#898781"><title>debug, Opus 5, high: $0.41 median of 3</title></path>
+<text x="670.16" y="309.00" font-size="12" fill="#0b0b0b" font-weight="400" text-anchor="start">$0.41</text>
+<text x="620.00" y="331.00" font-size="12" fill="#52514e" font-weight="400" text-anchor="end">Opus 5, xhigh</text>
+<path d="M628.00 320.00H662.77Q666.77 320.00 666.77 324.00V330.00Q666.77 334.00 662.77 334.00H628.00Z" fill="#c3c2b7"><title>debug, Opus 5, xhigh: $0.44 median of 1</title></path>
+<text x="672.77" y="331.00" font-size="12" fill="#0b0b0b" font-weight="400" text-anchor="start">$0.44</text>
+<text x="500.00" y="362.00" font-size="14" fill="#0b0b0b" font-weight="600" text-anchor="start">Review a six-file diff with five planted defects</text>
+<text x="620.00" y="387.00" font-size="12" fill="#52514e" font-weight="400" text-anchor="end">Sonnet 5, high</text>
+<path d="M628.00 376.00H644.99Q648.99 376.00 648.99 380.00V386.00Q648.99 390.00 644.99 390.00H628.00Z" fill="#c3c2b7"><title>review, Sonnet 5, high: $0.24 median of 3</title></path>
+<text x="654.99" y="387.00" font-size="12" fill="#0b0b0b" font-weight="400" text-anchor="start">$0.24</text>
+<text x="620.00" y="409.00" font-size="12" fill="#52514e" font-weight="400" text-anchor="end">Opus 5, low</text>
+<path d="M628.00 398.00H645.62Q649.62 398.00 649.62 402.00V408.00Q649.62 412.00 645.62 412.00H628.00Z" fill="#2a78d6"><title>review, Opus 5, low: $0.25 median of 3</title></path>
+<text x="655.62" y="409.00" font-size="12" fill="#0b0b0b" font-weight="400" text-anchor="start">$0.25</text>
+<text x="620.00" y="431.00" font-size="12" fill="#52514e" font-weight="400" text-anchor="end">Fable 5.1, high</text>
+<path d="M628.00 420.00H693.28Q697.28 420.00 697.28 424.00V430.00Q697.28 434.00 693.28 434.00H628.00Z" fill="#c3c2b7"><title>review, Fable 5.1, high: $0.79 median of 1</title></path>
+<text x="703.28" y="431.00" font-size="12" fill="#0b0b0b" font-weight="400" text-anchor="start">$0.79</text>
+<text x="620.00" y="453.00" font-size="12" fill="#52514e" font-weight="400" text-anchor="end">Opus 5, high</text>
+<path d="M628.00 442.00H695.38Q699.38 442.00 699.38 446.00V452.00Q699.38 456.00 695.38 456.00H628.00Z" fill="#898781"><title>review, Opus 5, high: $0.82 median of 3</title></path>
+<text x="705.38" y="453.00" font-size="12" fill="#0b0b0b" font-weight="400" text-anchor="start">$0.82</text>
+<text x="40.00" y="548.00" font-size="18" fill="#0b0b0b" font-weight="600" text-anchor="start">What asking for a route costs</text>
+<text x="40.00" y="570.00" font-size="13" fill="#52514e" font-weight="400" text-anchor="start">A route in a session already under way, one run per setting. It runs on the session’s own model and effort.</text>
+<line x1="190.00" y1="604.00" x2="190.00" y2="690.00" stroke="#e1e0d9" stroke-width="1"/>
+<text x="190.00" y="704.00" font-size="12" fill="#898781" font-weight="400" text-anchor="middle">$0.00</text>
+<line x1="295.00" y1="604.00" x2="295.00" y2="690.00" stroke="#e1e0d9" stroke-width="1"/>
+<text x="295.00" y="704.00" font-size="12" fill="#898781" font-weight="400" text-anchor="middle">$0.05</text>
+<line x1="400.00" y1="604.00" x2="400.00" y2="690.00" stroke="#e1e0d9" stroke-width="1"/>
+<text x="400.00" y="704.00" font-size="12" fill="#898781" font-weight="400" text-anchor="middle">$0.10</text>
+<line x1="505.00" y1="604.00" x2="505.00" y2="690.00" stroke="#e1e0d9" stroke-width="1"/>
+<text x="505.00" y="704.00" font-size="12" fill="#898781" font-weight="400" text-anchor="middle">$0.15</text>
+<line x1="610.00" y1="604.00" x2="610.00" y2="690.00" stroke="#e1e0d9" stroke-width="1"/>
+<text x="610.00" y="704.00" font-size="12" fill="#898781" font-weight="400" text-anchor="middle">$0.20</text>
+<text x="650.00" y="600.00" font-size="12" fill="#898781" font-weight="400" text-anchor="start">Answer left in context</text>
+<text x="180.00" y="620.00" font-size="13" fill="#52514e" font-weight="400" text-anchor="end">Sonnet 5, medium</text>
+<line x1="190.00" y1="616.00" x2="275.12" y2="616.00" stroke="#c3c2b7" stroke-width="2"/>
+<circle cx="275.12" cy="616.00" r="5" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"><title>Sonnet 5, medium: $0.04 (1.1.2-sonnet-medium)</title></circle>
+<text x="287.12" y="620.00" font-size="13" fill="#0b0b0b" font-weight="400" text-anchor="start">$0.04</text>
+<text x="650.00" y="620.00" font-size="13" fill="#0b0b0b" font-weight="400" text-anchor="start">590 tokens</text>
+<text x="180.00" y="650.00" font-size="13" fill="#52514e" font-weight="400" text-anchor="end">Opus 5, high</text>
+<line x1="190.00" y1="646.00" x2="445.19" y2="646.00" stroke="#c3c2b7" stroke-width="2"/>
+<circle cx="445.19" cy="646.00" r="5" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"><title>Opus 5, high: $0.12 (1.1.2-opus-high)</title></circle>
+<text x="457.19" y="650.00" font-size="13" fill="#0b0b0b" font-weight="400" text-anchor="start">$0.12</text>
+<text x="650.00" y="650.00" font-size="13" fill="#0b0b0b" font-weight="400" text-anchor="start">860 tokens</text>
+<text x="180.00" y="680.00" font-size="13" fill="#52514e" font-weight="400" text-anchor="end">Opus 5, xhigh</text>
+<line x1="190.00" y1="676.00" x2="540.10" y2="676.00" stroke="#c3c2b7" stroke-width="2"/>
+<circle cx="540.10" cy="676.00" r="5" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"><title>Opus 5, xhigh: $0.17 (1.1.2)</title></circle>
+<text x="552.10" y="680.00" font-size="13" fill="#0b0b0b" font-weight="400" text-anchor="start">$0.17</text>
+<text x="650.00" y="680.00" font-size="13" fill="#0b0b0b" font-weight="400" text-anchor="start">889 tokens</text>
+<text x="40.00" y="754.00" font-size="18" fill="#0b0b0b" font-weight="600" text-anchor="start">Where a route pays for itself</text>
+<text x="40.00" y="776.00" font-size="13" fill="#52514e" font-weight="400" text-anchor="start">By what the task would cost on the setting you are on. The recommended setting saved a median 70% on the four tasks above. The bands assume</text>
+<text x="40.00" y="794.00" font-size="13" fill="#52514e" font-weight="400" text-anchor="start">the same share at any size. Each dot is one of those tasks, on its starting setting.</text>
+<line x1="190.00" y1="812.00" x2="190.00" y2="1040.00" stroke="#e1e0d9" stroke-width="1"/>
+<text x="190.00" y="1056.00" font-size="12" fill="#898781" font-weight="400" text-anchor="middle">$0.01</text>
+<line x1="301.33" y1="812.00" x2="301.33" y2="1040.00" stroke="#e1e0d9" stroke-width="1"/>
+<text x="301.33" y="1056.00" font-size="12" fill="#898781" font-weight="400" text-anchor="middle">$0.03</text>
+<line x1="423.33" y1="812.00" x2="423.33" y2="1040.00" stroke="#e1e0d9" stroke-width="1"/>
+<text x="423.33" y="1056.00" font-size="12" fill="#898781" font-weight="400" text-anchor="middle">$0.10</text>
+<line x1="534.66" y1="812.00" x2="534.66" y2="1040.00" stroke="#e1e0d9" stroke-width="1"/>
+<text x="534.66" y="1056.00" font-size="12" fill="#898781" font-weight="400" text-anchor="middle">$0.30</text>
+<line x1="656.67" y1="812.00" x2="656.67" y2="1040.00" stroke="#e1e0d9" stroke-width="1"/>
+<text x="656.67" y="1056.00" font-size="12" fill="#898781" font-weight="400" text-anchor="middle">$1</text>
+<line x1="767.99" y1="812.00" x2="767.99" y2="1040.00" stroke="#e1e0d9" stroke-width="1"/>
+<text x="767.99" y="1056.00" font-size="12" fill="#898781" font-weight="400" text-anchor="middle">$3</text>
+<line x1="890.00" y1="812.00" x2="890.00" y2="1040.00" stroke="#e1e0d9" stroke-width="1"/>
+<text x="890.00" y="1056.00" font-size="12" fill="#898781" font-weight="400" text-anchor="middle">$10</text>
+<text x="180.00" y="857.00" font-size="13" fill="#52514e" font-weight="400" text-anchor="end">Sonnet 5, medium</text>
+<rect x="190.00" y="838.00" width="177.11" height="28" rx="4" fill="#e34948" fill-opacity="0.18"><title>Sonnet 5, medium: costs more than it saves below $0.06</title></rect>
+<rect x="369.11" y="838.00" width="68.24" height="28" rx="0" fill="#f0efec" fill-opacity="1"><title>Sonnet 5, medium: saves one to two times its cost between $0.06 and $0.12</title></rect>
+<rect x="439.35" y="838.00" width="450.65" height="28" rx="4" fill="#2a78d6" fill-opacity="0.16"><title>Sonnet 5, medium: saves more than twice its cost above $0.12</title></rect>
+<text x="368.11" y="882.00" font-size="12" fill="#0b0b0b" font-weight="400" text-anchor="middle">$0.06</text>
+<text x="438.35" y="882.00" font-size="12" fill="#0b0b0b" font-weight="400" text-anchor="middle">$0.12</text>
+<text x="180.00" y="931.00" font-size="13" fill="#52514e" font-weight="400" text-anchor="end">Opus 5, high</text>
+<rect x="190.00" y="912.00" width="288.37" height="28" rx="4" fill="#e34948" fill-opacity="0.18"><title>Opus 5, high: costs more than it saves below $0.17</title></rect>
+<rect x="480.37" y="912.00" width="68.24" height="28" rx="0" fill="#f0efec" fill-opacity="1"><title>Opus 5, high: saves one to two times its cost between $0.17 and $0.35</title></rect>
+<rect x="550.61" y="912.00" width="339.39" height="28" rx="4" fill="#2a78d6" fill-opacity="0.16"><title>Opus 5, high: saves more than twice its cost above $0.35</title></rect>
+<text x="479.37" y="956.00" font-size="12" fill="#0b0b0b" font-weight="400" text-anchor="middle">$0.17</text>
+<text x="549.61" y="956.00" font-size="12" fill="#0b0b0b" font-weight="400" text-anchor="middle">$0.35</text>
+<circle cx="567.10" cy="926.00" r="5" fill="#0b0b0b" stroke="#fcfcfb" stroke-width="2"><title>debug on Opus 5, high: $0.41; the route saved $0.29 and cost $0.12</title></circle>
+<text x="567.10" y="906.00" font-size="12" fill="#0b0b0b" font-weight="400" text-anchor="middle">debug $0.41</text>
+<circle cx="636.01" cy="926.00" r="5" fill="#0b0b0b" stroke="#fcfcfb" stroke-width="2"><title>review on Opus 5, high: $0.82; the route saved $0.57 and cost $0.12</title></circle>
+<text x="636.01" y="906.00" font-size="12" fill="#0b0b0b" font-weight="400" text-anchor="middle">review $0.82</text>
+<text x="180.00" y="1005.00" font-size="13" fill="#52514e" font-weight="400" text-anchor="end">Opus 5, xhigh</text>
+<rect x="190.00" y="986.00" width="320.41" height="28" rx="4" fill="#e34948" fill-opacity="0.18"><title>Opus 5, xhigh: costs more than it saves below $0.24</title></rect>
+<rect x="512.41" y="986.00" width="68.24" height="28" rx="0" fill="#f0efec" fill-opacity="1"><title>Opus 5, xhigh: saves one to two times its cost between $0.24 and $0.48</title></rect>
+<rect x="582.65" y="986.00" width="307.35" height="28" rx="4" fill="#2a78d6" fill-opacity="0.16"><title>Opus 5, xhigh: saves more than twice its cost above $0.48</title></rect>
+<text x="511.41" y="1030.00" font-size="12" fill="#0b0b0b" font-weight="400" text-anchor="middle">$0.24</text>
+<text x="581.65" y="1030.00" font-size="12" fill="#0b0b0b" font-weight="400" text-anchor="middle">$0.48</text>
+<circle cx="707.22" cy="1000.00" r="5" fill="#0b0b0b" stroke="#fcfcfb" stroke-width="2"><title>implement on Opus 5, xhigh: $1.65; the route saved $1.36 and cost $0.17</title></circle>
+<text x="707.22" y="980.00" font-size="12" fill="#0b0b0b" font-weight="400" text-anchor="middle">implement $1.65</text>
+<circle cx="517.96" cy="1000.00" r="5" fill="#0b0b0b" stroke="#fcfcfb" stroke-width="2"><title>chore on Opus 5, xhigh: $0.25; the route saved $0.17 and cost $0.17</title></circle>
+<text x="517.96" y="980.00" font-size="12" fill="#0b0b0b" font-weight="400" text-anchor="middle">chore $0.25</text>
+<text x="540.00" y="1076.00" font-size="12" fill="#898781" font-weight="400" text-anchor="middle">What the task would cost on the setting you are on (log scale)</text>
+<rect x="190.00" y="1100.00" width="12" height="12" rx="2" fill="#e34948" fill-opacity="0.18"/>
+<text x="208.00" y="1110.00" font-size="13" fill="#52514e" font-weight="400" text-anchor="start">costs more than it saves</text>
+<rect x="400.00" y="1100.00" width="12" height="12" rx="2" fill="#f0efec" stroke="#c3c2b7" stroke-width="1"/>
+<text x="418.00" y="1110.00" font-size="13" fill="#52514e" font-weight="400" text-anchor="start">small gain: saves one to two times its cost</text>
+<rect x="690.00" y="1100.00" width="12" height="12" rx="2" fill="#2a78d6" fill-opacity="0.16"/>
+<text x="708.00" y="1110.00" font-size="13" fill="#52514e" font-weight="400" text-anchor="start">saves more than twice its cost</text>
+<text x="190.00" y="1134.00" font-size="13" fill="#52514e" font-weight="400" text-anchor="start">Already on the setting a route recommends? Then it saves nothing, and every task size costs more than it saves.</text>
+<line x1="40" y1="1156.00" x2="920" y2="1156.00" stroke="#e1e0d9" stroke-width="1"/>
+<text x="40.00" y="1178.00" font-size="12" fill="#898781" font-weight="400" text-anchor="start">Tasks: Claude Code 2.1.263, run 8 September 2026. Routes: tokenwise SKILL.md 900b5b7518e7, Claude Code 2.1.267, run 11 September 2026.</text>
+<text x="40.00" y="1196.00" font-size="12" fill="#898781" font-weight="400" text-anchor="start">Dollars are Claude Code’s list-price figures; on a subscription they weight usage rather than bill it. The bench’s tasks are small.</text>
+<text x="40.00" y="1214.00" font-size="12" fill="#898781" font-weight="400" text-anchor="start">Reproduce with node bench/breakeven.mjs at github.com/ces0491/tokenwise.</text>
+</svg>

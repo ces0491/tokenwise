@@ -1,6 +1,6 @@
 {
   "name": "tokenwise",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Pick the model and effort level for each phase of a Claude Code session, see what the cheaper choice gives up, and switch at a point where the switch costs nothing.",
   "author": { "name": "Cesaire Tobias", "url": "https://github.com/ces0491" },
   "homepage": "https://github.com/ces0491/tokenwise",

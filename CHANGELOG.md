@@ -2,6 +2,14 @@
 
 Versions follow the bar in `SCOPE.md`: a changed recommendation is a minor bump, a changed answer format or a removed section is a major one.
 
+## 1.1.2 — 2026-09-11
+
+No routing recommendation changed.
+
+- **The skill counts effort changes as cache breaks.** Claude Code's prompt caching docs give each effort level its own cache on most models, so raising effort on a warm context re-processes it just as a model switch does. The skill said only the model cache mattered, and a measured 1.1.1 route said an effort change "doesn't touch the cache". It now covers both, notes that Fable 5.1 on an API key or subscription keeps its cache across effort changes, and says a change straight after `/clear` costs what a new session costs. The escalation advice, the phase-boundary protocol and the answer format follow suit, as do the reference, the guide and the README.
+- **Where a route pays for itself.** `bench/breakeven.mjs` draws `docs/breakeven.svg` from the published runs: what each setting cost on the bench's tasks, what a route costs from Sonnet 5 at medium, Opus 5 at high and Opus 5 at xhigh, and the task sizes below which a route costs more than it saves. CI runs its `--check`, which also fails when `SKILL.md` differs from the text the charted routes ran against.
+- **Figures.** The skill's cost is re-measured on the shipped `SKILL.md` from all three settings: a route in a session already under way costs $0.04, $0.12 and $0.17, and leaves 590 to 889 tokens behind. A second run of 1.1.1 on identical text shows how far a single route's cost moves between runs.
+
 ## 1.1.1 — 2026-09-11
 
 No routing recommendation changed.

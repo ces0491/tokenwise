@@ -8,7 +8,7 @@ Every API call re-sends the whole conversation. Across 137 sessions on one machi
 
 Those are one machine's numbers, dated 11 September 2026. `node bench/context-profile.mjs` produces the same table from your own transcripts, so you can check the shape of it rather than take mine.
 
-Two facts shape the advice. The prompt cache is per model, so a `/model` switch on a warm context re-processes all of it. And nothing can switch the running session's model for you: hooks can nudge or change the next session's settings, but the mid-session switch is your own `/model` and `/effort`.
+Two facts shape the advice. The prompt cache is per model, and on most models per effort level, so a `/model` or `/effort` change on a warm context re-processes all of it. And nothing can switch the running session's model for you: hooks can nudge or change the next session's settings, but the mid-session switch is your own `/model` and `/effort`.
 
 ## What it does
 
@@ -31,17 +31,20 @@ Across 52 graded runs, four of the skill's eight claims were wrong. Debugging an
 
 Pass/fail thresholds were fixed before the results were read (`bench/SCOPE.md`) and the verdicts are computed from them. Full numbers in [docs/findings.md](docs/findings.md), method in [docs/methodology.md](docs/methodology.md), raw runs in `bench/results/`.
 
-Those task costs leave out the skill itself, so its cost is measured separately, on Opus 5 at xhigh effort. Loaded and unused, it adds 122 tokens of context. A route in a session already under way cost $0.155, and the first route left 754 tokens behind, carried on every later call. Routing just before a `/clear` carries nothing, and for a single small chore, asking can cost about what the cheaper model saves.
+Those task costs leave out the skill itself, so its cost is measured separately. Loaded and unused, it adds 122 tokens of context. It runs on your session's model and effort: a route in a session already under way cost $0.04 asked from Sonnet 5 at medium, $0.12 from Opus 5 at high and $0.17 from Opus 5 at xhigh. The first route left 590 to 889 tokens behind, carried on every later call, and routing just before a `/clear` carries nothing. For a single small chore, asking can cost about what the cheaper model saves.
+
+![What each setting cost on the bench's tasks, what a route costs from three settings, and the task sizes where a route pays for itself](docs/breakeven.svg)
 
 ## Checking the figures
 
-Every number above comes from a file in this repository or from a script in it. The first three checks are free and take seconds.
+Every number above comes from a file in this repository or from a script in it. The first four checks are free and take seconds.
 
 ```sh
 git clone https://github.com/ces0491/tokenwise && cd tokenwise
 
 node bench/summarize.mjs --check     # do the published tables follow from the published runs?
-node bench/skill-cost.mjs --compare 1.0.1,1.1.1@1.0.1   # the skill's own cost, from the saved sessions
+node bench/skill-cost.mjs --compare 1.0.1,1.1.2@1.0.1   # the skill's own cost, from the saved sessions
+node bench/breakeven.mjs --check     # does the breakeven chart follow from the saved runs?
 node bench/context-profile.mjs       # the token figures above, against your own transcripts
 node bench/run.mjs --results bench/rerun   # re-run all 57 runs on your account, into a fresh directory
 ```
