@@ -16,6 +16,7 @@ No routing recommendation changed.
   - A run stopped at its budget cap or killed at the timeout counts as a failure, instead of being excluded or retried.
   - C5 compares defect counts, not floating-point recall.
   - Every published grade and verdict is unchanged. `bench/graders.test.mjs` runs in CI with answers and working copies built to game each grader.
+- **Smaller fixes.** The routing-table sync no longer counts a row marked `**Untested**` or `untested` as measured. The demo renders lines containing `%`, and accepts an answer file with CRLF line endings.
 - **Documentation corrected against the data.** Changes include re-run costs quoted from the published runs, ratios recomputed from unrounded medians, the debug hidden tests and review overlay described as they are, and the falsified claims attributed to the skill rather than the routing table.
 
 ## 1.0.0 — 2026-09-09

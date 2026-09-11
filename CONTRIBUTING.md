@@ -25,7 +25,7 @@ claude plugin validate .
 
 A row changes when a graded run says so, not when it reads better. `bench/SCOPE.md` records the pass mark for each claim, fixed before the results were read, and a falsified claim edits `skills/route/SKILL.md` rather than being argued around.
 
-`SKILL.md` is the source for the routing table. `docs/guide.md` carries a generated copy — edit the skill, then run `node scripts/sync-routing-table.mjs` and commit both. A row counts as measured unless its Measured cell opens with "Untested" or "Not separated", so that column is load-bearing: putting evidence there when the bench does not cover the row will quietly flip the guide's flag.
+`SKILL.md` is the source for the routing table. `docs/guide.md` carries a generated copy — edit the skill, then run `node scripts/sync-routing-table.mjs` and commit both. A row counts as measured unless its Measured cell opens with "Untested", "Not separated" or "Not measured" (any case, ignoring markdown emphasis), so that column is load-bearing: putting evidence there when the bench does not cover the row will quietly flip the guide's flag.
 
 Five of the nine rows carry no measurement. Adding evidence for one of them is the most useful contribution available, and it means adding a case rather than editing prose.
 
