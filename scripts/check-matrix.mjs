@@ -1,8 +1,7 @@
 #!/usr/bin/env node
 // Checks that bench/matrix.json, expanded with its replicates, names exactly the runs published in
-// bench/results/runs.jsonl, with the same case, model and effort. The published matrix once held runs the
-// runner could no longer produce: two replicates of a cell the runner refused to replicate. Every other
-// check still passed, because none compared the matrix with the data.
+// bench/results/runs.jsonl, with the same case, model and effort. No other check compares the matrix with the data, so
+// without this one the matrix could name runs the runner cannot produce and every check would still pass.
 //
 //   node scripts/check-matrix.mjs
 

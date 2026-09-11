@@ -1,43 +1,21 @@
 #!/usr/bin/env node
 // The routing table exists twice: skills/route/SKILL.md carries it with the evidence per row, and
-// docs/guide.md carries it with a measured yes/no for a human reading on GitHub. Kept by hand they
-// drift, and they already did once. SKILL.md is the source, since that is the copy Claude reads and
-// the one whose Measured column has to stay honest; the guide's copy is generated from it.
+// docs/guide.md carries it with a measured yes/no for a human reading on GitHub. Kept by hand the two
+// copies drift. SKILL.md is the source, since that is the copy Claude reads and the one whose Measured
+// column has to stay accurate; the guide's copy is generated from it.
 //
 //   node scripts/sync-routing-table.mjs           # rewrite the guide's table
 //   node scripts/sync-routing-table.mjs --check    # exit non-zero if it is out of date
-//
-// A row counts as measured unless its Measured cell opens with "Untested", "Not separated" or "Not
-// measured", the vocabulary for rows the bench did not cover. The match ignores case and leading markdown
-// emphasis, so "**Untested**" or "untested" cannot flip a row to measured.
 
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { SKILL, parseRoutingTable, readLF } from './routing-table.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const SOURCE = path.join(ROOT, 'skills/route/SKILL.md');
 const TARGET = path.join(ROOT, 'docs/guide.md');
 const BEGIN = '<!-- routing-table: generated from skills/route/SKILL.md by scripts/sync-routing-table.mjs -->';
 const END = '<!-- /routing-table -->';
-
-const readLF = (p) => fs.readFileSync(p, 'utf8').replace(/\r\n/g, '\n');
-
-function parseRoutingTable(md) {
-  const section = /^## Routing table$([\s\S]*?)^## /m.exec(md);
-  if (!section) throw new Error('SKILL.md has no "## Routing table" section');
-  const rows = section[1].split('\n').filter((l) => l.startsWith('|'));
-  if (rows.length < 3) throw new Error('routing table has no body rows');
-  const cells = (line) => line.replace(/^\||\|$/g, '').split('|').map((c) => c.trim());
-  const head = cells(rows[0]);
-  if (head.length !== 4) throw new Error(`expected 4 columns in the routing table, got ${head.length}`);
-  return rows.slice(2).map((line) => {
-    const c = cells(line);
-    if (c.length !== 4) throw new Error(`row has ${c.length} cells, expected 4: ${line}`);
-    const [task, start, escalate, measured] = c;
-    return { task, start, escalate, measured, isMeasured: !/^[\s*_`]*(untested|not separated|not measured)(?![a-z])/i.test(measured) };
-  });
-}
 
 const plain = (s) => s.replace(/`/g, '');
 
@@ -53,7 +31,7 @@ function guideTable(rows) {
   return out.join('\n');
 }
 
-const rows = parseRoutingTable(readLF(SOURCE));
+const rows = parseRoutingTable(readLF(SKILL));
 const table = guideTable(rows);
 const guide = readLF(TARGET);
 const block = new RegExp(`${BEGIN.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\n[\\s\\S]*?${END.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`);

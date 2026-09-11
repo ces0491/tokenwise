@@ -12,7 +12,7 @@ export const CASES = path.join(HERE, 'cases');
 
 export function git(dir, ...gitArgs) {
   const r = spawnSync('git', ['-c', 'user.name=bench', '-c', 'user.email=bench@localhost', ...gitArgs], { cwd: dir, encoding: 'utf8' });
-  if (r.status !== 0) throw new Error(`git ${gitArgs.join(' ')} failed: ${r.stderr}`);
+  if (r.status !== 0) throw new Error(`git ${gitArgs.join(' ')} failed: ${r.error?.message || r.stderr || `exit ${r.status}`}`);
   return r.stdout;
 }
 

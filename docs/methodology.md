@@ -10,11 +10,11 @@ Each row of the routing table says a cheaper model or effort level is enough for
 
 `bench/fixture` is a small invoicing library: seven modules, 29 tests, no dependencies, Node's own test runner. Integer cents throughout, VAT once on the invoice net, discounts applied in order, CSV import, monthly reports. It was written for this bench rather than taken from a real project, so the tasks below could be planted precisely and the answers known in advance.
 
-Its size is a limitation, stated here because it bounds every result: context per turn peaks at 52K tokens, so nothing here exercises the long-context regime where cache reads dominate. The observational figures in `../skills/route/reference.md` cover that.
+Its size bounds every result: no graded run averaged more than 52K tokens of context per turn, so nothing here exercises the long-context regime, over 100K tokens per call. The observational figures in `../skills/route/reference.md` cover that.
 
 ## Five tasks, five graders
 
-Each case is a task with an objective grader. Each grader checks a stated fact about the result.
+Each case pairs a task with a grader that checks a stated fact about the result.
 
 | Case | Task | Grader |
 | --- | --- | --- |
@@ -32,7 +32,7 @@ Three details make the graders harder to game.
 
 **The review diff passes its own test suite.** All 29 visible tests are green with the defects in place, because the CSV defect arrives with a deleted assertion and a trimmed round-trip test that used to catch it. A reviewer cannot find the bugs by running the tests. The diff also carries a behaviour-preserving refactor in `money.js`, which a reviewer should leave alone.
 
-Every grader was validated before the matrix ran: a reference solution passes the hidden implement tests; the planted debug defect fails exactly one visible and three hidden tests, and the fixture passes those same hidden tests unmodified; each of the five review defects was reproduced with a concrete input.
+The implement, debug and review graders were validated before the matrix ran, and `bench/graders.test.mjs` repeats the implement and debug checks in CI: a reference solution passes the hidden implement tests; the planted debug defect fails exactly one visible and three hidden tests, and the fixture passes those same hidden tests unmodified; each of the five review defects was reproduced with a concrete input.
 
 The review grader is the only one that reads prose. It splits an answer into findings, each starting on a line that leads with a code file:line reference, which the prompt asks for and every saved answer gives. A defect counts as found when a finding on its file contains one of the defect's patterns, and a finding that matches no planted defect counts as a false positive. The patterns name the mechanism of each defect, such as `<=`, `Math.round` or a newline, rather than words any mention of the file might use. `bench/results/hand-grades.json` records a hand reading of five answers across the four review cells and decides pass or fail for the runs it covers. `bench/graders.test.mjs` holds answers built to game the grader: file names next to vague words, one finding credited for two defects, fabricated findings. It also checks that every saved answer keeps its grade.
 
@@ -44,7 +44,7 @@ Permissions are bypassed. In an early pilot the permission prompts turned a 16-c
 
 Tokens, cost, turn count and per-model usage come from Claude Code's own JSON result. Cost is its list-price figure, which on a subscription is a weighting for comparison rather than a bill.
 
-A run that hits the account's session limit returns HTTP 429 without attempting its task. The runner marks those invalid and deletes the result file so the next invocation retries them, and `bench/RESULTS.md` lists any still excluded when it is generated. Anyone rerunning this on a subscription will hit the same wall. A run killed at the 25-minute timeout, or stopped by its $6 budget cap, did attempt its task, so it counts as a failure instead. None of the published runs hit either.
+A run that hits the account's session limit returns HTTP 429 without attempting its task. The runner marks those invalid and deletes the result file so the next invocation retries them, and `bench/RESULTS.md` lists any still excluded when it is generated. A re-run on a subscription can hit the same limit. A run killed at the 25-minute timeout, or stopped by its $6 budget cap, did attempt its task, so it counts as a failure instead. None of the published runs hit either.
 
 ## What "done" means, fixed in advance
 
@@ -82,10 +82,10 @@ node bench/run.mjs --results bench/rerun                                   # the
 node bench/summarize.mjs --results bench/rerun --out bench/rerun/RESULTS.md  # the report and verdicts from your runs
 node bench/run.mjs --only <ids>                                            # a subset
 node bench/run.mjs --regrade                                               # re-grade saved review and explore answers
-node --test bench/graders.test.mjs                                         # the graders against cases built to game them
+node --test bench/graders.test.mjs bench/matrix.test.mjs                   # graders against gaming cases; matrix expansion
 node scripts/check-matrix.mjs                                              # matrix.json names exactly the published runs
 node scripts/check-models.mjs --live                                       # whether each alias still resolves to its measured model
-node bench/skill-cost.mjs --compare 1.0.1,1.1.0-inline@1.0.1,1.1.0@1.0.1    # what routing itself costs, from the saved sessions
+node bench/skill-cost.mjs --compare 1.0.1,1.1.0-inline@1.0.1,1.1.1@1.0.1    # what routing itself costs, from the saved sessions
 node bench/skill-cost.mjs --label <name> --sessions invoked,unprompted     # measure the current skill; about $1 at list price
 node bench/context-profile.mjs                                             # the observational table in skills/route/reference.md
 ```

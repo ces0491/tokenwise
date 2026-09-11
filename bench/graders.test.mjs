@@ -7,7 +7,8 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { FIXTURE, git, gradeChore, gradePlan, gradeReview, runTests } from './graders.mjs';
+import { CASES, FIXTURE, git, gradeChore, gradePlan, gradeReview, gradeTests, runTests } from './graders.mjs';
+import { loadRuns } from './records.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const RESULTS = path.join(HERE, 'results');
@@ -30,6 +31,40 @@ function renameEverywhere(dir) {
   };
   for (const rel of ['src', 'test', 'README.md']) walk(path.join(dir, rel));
 }
+
+// ---- implement and debug -------------------------------------------------------------------------
+
+// The fixture with a case's files copied over it, as the runner prepares a working copy.
+function caseCopy(t, ...dirs) {
+  const dir = fixtureCopy(t);
+  for (const d of dirs) fs.cpSync(path.join(CASES, d), dir, { recursive: true, force: true });
+  return dir;
+}
+
+test('implement: the reference solution passes the original and hidden tests', (t) => {
+  const g = gradeTests({}, caseCopy(t, 'implement/overlay', 'implement/reference'), { hidden: 'implement', restoreTests: true });
+  assert.equal(g.pass_all, true, JSON.stringify(g));
+  assert.equal(g.tests, 37);
+});
+
+test('implement: the fixture without an implementation fails the hidden tests', (t) => {
+  const g = gradeTests({}, caseCopy(t, 'implement/overlay'), { hidden: 'implement', restoreTests: true });
+  assert.equal(g.pass_all, false);
+  assert.ok(g.fail > 0);
+});
+
+test('debug: the planted defect fails one visible and three hidden tests', (t) => {
+  const dir = caseCopy(t, 'debug/overlay');
+  assert.equal(runTests(dir).fail, 1);
+  const g = gradeTests({}, dir, { hidden: 'debug', restoreTests: true });
+  assert.equal(g.fail, 4);
+  assert.equal(g.pass_all, false);
+});
+
+test('debug: the unmodified fixture passes the hidden tests', (t) => {
+  const g = gradeTests({}, fixtureCopy(t), { hidden: 'debug', restoreTests: true });
+  assert.equal(g.pass_all, true, JSON.stringify(g));
+});
 
 // ---- runTests ------------------------------------------------------------------------------------
 
@@ -104,14 +139,11 @@ test('chore: an old name left in the README fails', (t) => {
 const answer = (id) => fs.readFileSync(path.join(RESULTS, `${id}.answer.md`), 'utf8');
 
 test('review: every saved answer keeps its published grade', () => {
-  const published = {
-    'review-fable-high': [5, 0], 'review-opus-high': [5, 0], 'review-opus-high#2': [5, 0], 'review-opus-high#3': [5, 0],
-    'review-opus-low': [5, 0], 'review-opus-low#2': [5, 0], 'review-opus-low#3': [5, 0],
-    'review-sonnet-high': [4, 0], 'review-sonnet-high#2': [4, 0], 'review-sonnet-high#3': [5, 0],
-  };
-  for (const [id, [found, fp]] of Object.entries(published)) {
-    const g = gradeReview({}, null, answer(id));
-    assert.deepEqual([g.found.length, g.falsePositives], [found, fp], id);
+  const published = loadRuns(path.join(RESULTS, 'runs.jsonl')).filter((r) => r.case === 'review');
+  assert.ok(published.length > 0);
+  for (const r of published) {
+    const g = gradeReview({}, null, answer(r.id));
+    assert.deepEqual([[...g.found].sort(), g.falsePositives], [[...r.grade.found].sort(), r.grade.falsePositives], r.id);
   }
 });
 

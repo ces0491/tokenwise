@@ -39,14 +39,15 @@ import path from 'node:path';
 import os from 'node:os';
 import { spawn, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { parseArgs } from './args.mjs';
 import { MATRIX, cellOf, expandRuns, loadMatrix, selectForModels, usesModel } from './matrix.mjs';
 import { CASES, DIR_GRADERS, FIXTURE, git, grade } from './graders.mjs';
-import { loadRuns } from './records.mjs';
+import { isInvalid, loadRuns } from './records.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const CLAUDE = process.env.CLAUDE_BIN || 'claude';
 
-const args = parseArgs(process.argv.slice(2));
+const args = parseArgs();
 const RESULTS = args.results ? path.resolve(args.results) : path.join(HERE, 'results');
 const matrix = loadMatrix(args.matrix ? path.resolve(args.matrix) : MATRIX);
 const RUNS_ROOT = args['runs-root'] ? path.resolve(args['runs-root']) : path.join(os.tmpdir(), 'tokenwise-bench');
@@ -59,18 +60,6 @@ fs.mkdirSync(RUNS_ROOT, { recursive: true });
 const VERSION = (spawnSync(CLAUDE, ['--version'], { encoding: 'utf8' }).stdout || '').trim();
 
 // ---- helpers ---------------------------------------------------------------
-
-function parseArgs(argv) {
-  const out = { _: [] };
-  for (let i = 0; i < argv.length; i++) {
-    const a = argv[i];
-    if (a.startsWith('--')) {
-      const next = argv[i + 1];
-      if (next !== undefined && !next.startsWith('--')) { out[a.slice(2)] = next; i++; } else out[a.slice(2)] = true;
-    } else out._.push(a);
-  }
-  return out;
-}
 
 const log = (...m) => process.stdout.write(`[${new Date().toISOString().slice(11, 19)}] ${m.join(' ')}\n`);
 
@@ -152,9 +141,9 @@ function metrics(result, elapsedMs) {
   if (!result) return { error: 'no result JSON', wall_ms: elapsedMs };
   const u = result.usage || {};
   const context = (u.input_tokens || 0) + (u.cache_creation_input_tokens || 0) + (u.cache_read_input_tokens || 0);
-  const models = {};
+  const perModel = {};
   for (const [m, v] of Object.entries(result.modelUsage || {})) {
-    models[m] = { input: v.inputTokens, output: v.outputTokens, cache_read: v.cacheReadInputTokens, cache_write: v.cacheCreationInputTokens, thinking: v.thinkingTokens, usd: v.costUSD };
+    perModel[m] = { input: v.inputTokens, output: v.outputTokens, cache_read: v.cacheReadInputTokens, cache_write: v.cacheCreationInputTokens, thinking: v.thinkingTokens, usd: v.costUSD };
   }
   return {
     usd: result.total_cost_usd,
@@ -170,20 +159,22 @@ function metrics(result, elapsedMs) {
     denials: (result.permission_denials || []).length,
     is_error: !!result.is_error,
     terminal_reason: result.terminal_reason,
+    api_error_status: result.api_error_status ?? null,
     api_ms: result.duration_api_ms,
     wall_ms: elapsedMs,
-    models,
+    models: perModel,
   };
 }
 
 // ---- execution ----------------------------------------------------------------
 
+// Resolves to 'ok', 'invalid' or 'dry'; throws if the run could not be prepared or recorded.
 async function execute(run) {
   const started = Date.now();
   const dir = prepareDir(run);
   const prompt = promptFor(run);
   log(`start ${run.id} (${run.model}${run.effort ? ` ${run.effort}` : ''}) in ${dir}`);
-  if (args.dry) { log(`  ${CLAUDE} ${claudeArgs(run).join(' ')}`); return; }
+  if (args.dry) { log(`  ${CLAUDE} ${claudeArgs(run).join(' ')}`); return 'dry'; }
   const { code, stdout, stderr, timedOut } = await runClaude(run, dir, prompt);
   const result = parseResult(stdout);
   if (result) fs.writeFileSync(path.join(RESULTS, `${run.id}.json`), JSON.stringify(result, null, 1));
@@ -192,28 +183,30 @@ async function execute(run) {
   // instead of retrying it: it attempted the task and is recorded as a failure.
   if (timedOut && !result) fs.writeFileSync(path.join(RESULTS, `${run.id}.json`), `${JSON.stringify({ timedOut: true, exit: code }, null, 1)}\n`);
   if (result?.result) fs.writeFileSync(path.join(RESULTS, `${run.id}.answer.md`), String(result.result));
-  // A run killed by a usage limit or other API error never attempted the task. Mark it invalid so it
-  // is excluded from results and re-run next time, rather than scored as a failure.
-  const invalid = !timedOut && (result ? (result.terminal_reason === 'api_error' || result.api_error_status != null) : true);
+  // A run killed by a usage limit or other API error never attempted the task. records.mjs decides that for the
+  // report too; an invalid run is excluded from results and re-run next time, rather than scored as a failure.
+  const m = metrics(result, Date.now() - started);
+  const invalid = isInvalid({ timedOut, metrics: m });
   let g = {};
   if (timedOut) g = { pass_all: false, timedOut: true };
   else if (!invalid) { try { g = grade(run, dir, result, matrix); } catch (e) { g = { gradeError: String(e?.message || e) }; } }
   const record = {
     invalid: invalid || undefined,
-    invalidReason: invalid ? (result ? `${result.api_error_status ?? result.terminal_reason}: ${String(result.result || '').slice(0, 120)}` : `no result JSON (exit ${code}${timedOut ? ', timeout' : ''})`) : undefined,
+    invalidReason: invalid ? (result ? `${result.api_error_status ?? result.terminal_reason}: ${String(result.result || '').slice(0, 120)}` : `no result JSON (exit ${code})`) : undefined,
     id: run.id, case: run.case ?? null, model: run.model, effort: run.effort ?? null, env: run.env ?? null,
     prompt: run.prompt ?? (run.promptText ? 'inline' : 'prompt.md'), resumeFrom: run.resumeFrom ?? null, dirFrom: run.dirFrom ?? null,
     started: new Date(started).toISOString(), finished: new Date().toISOString(), claude_version: VERSION,
-    exit: code, timedOut, metrics: metrics(result, Date.now() - started), grade: g,
+    exit: code, timedOut, metrics: m, grade: g,
   };
   fs.appendFileSync(path.join(RESULTS, 'runs.jsonl'), `${JSON.stringify(record)}\n`);
   if (invalid) {
-    fs.rmSync(path.join(RESULTS, `${run.id}.json`), { force: true }); // so the run is retried, not skipped
+    // Removed so the run is retried rather than skipped, and so no answer from a run that never happened is left behind.
+    for (const f of [`${run.id}.json`, `${run.id}.answer.md`]) fs.rmSync(path.join(RESULTS, f), { force: true });
     log(`INVALID ${run.id}: ${record.invalidReason}`);
-    return;
+    return 'invalid';
   }
-  const m = record.metrics;
   log(`done  ${run.id}: $${(m.usd ?? 0).toFixed(2)} ${m.calls ?? '?'} calls ctx/call ${m.ctx_per_call ?? '?'} out ${m.output ?? '?'} grade ${JSON.stringify(g)}`);
+  return 'ok';
 }
 
 // Only graders that read the saved answer can re-grade a published run. The others read the working copy,
@@ -254,31 +247,50 @@ async function main() {
     const unknown = [...only].filter((id) => !selected.some((r) => r.id === id || cellOf(r.id) === id));
     if (unknown.length) { log(`no run in the matrix matches: ${unknown.join(', ')}`); process.exitCode = 1; return; }
   }
-  const done = new Set();
+  const succeeded = new Set();
+  const finished = new Set();
+  const failed = new Set();
   const skip = new Set();
   for (const r of selected) {
-    if (!args.force && fs.existsSync(path.join(RESULTS, `${r.id}.json`))) { skip.add(r.id); done.add(r.id); }
+    if (!args.force && fs.existsSync(path.join(RESULTS, `${r.id}.json`))) { skip.add(r.id); succeeded.add(r.id); finished.add(r.id); }
   }
   if (skip.size) log(`skipping ${skip.size} run(s) with existing results (use --force to rerun)`);
   const pending = selected.filter((r) => !skip.has(r.id));
-  // dirFrom / resumeFrom need the other run's output; `after` only orders runs (used by the cache test). A
-  // dependency that this invocation is about to re-run has to finish first: with --force its old result file is
-  // still on disk, and a resume would otherwise pick up the old session.
+  // dirFrom and resumeFrom need the other run's output, so that run has to have succeeded; `after` only orders runs
+  // (the cache test), so it only has to have finished. A dependency this invocation is about to re-run has to finish
+  // first: with --force its old result file is still on disk, and a resume would otherwise pick up the old session.
   const scheduled = new Set(pending.map((r) => r.id));
-  const depsMet = (r) => [r.dirFrom, r.resumeFrom, r.after].filter(Boolean)
-    .every((d) => done.has(d) || (!scheduled.has(d) && fs.existsSync(path.join(RESULTS, `${d}.json`))));
+  const onDisk = (d) => !scheduled.has(d) && fs.existsSync(path.join(RESULTS, `${d}.json`));
+  const needs = (r) => [r.dirFrom, r.resumeFrom].filter(Boolean);
+  const depsMet = (r) => needs(r).every((d) => succeeded.has(d) || onDisk(d)) && (!r.after || finished.has(r.after) || onDisk(r.after));
+  const blocked = (r) => needs(r).some((d) => scheduled.has(d) && finished.has(d) && !succeeded.has(d));
   const active = new Map();
   while (pending.length || active.size) {
+    for (let i = pending.length - 1; i >= 0; i--) {
+      if (!blocked(pending[i])) continue;
+      const [run] = pending.splice(i, 1);
+      log(`NOT RUN ${run.id}: ${needs(run).filter((d) => !succeeded.has(d)).join(', ')} did not succeed`);
+      failed.add(run.id); finished.add(run.id); scheduled.delete(run.id);
+    }
     while (active.size < concurrency) {
       const i = pending.findIndex(depsMet);
       if (i < 0) break;
       const [run] = pending.splice(i, 1);
-      active.set(run.id, execute(run).catch((e) => log(`FAILED ${run.id}: ${e?.stack || e}`)).then(() => { done.add(run.id); active.delete(run.id); }));
+      active.set(run.id, execute(run)
+        .then((status) => { if (status === 'invalid') failed.add(run.id); else succeeded.add(run.id); })
+        .catch((e) => { failed.add(run.id); log(`FAILED ${run.id}: ${e?.stack || e}`); })
+        .then(() => { finished.add(run.id); active.delete(run.id); }));
     }
-    if (!active.size) { if (pending.length) log(`unmet dependencies for: ${pending.map((r) => r.id).join(', ')}`); break; }
+    if (!active.size) {
+      if (pending.length) { log(`unmet dependencies for: ${pending.map((r) => r.id).join(', ')}`); for (const r of pending) failed.add(r.id); }
+      break;
+    }
     await Promise.race(active.values());
   }
-  log('all done');
+  if (failed.size) {
+    process.exitCode = 1;
+    log(`finished with ${failed.size} run(s) failed, invalid or not run: ${[...failed].join(', ')}`);
+  } else log('all done');
 }
 
 main();

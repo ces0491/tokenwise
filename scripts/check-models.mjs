@@ -22,6 +22,7 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { expandRuns, loadMatrix } from '../bench/matrix.mjs';
 import { loadRuns } from '../bench/records.mjs';
+import { parseRoutingTable } from './routing-table.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DOCS = ['skills/route/SKILL.md', 'docs/guide.md', 'docs/findings.md'];
@@ -74,14 +75,6 @@ if (fail.length) {
   process.exit(1);
 }
 
-function routingRows() {
-  const md = fs.readFileSync(path.join(ROOT, 'skills', 'route', 'SKILL.md'), 'utf8').replace(/\r\n/g, '\n');
-  const section = /^## Routing table$([\s\S]*?)^## /m.exec(md)?.[1] || '';
-  return section.split('\n').filter((l) => l.startsWith('|')).slice(2)
-    .map((l) => l.replace(/^\||\|$/g, '').split('|').map((c) => c.trim()))
-    .map(([task, start, escalate]) => ({ task, start, escalate }));
-}
-
 const CLAUDE = process.env.CLAUDE_BIN || 'claude';
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'tokenwise-models-'));
 let spent = 0;
@@ -114,7 +107,7 @@ if (!moved.length) {
   process.exit(0);
 }
 process.stdout.write(`\n${moved.join(', ')} no longer resolve to the measured model. Rows that start or escalate on them:\n`);
-for (const row of routingRows()) {
+for (const row of parseRoutingTable()) {
   const on = moved.filter((a) => new RegExp(`\\b${a}\\b`).test(`${row.start} ${row.escalate}`));
   if (on.length) process.stdout.write(`  - ${row.task} (${on.join(', ')})\n`);
 }

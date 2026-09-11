@@ -16,9 +16,9 @@ jobs:
   checks:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: '24'
 
@@ -30,7 +30,7 @@ jobs:
         run: node --test bench/graders.test.mjs bench/matrix.test.mjs
 
       - name: Markdown lint
-        run: npx --yes markdownlint-cli@0.47.0 '*.md' 'docs/*.md' 'bench/*.md' 'skills/route/*.md' --config .markdownlint.json
+        run: npx --yes markdownlint-cli@0.49.1 '*.md' 'docs/*.md' 'bench/*.md' 'skills/route/*.md' --config .markdownlint.json
 
       - name: Report matches the run data
         run: node bench/summarize.mjs --check
@@ -50,9 +50,10 @@ jobs:
       # The real schema check. It needs the CLI installed but no account — verified working on an
       # unauthenticated runner — so it runs last, under a timeout in case a future version starts
       # asking for credentials. It validates the marketplace manifest only, which is why
-      # check-manifests.mjs runs alongside it rather than being replaced by it.
+      # check-manifests.mjs runs alongside it. The CLI is pinned so a new release cannot change the
+      # result between two runs of the same commit; bump it deliberately.
       - name: claude plugin validate
         timeout-minutes: 3
         run: |
-          npm install -g @anthropic-ai/claude-code
+          npm install -g @anthropic-ai/claude-code@2.1.268
           claude plugin validate .

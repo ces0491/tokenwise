@@ -1,15 +1,15 @@
 # Contributing
 
-`SCOPE.md` sets the bar and says what this project is for. The short version: the routing table is advice with evidence behind it, and every figure in the repository has to be one a reader can recompute. Most of what follows exists to keep that true.
+`SCOPE.md` sets the bar and says what this project is for. The routing table is advice with evidence behind it, and every figure in the repository has to be one a reader can recompute.
 
 ## Before you open a pull request
 
-Everything runs offline against committed files. No Claude account, no bench runs, no dependencies beyond Node.
+Everything below runs offline against committed files, needs only Node, and spends nothing.
 
 ```sh
 cd bench/fixture && node --test 'test/**/*.test.js' && cd ../..
 node --test bench/graders.test.mjs bench/matrix.test.mjs   # graders against gaming cases; matrix expansion and --models
-npx markdownlint-cli@0.47.0 '*.md' 'docs/*.md' 'bench/*.md' 'skills/route/*.md' --config .markdownlint.json
+npx markdownlint-cli@0.49.1 '*.md' 'docs/*.md' 'bench/*.md' 'skills/route/*.md' --config .markdownlint.json
 node bench/summarize.mjs --check       # RESULTS.md still follows from results/runs.jsonl
 node scripts/check-matrix.mjs          # matrix.json expands to exactly the published runs
 node scripts/check-models.mjs          # the docs name exactly the models the published runs used
@@ -18,17 +18,17 @@ node scripts/sync-routing-table.mjs --check
 claude plugin validate .
 ```
 
-`.github/workflows/checks.yml` runs all of these on every pull request, so a green build means you have not broken any of them. What it cannot check is whether the prose still matches the runs. That is a reading, and it is the one that has gone wrong before.
+`.github/workflows/checks.yml` runs all of these on every pull request, so a green build means you have not broken any of them. What it cannot check is whether the prose still matches the runs. That needs someone to read the docs against `bench/RESULTS.md`.
 
 `main` is protected: it takes a pull request with those checks green, and no direct pushes.
 
 ## Changing a routing row
 
-A row changes when a graded run says so, not when it reads better. `bench/SCOPE.md` records the pass mark for each claim, fixed before the results were read, and a falsified claim edits `skills/route/SKILL.md` rather than being argued around.
+A row changes when a graded run says so. `bench/SCOPE.md` records the pass mark for each claim, fixed before the results were read, and a falsified claim changes `skills/route/SKILL.md`.
 
-`SKILL.md` is the source for the routing table. `docs/guide.md` carries a generated copy — edit the skill, then run `node scripts/sync-routing-table.mjs` and commit both. A row counts as measured unless its Measured cell opens with "Untested", "Not separated" or "Not measured" (any case, ignoring markdown emphasis), so that column is load-bearing: putting evidence there when the bench does not cover the row will quietly flip the guide's flag.
+`SKILL.md` is the source for the routing table. `docs/guide.md` carries a generated copy — edit the skill, then run `node scripts/sync-routing-table.mjs` and commit both. A row counts as measured unless its Measured cell opens with "Untested", "Not separated" or "Not measured" (any case, ignoring markdown emphasis), so evidence written into that cell for a row the bench does not cover flips the guide's flag to yes.
 
-Five of the nine rows carry no measurement. Adding evidence for one of them is the most useful contribution available, and it means adding a case rather than editing prose.
+Five of the nine rows carry no measurement. Evidence for one of them needs a new bench case.
 
 ## Changing the skill's text
 
@@ -48,7 +48,7 @@ A case is a task with a grader that checks a fact. No grader reads for quality.
 1. Add a directory under `bench/cases/<name>/` with `prompt.md`, and whichever of `overlay/` (files copied over the fixture), `hidden/` (tests copied in after the run) and `expected.json` the grader needs.
 2. Register it in `bench/matrix.json` under `cases`, with the grader it uses, then add runs to the `runs` array. Give a run `"repeat": 3` when its cell decides a verdict, so the matrix records the cell's size and a re-run reproduces it.
 3. If it needs a grader that does not exist, add one to `bench/graders.mjs` and dispatch it from `grade()`. A grader that reads the working copy cannot be re-graded later, since the copy is not kept; one that reads the saved answer can.
-4. Validate the grader before running the matrix: confirm a reference solution passes, and that the planted defect actually fails the tests you expect it to fail. Then add cases to `bench/graders.test.mjs` for the ways a run could pass without doing the task. A grader that passes everything measures nothing.
+4. Validate the grader before running the matrix: confirm a reference solution passes, and that the planted defect actually fails the tests you expect it to fail. Then add cases to `bench/graders.test.mjs` for the ways a run could pass without doing the task.
 5. Write the pass mark into `bench/SCOPE.md` **before** looking at results, along with what changes in the skill if the claim fails.
 
 ```sh
@@ -61,7 +61,7 @@ Runs cost real money on your own account. The published runs cost $28.47 at list
 
 ## Changing an instrument after seeing data
 
-Sometimes a grader turns out to be wrong. That is allowed, and it has happened repeatedly here. Doing it silently is not.
+Graders and criteria can change after data has been seen, and several have.
 
 Record the change in `bench/SCOPE.md`'s revision history with the date, what changed, why, and what it did to the verdicts. Then re-grade and say whether any verdict moved:
 
@@ -71,7 +71,7 @@ node bench/run.mjs --regrade && node bench/summarize.mjs
 
 `--regrade` reaches the review and explore graders, which read saved answers. A change to the tests, chore or plan grader cannot be re-applied to published runs, so the revision history has to say what evidence there is instead, or that there is none.
 
-An instrument tightened after publication that moves no verdict is worth having. One that moves a verdict needs the move stated in `docs/findings.md`, not just in the history.
+If a change moves a verdict, state the move in `docs/findings.md` as well as the revision history.
 
 ## When Anthropic releases or retires a model
 
@@ -126,7 +126,7 @@ No number in this repository should be one a reader cannot recompute. In practic
 
 If a number cannot be produced either way, it comes out rather than being softened. A specific number invented for emphasis borrows an authority it has not earned, and it breaks the moment anything downstream refers back to it.
 
-Documentation is part of the change, not a follow-up: the README, guide, findings, methodology and reference move in the same commit as the data they describe.
+The README, guide, findings, methodology and reference move in the same commit as the data they describe.
 
 ## Releases
 
@@ -134,7 +134,7 @@ Documentation is part of the change, not a follow-up: the README, guide, finding
 
 1. Run `node scripts/check-models.mjs --live`. A release shipped after an alias moved should say so, or re-measure first.
 2. Bump `version` in `.claude-plugin/plugin.json`.
-3. Add the entry to `CHANGELOG.md`. `check-manifests.mjs` fails if the newest heading and `plugin.json` disagree, which is a check that exists because they once did.
+3. Add the entry to `CHANGELOG.md`. `check-manifests.mjs` fails if the newest heading and `plugin.json` disagree.
 4. Merge, then `claude plugin tag --push -m 'tokenwise %s'` from a clean `main`.
 
 ## The demo
@@ -143,4 +143,4 @@ Documentation is part of the change, not a follow-up: the README, guide, finding
 
 ## Reporting something wrong
 
-A figure that does not reproduce is the most useful bug report this project can get. Include the command you ran and what it printed. A disagreement with a recommendation is more useful with a task the bench could grade than with an argument about it.
+To report a figure that does not reproduce, include the command you ran and what it printed. A disagreement with a recommendation lands best with a task the bench could grade.

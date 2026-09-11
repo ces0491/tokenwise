@@ -1,6 +1,6 @@
 # Using tokenwise
 
-The plugin adds one skill, with nothing to configure. This guide covers what it does, when to reach for it, and the two settings worth changing once.
+The plugin adds one skill. This guide covers what it does, when to reach for it, and two environment variables worth setting once.
 
 ## Install
 
@@ -25,7 +25,7 @@ Claude also runs it without being asked by name when you ask which model or effo
 
 ## What routing costs
 
-The skill runs in its own subagent context. Its text and its reasoning stay there, and only the answer comes back into your conversation, where it is carried on every later call like anything else in context. Measured on Opus 5 at xhigh effort, that answer was 876 tokens, and a route in a session already under way cost $0.136. The numbers are in `findings.md`.
+The skill runs in its own subagent context. Its text and its reasoning stay there, and only the answer comes back into your conversation, where it is carried on every later call like anything else in context. Measured on Opus 5 at xhigh effort, the first route left 754 tokens behind, and a route in a session already under way cost $0.155. The numbers are in `findings.md`.
 
 - Route just before a `/clear`, at a phase boundary, and nothing it returns is carried.
 - For a single small chore, pick Sonnet or Haiku at low effort yourself. On the bench, moving a rename from Opus at xhigh to Sonnet at low saved $0.17, about what asking costs.
@@ -35,7 +35,7 @@ The skill runs in its own subagent context. Its text and its reasoning stay ther
 
 Every API call re-sends the whole conversation. Cost is context size multiplied by the number of calls, plus output, and thinking counts as output. The price of each token depends on the model. Effort doesn't change that price, but it changes how many tokens a task spends: how much Claude thinks, and how many turns it takes, each re-reading the context. That is why a review of a small repository can cost as much as building a feature: the review reads everything into context early, then carries it on every later call.
 
-Two consequences follow. Keep reading out of the main context, and match the model to the work rather than defaulting to the top of the range.
+Keep reading out of the main context, and match the model to the work rather than defaulting to the top of the range.
 
 ## What to run where
 
@@ -65,7 +65,7 @@ Anthropic's rule: if Claude failed with the context it had, it did not know enou
 
 Raise effort on the model you are on before upgrading the model. Higher effort is not uniformly better: on a code review it bought ten extra turns and 3.3 times the cost for the same findings.
 
-Judge by cost per completed task. A cheaper setting that needs a retry is not cheaper.
+Judge by cost per completed task, which counts the retries a cheaper setting needs.
 
 ## Switching mid-session
 
@@ -79,11 +79,11 @@ Switch at a phase boundary:
 4. `/model sonnet` then `/effort medium`.
 5. Start from the file.
 
-A switch on a cleared context costs nothing. On a warm 300K context it re-processes 300K tokens.
+A switch on a cleared context costs nothing.
 
-Splitting work across sessions is about the cache, not about saving money on the work itself. On a small task, planning on Opus and implementing on Sonnet cost more than one Opus session, because the plan has to be written, read and paid for. Split when the phases are long enough that carrying the first one's context through the second would cost more than rebuilding it.
+Split work across sessions so a model change does not re-process a warm cache. On a small task, planning on Opus and implementing on Sonnet cost more than one Opus session, because the plan has to be written, read and paid for. Split when the phases are long enough that carrying the first one's context through the second would cost more than rebuilding it.
 
-## Two settings worth changing
+## Two environment variables worth setting
 
 ```text
 CLAUDE_CODE_SUBAGENT_MODEL=haiku
@@ -94,12 +94,12 @@ Requires Claude Code 2.1.257 or later. Without the second variable, the built-in
 
 Subagent tokens still count against your usage. Delegation moves reading to a cheaper model in a context that gets thrown away.
 
-## Habits that matter more than model choice
+## Other habits
 
 - `/clear` between unrelated tasks. Stale context is charged on every later message.
 - Delegate test runs, log reading and documentation fetching so the verbose output stays out of your context.
 - Grep before you read whole files.
-- Screenshots are expensive and permanent. A 1024-pixel image is about 1.4K tokens and is re-sent on every later call.
+- A screenshot stays in context until `/clear`. A 1024-pixel image is about 1.4K tokens and is re-sent on every later call.
 - Bulk labelling or extraction belongs in a script. Each item is seen once, on a cheap model, and the Batch API halves the price.
 
 ## Checking your own usage

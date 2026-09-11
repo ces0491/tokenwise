@@ -1,4 +1,6 @@
 bench/results/*.log
+# Written when a run leaves no result, for diagnosing it locally.
+bench/results/*.error.txt
 
 # A reproduction of the matrix (node bench/run.mjs --results bench/rerun) stays local.
 bench/rerun/

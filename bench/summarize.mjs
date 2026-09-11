@@ -8,20 +8,25 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { parseArgs } from './args.mjs';
+import { cellOf } from './matrix.mjs';
 import { isInvalid, loadRecords, stoppedEarly } from './records.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
-const argOf = (name) => (process.argv.includes(name) ? path.resolve(process.argv[process.argv.indexOf(name) + 1]) : null);
-const RESULTS = argOf('--results') ?? path.join(HERE, 'results');
+const args = parseArgs();
+const RESULTS = typeof args.results === 'string' ? path.resolve(args.results) : path.join(HERE, 'results');
 const src = path.join(RESULTS, 'runs.jsonl');
-const outPath = argOf('--out') ?? path.join(HERE, 'RESULTS.md');
+const outPath = typeof args.out === 'string' ? path.resolve(args.out) : path.join(HERE, 'RESULTS.md');
+
+// The review case's planted defects, and the SCOPE.md pass mark: at least four of five found.
+const DEFECTS = JSON.parse(fs.readFileSync(path.join(HERE, 'cases', 'review', 'expected.json'), 'utf8')).defects.length;
+const PASS_FOUND = Math.ceil(0.8 * DEFECTS);
 
 // ---- load: last record per run id, then group replicates (id#2, id#3) into cells ---------------
 
 const allRecords = loadRecords(src);
 const invalidRuns = allRecords.filter(isInvalid);
 const runs = allRecords.filter((r) => !isInvalid(r));
-const cellOf = (id) => id.replace(/#\d+$/, '');
 const cells = new Map();
 for (const r of runs) {
   const key = cellOf(r.id);
@@ -32,15 +37,16 @@ for (const r of runs) {
 // ---- pass definition (from SCOPE.md) -----------------------------------------------------------
 
 // Hand grades (results/hand-grades.json) override the keyword grader for the review runs they cover.
+// A results directory without the file has no hand grades; a file that does not parse is an error, not an absence.
 let HAND = {};
-try { HAND = JSON.parse(fs.readFileSync(path.join(RESULTS, 'hand-grades.json'), 'utf8')); } catch { /* none */ }
+try { HAND = JSON.parse(fs.readFileSync(path.join(RESULTS, 'hand-grades.json'), 'utf8')); } catch (e) { if (e.code !== 'ENOENT') throw e; }
 const handOf = (r) => (HAND[r.id] && typeof HAND[r.id] === 'object' ? HAND[r.id] : null);
 
 // found is a count of planted defects, so verdicts compare whole numbers rather than recall fractions:
 // 0.4 + 0.2 is not 0.6 in floating point, and a threshold of "one more defect" has to survive that.
 function reviewScore(r) {
   const h = handOf(r);
-  if (h) return { found: h.recall, recall: h.recall / 5, fp: h.fp, source: 'hand' };
+  if (h) return { found: h.recall, recall: h.recall / DEFECTS, fp: h.fp, source: 'hand' };
   const g = r.grade || {};
   return { found: g.found?.length, recall: g.recall, fp: g.falsePositives, source: 'grader' };
 }
@@ -48,7 +54,7 @@ function reviewScore(r) {
 function passed(r) {
   const g = r.grade || {};
   if (g.gradeError || stoppedEarly(r)) return false;
-  if ('recall' in g) { const sc = reviewScore(r); return sc.recall >= 0.8 && sc.fp <= 2; }
+  if ('recall' in g) { const sc = reviewScore(r); return sc.found >= PASS_FOUND && sc.fp <= 2; }
   if ('pass_all' in g) return !!g.pass_all;
   return false;
 }
@@ -89,7 +95,7 @@ function gradeText(r) {
   if (g.gradeError) return 'grade error';
   if ('recall' in g) {
     const h = handOf(r);
-    return `grader: recall ${g.found.length}/5, FP ${g.falsePositives}${h ? `; hand: recall ${h.recall}/5, FP ${h.fp}` : ''}`;
+    return `grader: recall ${g.found.length}/${DEFECTS}, FP ${g.falsePositives}${h ? `; hand: recall ${h.recall}/${DEFECTS}, FP ${h.fp}` : ''}`;
   }
   if ('dependentsNamed' in g) return g.pass_all ? 'pass' : `fail (missing ${g.missingMust.join(',') || 'none'}, deps ${g.dependentsNamed})`;
   if ('planBytes' in g) return g.pass_all ? `plan ${K(g.planBytes)}B` : `fail (code touched: ${g.codeTouched})`;
@@ -180,8 +186,8 @@ function verdicts() {
   if (need('explore-opus-haiku-sub', 'explore-opus-inherit')) {
     const a = s('explore-opus-haiku-sub'); const b = s('explore-opus-inherit');
     // Claude Code makes its own small haiku calls whatever the subagent model is, so the presence of a
-    // haiku key proves nothing. Require the subagent's reading to show: its cache traffic and output are
-    // three orders of magnitude above that floor (175K-527K here, against 15-16 on the inherit runs).
+    // haiku key proves nothing. Require the subagent's reading to show: its cache traffic and output sit far
+    // above that floor (175K-527K here, against 15-16 on the inherit runs).
     const haikuWork = (r) => Object.entries(r.metrics?.models || {})
       .filter(([m]) => m.includes('haiku'))
       .reduce((t, [, v]) => t + (v.output || 0) + (v.cache_read || 0) + (v.cache_write || 0), 0);
@@ -221,25 +227,27 @@ const day = (r) => (r.started || '').slice(0, 10);
 const days = [...new Set(runs.map(day).filter(Boolean))].sort();
 const window = days.length ? (days[0] === days[days.length - 1] ? days[0] : `${days[0]} to ${days[days.length - 1]}`) : 'unknown dates';
 const gradedCount = runs.filter((r) => r.grade && Object.keys(r.grade).length).length;
-parts.push(`Generated ${new Date().toISOString().slice(0, 16).replace('T', ' ')} UTC from ${runs.length} runs (${gradedCount} graded, the rest session resumes with no grader) recorded ${window} on Claude Code ${runs[0]?.claude_version ?? '?'}.\n`);
-// Stated from the data, not written in: a report that says "every run passed" has to stop saying it the
-// day one does not.
+const totalUsd = runs.reduce((t, r) => t + (r.metrics?.usd ?? 0), 0);
+const sessionMinutes = runs.reduce((t, r) => t + (r.metrics?.wall_ms ?? 0), 0) / 60000;
+parts.push(`Generated ${new Date().toISOString().slice(0, 16).replace('T', ' ')} UTC from ${runs.length} runs (${gradedCount} graded, the rest session resumes with no grader) recorded ${window} on Claude Code ${runs[0]?.claude_version ?? '?'}. Together they cost ${usd(totalUsd)} at list price, across ${Math.round(sessionMinutes)} minutes of session time.\n`);
+// Computed from the data, so the sentence changes the day a run fails. The per-turn figure is each graded run's
+// total context divided by its turns; a single resume call is not a graded run.
 const graded = runs.filter((r) => r.grade && Object.keys(r.grade).length);
 const allPassed = graded.length > 0 && graded.every(passed);
-const peakCtx = Math.max(...runs.map((r) => r.metrics?.ctx_per_call ?? 0));
+const peakCtx = Math.max(...graded.map((r) => r.metrics?.ctx_per_call ?? 0));
 const outcomeNote = allPassed
   ? `every graded run passed, so these runs measure cost at equal outcomes. They cannot show where the top model earns its price`
   : `${graded.length - graded.filter(passed).length} of ${graded.length} graded runs failed`;
 parts.push(`## How to read this\n`);
 parts.push([
-  '- **Pass** means the grader for that case said so, nothing softer: all original tests (restored first, so edits to them do not count) plus all hidden tests green for implement and debug; for the chore, the original tests with the rename applied green against the model\'s code, no original test file deleted and no old name left; the required files named for explore; at least 4 of 5 planted defects found with at most 2 findings that match no planted defect for review. A run killed at the timeout or stopped by its budget cap fails.',
+  '- **Pass** means the grader for that case said so, nothing softer: all original tests (restored first, so edits to them do not count) plus all hidden tests green for implement and debug; for the chore, the original tests with the rename applied green against the model\'s code, no original test file deleted and no old name left; the required files named for explore; at least ${PASS_FOUND} of ${DEFECTS} planted defects found with at most 2 findings that match no planted defect for review. A run killed at the timeout or stopped by its budget cap fails.',
   '- **Cost** is the list-price figure Claude Code reports for the run. On a subscription it is a weighting, not a bill.',
-  '- **n** is the number of runs in a cell. With n = 1 a result is an existence proof, not a rate. Cells that decide a verdict are replicated to n = 3 before the verdict is final; until then it is marked provisional.',
+  '- **n** is the number of runs in a cell. With n = 1 a result shows a setting can pass; it gives no rate. A verdict that would flip if one run flipped rests on cells of n = 3, and is marked provisional while it does not. C7 is deterministic and C8\'s cost gap is wide, so both rest on single runs (see SCOPE.md).',
   '- **Cost per completed task** is mean cost divided by pass rate, so a setting that fails one run in three is charged for the retry.',
   '- **turns** is Claude Code\'s `num_turns` for the run, and **ctx/turn** divides the run\'s total context by it. A turn tracks an API call closely without being the same count, so read these columns as how much work the setting did, not as a request tally.',
   '- Differences under about 30% between single runs are noise.',
   '- Review pass/fail uses the hand reading in results/hand-grades.json where one exists; the keyword grader\'s figure is shown beside it. Token columns cover the main session; cost includes subagents.',
-  `- The fixture is small (context per turn peaks at ${K(peakCtx)}) and ${outcomeNote}; the long-context regime is not measured here either. See skills/route/reference.md for that.`,
+  `- The fixture is small (no graded run averaged more than ${K(peakCtx)} of context per turn) and ${outcomeNote}; the long-context regime, over 100K tokens per call, is not measured here either. See skills/route/reference.md for that.`,
 ].join('\n'));
 parts.push('');
 

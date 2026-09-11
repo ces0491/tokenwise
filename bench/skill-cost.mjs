@@ -34,14 +34,19 @@ import crypto from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { spawn, spawnSync } from 'node:child_process';
+import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { parseArgs } from './args.mjs';
+import { FIXTURE, git } from './graders.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '..');
 const BASE = path.join(HERE, 'results', 'skill-cost');
 const CLAUDE = process.env.CLAUDE_BIN || 'claude';
-const argOf = (name, fallback = null) => (process.argv.includes(name) ? process.argv[process.argv.indexOf(name) + 1] : fallback);
+const args = parseArgs();
+// Each session's spending cap and time limit, recorded in its transcript.
+const BUDGET_USD = 2;
+const TIMEOUT_MINUTES = 20;
 
 const SESSIONS = [
   { id: 'no-plugin', plugin: false, messages: ['Reply with OK.'] },
@@ -105,7 +110,7 @@ function session(args, cwd, messages) {
     let buffered = '';
     let sent = 0;
     const send = () => { child.stdin.write(`${JSON.stringify({ type: 'user', message: { role: 'user', content: messages[sent++] } })}\n`); };
-    const timer = setTimeout(() => child.kill(), 20 * 60_000);
+    const timer = setTimeout(() => child.kill(), TIMEOUT_MINUTES * 60_000);
     child.stdout.on('data', (d) => {
       stdout += d;
       buffered += d;
@@ -146,29 +151,28 @@ function variantPlugin() {
 }
 
 async function run(label) {
-  const model = argOf('--model', 'opus');
-  const effort = argOf('--effort', 'xhigh');
-  const variant = argOf('--variant');
+  const model = args.model ?? 'opus';
+  const effort = args.effort ?? 'xhigh';
+  const variant = args.variant ?? null;
   if (variant && variant !== 'inline') throw new Error(`unknown variant ${variant}`);
-  const only = argOf('--sessions')?.split(',');
+  const only = typeof args.sessions === 'string' ? args.sessions.split(',') : null;
   const unknown = (only || []).filter((id) => !SESSIONS.some((s) => s.id === id));
   if (unknown.length) throw new Error(`no session named ${unknown.join(', ')}`);
   const plugin = variant === 'inline' ? variantPlugin() : ROOT;
   const version = JSON.parse(fs.readFileSync(path.join(ROOT, '.claude-plugin', 'plugin.json'), 'utf8')).version;
   const skill = skillHash(fs.readFileSync(path.join(plugin, 'skills', 'route', 'SKILL.md'), 'utf8'));
-  const git = (dir, ...a) => spawnSync('git', ['-c', 'user.name=bench', '-c', 'user.email=bench@localhost', ...a], { cwd: dir, encoding: 'utf8' });
   try {
     for (const s of SESSIONS.filter((x) => !only || only.includes(x.id))) {
       const dir = fs.mkdtempSync(path.join(os.tmpdir(), `tokenwise-skill-cost-${s.id}-`));
       try {
-        fs.cpSync(path.join(HERE, 'fixture'), dir, { recursive: true });
+        fs.cpSync(FIXTURE, dir, { recursive: true });
         git(dir, 'init', '-q', '-b', 'main'); git(dir, 'add', '-A'); git(dir, 'commit', '-q', '-m', 'base');
         const args = ['-p', '--model', model, '--effort', effort, '--input-format', 'stream-json', '--output-format', 'stream-json', '--verbose',
-          '--setting-sources', 'project', '--strict-mcp-config', '--dangerously-skip-permissions', '--max-budget-usd', '2'];
+          '--setting-sources', 'project', '--strict-mcp-config', '--dangerously-skip-permissions', '--max-budget-usd', String(BUDGET_USD)];
         if (s.plugin) args.push('--plugin-dir', plugin);
         process.stdout.write(`${label}/${s.id}: ${s.messages.length} message(s) on ${model} at ${effort}${s.plugin ? `, plugin ${version}${variant ? ` (${variant})` : ''}` : ''}\n`);
         const r = await session(args, dir, s.messages);
-        const meta = { type: 'tokenwise-skill-cost', label, session: s.id, plugin: s.plugin ? version : null, variant: variant ?? null, skill: s.plugin ? skill : null, model, effort, messages: s.messages, exit: r.code, recorded: new Date().toISOString() };
+        const meta = { type: 'tokenwise-skill-cost', label, session: s.id, plugin: s.plugin ? version : null, variant: variant ?? null, skill: s.plugin ? skill : null, model, effort, budget_usd: BUDGET_USD, timeout_minutes: TIMEOUT_MINUTES, messages: s.messages, exit: r.code, recorded: new Date().toISOString() };
         const out = fileOf(label, s.id);
         fs.mkdirSync(path.dirname(out), { recursive: true });
         fs.writeFileSync(out, `${[meta, ...reduce(r.stdout)].map((o) => JSON.stringify(o)).join('\n')}\n`);
@@ -297,14 +301,7 @@ function compare(labels) {
   process.stdout.write(`${lines.join('\n')}\n`);
 }
 
-// --reduce rewrites saved transcripts through keep(), for files recorded before transcripts were reduced at save time.
-if (process.argv.includes('--reduce')) {
-  for (const file of argOf('--reduce').split(',')) {
-    const lines = fs.readFileSync(file, 'utf8').split('\n').filter(Boolean).map((l) => keep(JSON.parse(l))).filter(Boolean);
-    fs.writeFileSync(file, `${lines.map((o) => JSON.stringify(o)).join('\n')}\n`);
-    process.stdout.write(`reduced ${path.relative(process.cwd(), file)}: ${lines.length} lines\n`);
-  }
-} else if (argOf('--compare')) compare(argOf('--compare').split(','));
-else if (argOf('--report')) report(argOf('--report'));
-else if (argOf('--label')) run(argOf('--label')).then(() => report(argOf('--label')));
+if (typeof args.compare === 'string') compare(args.compare.split(','));
+else if (typeof args.report === 'string') report(args.report);
+else if (typeof args.label === 'string') run(args.label).then(() => report(args.label));
 else { process.stderr.write('usage: --label <name> to run, --report <label>, or --compare <label,label>\n'); process.exit(1); }

@@ -14,7 +14,7 @@ node bench/context-profile.mjs
 
 | | |
 | --- | --- |
-| Sessions | 137, over three months, mostly Opus 5 with some Fable 5, Fable 5.1 and Opus 4.8 |
+| Sessions | 137 |
 | API calls | 34,139, of which 6% by subagents |
 | Input tokens | 12.07 billion: 0% uncached, 1% cache writes, 99% cache reads |
 | Output tokens | 28.2 million, of which 33% thinking |
@@ -22,7 +22,7 @@ node bench/context-profile.mjs
 | Context per call, median session | 255K |
 | Fixed overhead per call, median session (system prompt, CLAUDE.md files, tool and MCP schemas) | 60K tokens |
 
-One API response is written to the transcript as several lines, one per content block, each repeating the same `usage` object, so the script counts calls by `requestId`. Counting lines instead inflates both calls and tokens by the average number of blocks per response, which on the largest transcript here is 1.7.
+One API response is written to the transcript as several lines, one per content block, each repeating the same `usage` object, so the script counts calls by `requestId`. Counting lines instead inflates both calls and tokens by the average number of blocks per response.
 
 The overhead figure is the cheapest main-loop call in a session, which is a proxy: the first call of a session carries the system prompt, the tool and MCP schemas and the CLAUDE.md files, and little else. `/context` gives the exact breakdown for a live session.
 
@@ -30,7 +30,7 @@ Context per call grows with the session. Of the ten sessions on this machine wit
 
 ## Per-token prices and what they imply
 
-From the API pricing page. Output costs 5x input on every current model, and thinking is output. A cache read costs 0.1x input (0.025x on Fable 5.1). A cache write costs 1.25x input on the 5-minute cache and 2x on the 1-hour cache. Fable 5.1 is 5x Sonnet 5 per token and 10x Haiku 4.5; Opus 5 is 2.5x Sonnet 5. Models from Claude 4.7 on use a newer tokenizer that the page says produces about 30% more tokens for the same text. Haiku 4.5 predates 4.7, so its token counts are not directly comparable with the other current models'.
+From the API pricing page. Output costs 5x input on every current model, and thinking is output. A cache read costs 0.1x input (0.025x on Fable 5.1). A cache write costs 1.25x input on the 5-minute cache and 2x on the 1-hour cache. Fable 5.1 is 5x Sonnet 5 and 10x Haiku 4.5 on input and output, and 1.25x and 2.5x on cache reads. Opus 5 is 2.5x Sonnet 5 on every class. Models from Claude 4.7 on use a newer tokenizer that the page says produces about 30% more tokens for the same text. Haiku 4.5 predates 4.7, so its token counts are not directly comparable with the other current models'.
 
 The price table has no effort dimension. Effort changes how many tokens a task spends, through thinking and turns, and the model sets what each one costs. On the bench's rename, Opus 5 at xhigh and Sonnet 5 at low used about the same context over five or six turns, and Opus cost three times as much. `../../docs/findings.md` breaks that down, with how much effort added on each task.
 
@@ -48,23 +48,25 @@ Hooks cannot change the model or effort of the session that is running. Tools th
 
 ## Subagent models
 
-Each subagent runs in its own context window; only its summary returns. Agent files take `model` (`sonnet`, `haiku`, `opus`, `fable`, a full model id, or `inherit`) and, from v2.1.242, `effort`. The built-in Explore subagent inherits the main conversation's model, capped at Opus. `CLAUDE_CODE_SUBAGENT_MODEL` sets the model for general subagents; adding `CLAUDE_CODE_SUBAGENT_MODEL_FORCE=1` (v2.1.257 or later) applies it to every subagent, including Explore and Plan. A subagent's tokens still count toward usage.
+Each subagent runs in its own context window; only its summary returns. Agent files take `model` (`sonnet`, `haiku`, `opus`, `fable`, a full model id, or `inherit`) and `effort`. From v2.1.198 the built-in Explore subagent inherits the main conversation's model, capped at Opus on the Claude API; Plan inherits it. `CLAUDE_CODE_SUBAGENT_MODEL` sets the model for general subagents; adding `CLAUDE_CODE_SUBAGENT_MODEL_FORCE=1` (v2.1.257 or later) applies it to every subagent, including Explore and Plan. A subagent's tokens still count toward usage.
 
 ## What this skill costs
 
 From the Claude Code skills docs: "When you or Claude invoke a skill, the rendered `SKILL.md` content enters the conversation as a single message and stays there across later turns." A second invocation with different arguments appends the full content again, and auto-compaction re-attaches invoked skills after its summary, up to a token budget. `context: fork` runs a skill in a subagent instead: "The skill content becomes the prompt that drives the subagent. It won't have access to your conversation history."
 
-This skill runs forked for that reason. Measured on Opus 5 at xhigh effort (`../../docs/findings.md`), a route that ran in the conversation left 9.6K tokens behind for every later call, most of it the answer and its thinking. Forked, it leaves 876, the answer alone. The cost is that the skill routes from the description it is given and cannot see the conversation or its context size.
+This skill runs forked for that reason. Measured on Opus 5 at xhigh effort (`../../docs/findings.md`), a route that ran in the conversation left 9.6K tokens behind for every later call, most of it the answer and its thinking. Forked, it leaves 754, the answer alone. The cost is that the skill routes from the description it is given and cannot see the conversation or its context size.
 
 ## Images
 
-The vision docs give an image's cost as ceil(width / 28) times ceil(height / 28) tokens. A 1024 by 1024 image is about 1.4K tokens; a 1920 by 1080 screenshot about 2.7K. Each stays in context and is re-sent on every later call. Fifty labelled images in one session is fifty images multiplied by every call after them, inside the per-call overhead. A script calling the API sees each once, on a cheaper model, at half price through the Batch API.
+The vision docs give an image's cost as ceil(width / 28) times ceil(height / 28) tokens. A 1024 by 1024 image is about 1.4K tokens; a 1920 by 1080 screenshot about 2.7K. Each stays in context and is re-sent on every later call. A script calling the API sees each once, on a cheaper model, at half price through the Batch API.
 
 ## Effort
 
-From the API docs on effort: `xhigh` is the strongest setting for most coding and agentic work on current models and the Claude Code default; `low` suits subagents and routine tasks, with fewer and more consolidated tool calls and less preamble; `max` earns its cost only where measurement shows headroom at the level below. Lower effort on the newest models often matches or exceeds a prior-generation model at high effort. Anthropic's July 2026 post frames effort as thoroughness rather than thinking time: it controls how many files Claude reads and how far it pushes through a task.
+From the API effort docs: `high` is the default, and the advice for Opus 5 and Fable 5.1 is to start there. The docs describe `xhigh` as extended capability for long-running agentic and coding work, `max` as the maximum with no limit on token spending, and `low` as the most efficient level, for simpler tasks such as subagents. Lower effort also means fewer and terser tool calls. Claude Code's model configuration docs give `high` as its default on every model that supports effort, except Opus 4.7, which defaults to `xhigh`.
 
-The benchmark found that thoroughness is not free and does not always pay. On a six-file review diff, Opus at high effort took 13 turns to find the same five defects Opus at low effort found in 3, for 3.3 times the cost. On implementation from a written spec, raising effort on Sonnet cost less per completed task than upgrading to Opus at lower effort, which is the measured form of "raise effort before you change model".
+Anthropic's July 2026 post says effort "controls how much work Claude does on your request overall": how long the model thinks, and also how many files it reads, how much it verifies and how far it pushes through a multi-step task before checking in.
+
+On a six-file review diff, Opus at high effort took 13 turns to find the same five defects Opus at low effort found in 3, for 3.3 times the cost. On implementation from a written spec, raising effort on Sonnet cost less per completed task than upgrading to Opus at lower effort.
 
 No bench run used `max` or ultracode, so the effort ladder's entries for those two carry no measurement.
 
@@ -85,7 +87,8 @@ This skill covers what those do not: model and effort together per phase, the co
 - Model configuration, Claude Code docs: <https://code.claude.com/docs/en/model-config>
 - Create custom subagents, Claude Code docs: <https://code.claude.com/docs/en/sub-agents>
 - Skills, Claude Code docs: <https://code.claude.com/docs/en/skills>
-- Claude Code effort level and model selection, Anthropic blog, 7 July 2026: <https://claude.com/blog/claude-model-and-effort-level-in-claude-code>
+- Choosing a Claude model and effort level in Claude Code, Anthropic blog, 7 July 2026: <https://claude.com/blog/claude-model-and-effort-level-in-claude-code>
+- Effort, Claude API docs: <https://platform.claude.com/docs/en/build-with-claude/effort>
 - API pricing: <https://platform.claude.com/docs/en/about-claude/pricing>
 - Image token cost: <https://platform.claude.com/docs/en/vision>
 - session-report plugin: <https://github.com/anthropics/claude-plugins-official/tree/main/plugins/session-report>

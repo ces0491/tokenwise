@@ -4,7 +4,7 @@ Fifty-two graded runs across five task types, plus five ungraded session resumes
 
 ## The short version
 
-On a small, well-specified codebase, every model and effort level tested passed every graded run, and the cost of doing so varied by fifteen times. Four of the skill's eight claims were wrong, in three different ways: two named a more expensive setting than the work required, one saved less than the bench's pass mark, and one recommended a split that cost more than not splitting.
+On a small, well-specified codebase, every model and effort level tested passed every graded run, and on the implement task the cost of doing so varied nearly sixteen-fold. Four of the skill's eight claims were wrong, in three different ways: two named a more expensive setting than the work required, one saved less than the bench's pass mark, and one recommended a split that cost more than not splitting.
 
 ## Cost at equal outcomes
 
@@ -58,7 +58,7 @@ A cheaper model can also take more turns and still cost less. Haiku took 16 or 1
 
 On the rename, Opus at xhigh spent 100 to 209 thinking tokens across its five turns, the same turn count as Sonnet at low. The bench has no lower-effort Opus run on that case, but there was little thinking for a lower setting to remove.
 
-## Review: more effort made it worse
+## Review: high effort found nothing low effort missed
 
 The review case gave each run an uncommitted six-file diff carrying five planted defects among benign refactors, with all 29 visible tests passing.
 
@@ -75,26 +75,26 @@ The planted defects were: a strict `<` where the documentation says `<=`; a `sor
 
 ## What routing itself costs
 
-The task runs above load no plugins, so none of their costs include the skill. `../bench/skill-cost.mjs` measures it in separate sessions on the same fixture with the plugin loaded, on Opus 5 at xhigh effort, one session per case. The table comes from `node bench/skill-cost.mjs --compare 1.0.1,1.1.0-inline@1.0.1,1.1.0@1.0.1`, which reads the saved transcripts and spends nothing.
+The task runs above load no plugins, so none of their costs include the skill. `../bench/skill-cost.mjs` measures it in separate sessions on the same fixture with the plugin loaded, on Opus 5 at xhigh effort, one session per case. The table comes from `node bench/skill-cost.mjs --compare 1.0.1,1.1.0-inline@1.0.1,1.1.1@1.0.1`, which reads the saved transcripts and spends nothing.
 
-| | 1.0.1 | 1.1.0 without the fork | 1.1.0 |
+| | 1.0.1 | 1.1.0 draft without the fork | 1.1.1 |
 | --- | --- | --- | --- |
 | Context the plugin adds while never used | 122 tokens | 122 tokens | 122 tokens |
-| A route in a session already under way | $0.165 | $0.114 | $0.136 |
-| Context every later call carries after one route | 9.6K | 6.8K | 876 |
-| The next reply after that route (a session never routed: $0.023) | $0.072 | $0.050 | $0.031 |
-| A route as a session's first message, plus the reply after it | $0.441 | $0.321 | $0.478 |
-| "Which model and effort should I use?" in plain words: turn cost, then context carried | $0.309, 7.8K | $0.246, 5.3K | $0.334, 1.6K |
+| A route in a session already under way | $0.165 | $0.114 | $0.155 |
+| Context every later call carries after one route | 9.6K | 6.8K | 754 |
+| The next reply after that route (a session never routed: $0.023) | $0.072 | $0.050 | $0.029 |
+| A route as a session's first message, plus the reply after it | $0.441 | $0.321 | $0.436 |
+| "Which model and effort should I use?" in plain words: turn cost, then context carried | $0.309, 7.8K | $0.246, 5.3K | $0.366, 2.7K |
 
 In 1.0.1 most of what a route left behind was its answer and the thinking behind it, not the skill's text. The skill added about 3K tokens; the routing turn wrote 6,447 tokens of output, 5,368 of them thinking. It also ran a shell command to check the subagent environment variables.
 
-1.1.0 makes two changes. The skill tells the model to route from its own text and the user's description, without reading files, running commands or checking settings, and to keep its reasoning short. On its own that cut a warm routing turn's output from 4,361 tokens to 2,293. And the skill runs in a forked subagent (`context: fork`), so its text and reasoning stay in the subagent and only the answer returns: 876 tokens.
+Version 1.1 makes two changes. The skill tells the model to route from its own text and the user's description, without reading files, running commands or checking settings, and to keep its reasoning short. In a draft of 1.1.0 run without the fork, whose `SKILL.md` is saved beside its transcripts in `../bench/results/skill-cost/1.1.0-inline/`, that cut a warm routing turn's output from 4,361 tokens to 2,293. And the skill runs in a forked subagent (`context: fork`), so its text and reasoning stay in the subagent and only the answer returns: 754 tokens.
 
-The fork costs more on a session's first message, because the subagent builds its own context: $0.478 against $0.321 without it. The API pricing page puts an Opus 5 cache read at $0.50 per million tokens, so carrying 5.9K fewer tokens saves about $0.003 on each later call, and the difference is repaid after about 50 of them. In a session already under way, the reply after a route costs less straight away.
+The fork costs more on a session's first message, because the subagent builds its own context: $0.436 against $0.321 without it. The API pricing page puts an Opus 5 cache read at $0.50 per million tokens, so carrying 6.1K fewer tokens saves about $0.003 on each later call, and the difference is repaid after about 40 of them. In a session already under way, a route and the reply after it cost $0.184 against $0.164 without the fork, repaid after about seven more calls.
 
-The forked skill cannot see the conversation. It routes from the description typed after `/tokenwise:route`, answers a bare `/tokenwise:route` by asking for one, and points to `/context` for the context size a switch would re-process. Claude invoked it unprompted when asked in plain words which model and effort to use. In no version did it fire when asked how many tokens the session had used.
+The forked skill cannot see the conversation. It routes from the description typed after `/tokenwise:route`, answers a bare `/tokenwise:route` by asking for one, and points to `/context` for the context size a switch would re-process. Claude invoked it unprompted when asked in plain words which model and effort to use. It did not fire in the one session that asked how many tokens had been used, which ran on 1.0.1; 1.1 keeps that description.
 
-For a single small chore, a route can cost about what it saves. A warm route on Opus 5 at xhigh costs $0.136, and moving the rename from Opus at xhigh to Sonnet at low saved $0.17.
+For a single small chore, a route can cost about what it saves. A warm route on Opus 5 at xhigh costs $0.155, and moving the rename from Opus at xhigh to Sonnet at low saved $0.17.
 
 ## Claim by claim
 
@@ -115,11 +115,11 @@ Every change made to a grader or a criterion after runs had been seen is dated i
 
 **C3's criterion was written backwards.** The claim "raise effort before upgrading the model" is tested by asking whether staying on Sonnet and raising effort beats moving to Opus and keeping effort low. The criterion asked the opposite, and would have counted Opus-at-medium winning as support for effort-first. Under the criterion as written the claim is falsified; under the claim as named the data supports it, with Sonnet at xhigh costing $0.59 per completed task against $0.82 for Opus at medium and both passing every run. Both readings are in the table. No threshold moved after seeing data.
 
-**The review recall figures come from a grader that was corrected three times.** It charged false positives for a defect explained across several paragraphs, and it scored a correct answer one of five because that answer put the file name and the keyword in different markdown blocks. After publication it turned out to pass a one-line answer that described no defect, and to miss invented findings. It now grades each finding, led by its file:line reference, against the mechanism of each defect. Every saved answer keeps the grade it was published with, it agrees with every hand grade on record, and `../bench/results/hand-grades.json` decides pass or fail for the runs it covers. The C5 verdict rests on those figures.
+**The review recall figures come from a grader that was corrected four times.** It charged false positives for a defect explained across several paragraphs, and it scored a correct answer one of five because that answer put the file name and the keyword in different markdown blocks. After publication, the patterns for the CSV defect were narrowed to its mechanism, since words like "test" and "deleted" appear in any mention of that file. Later it turned out to pass a one-line answer that described no defect, and to miss invented findings. It now grades each finding, led by its file:line reference, against the mechanism of each defect. Every saved answer keeps the grade it was published with, it agrees with every hand grade on record, and `../bench/results/hand-grades.json` decides pass or fail for the runs it covers. The C5 verdict rests on those figures.
 
 ## What this does not tell you
 
-- **Nothing about large contexts.** Context per turn peaks at 52K tokens on this fixture. The regime where cache reads dominate is covered by the observational measurements in `../skills/route/reference.md`, not by this bench.
+- **Nothing about large contexts.** No graded run averaged more than 52K tokens of context per turn. Sessions over 100K tokens per call are covered by the observational measurements in `../skills/route/reference.md`.
 - **Nothing about where expensive settings pay off.** All 52 graded runs passed, so the ceiling was never reached.
 - **Nothing about `max` effort or ultracode.** No run used either, so the skill's effort ladder carries no measurement for them.
 - **Nothing about what routing costs on other models or effort levels.** The skill's own cost was measured on Opus 5 at xhigh, with one session per case.

@@ -10,7 +10,7 @@ A Claude Code plugin that recommends the model and effort level for the phase of
 
 Version 1.0, released 9 September 2026 as `tokenwise--v1.0.0`: the documentation matches the data, and a reader can check every claim.
 
-- [x] Every figure quoted in `README.md`, `SCOPE.md`, `docs/` and `skills/route/` traces to a run in `bench/results/` or to a committed script (`bench/summarize.mjs`, `bench/skill-cost.mjs`, `bench/context-profile.mjs`). No number a reader cannot recompute.
+- [x] Every figure quoted in `README.md`, `SCOPE.md`, `docs/` and `skills/route/` traces to a run in `bench/results/` or to a committed script (`bench/summarize.mjs`, `bench/skill-cost.mjs`, `bench/context-profile.mjs`).
 - [x] What the skill itself costs a session is measured on the shipped `SKILL.md` and published beside the task costs, since those runs load no plugins.
 - [x] Every routing-table row is marked measured or untested, and no row claims a measurement the bench did not make.
 - [x] `SKILL.md`, `docs/guide.md` and `docs/findings.md` name the exact models the published runs used (`node scripts/check-models.mjs`), and `node scripts/check-models.mjs --live` shows every alias the bench uses still resolving to its measured model.
@@ -20,7 +20,7 @@ Version 1.0, released 9 September 2026 as `tokenwise--v1.0.0`: the documentation
 - [x] Every URL cited in `skills/route/reference.md` resolves.
 - [x] Tagged `tokenwise--v1.0.0` with `claude plugin tag`, `plugin.json` and the marketplace entry agreeing.
 
-`.github/workflows/checks.yml` runs the mechanical part of this list on every pull request: the fixture and grader tests, the lint, `claude plugin validate`, and checks that `bench/RESULTS.md` still follows from the run data, that `bench/matrix.json` still names exactly the published runs, that the docs name the models those runs used, and that the guide's routing table still matches the skill's. What it cannot check is the first criterion, which is a reading of the prose against the runs, or whether Anthropic has since moved an alias, which takes the paid `--live` check.
+`.github/workflows/checks.yml` runs the mechanical part of this list on every pull request: the fixture, grader and matrix tests, the lint, `claude plugin validate`, the manifest check, and checks that `bench/RESULTS.md` still follows from the run data, that `bench/matrix.json` still names exactly the published runs, that the docs name the models those runs used, and that the guide's routing table still matches the skill's. What it cannot check is the first criterion, which is a reading of the prose against the runs, or whether Anthropic has since moved an alias, which takes the paid `--live` check.
 
 ## Out of scope
 
@@ -35,13 +35,13 @@ Version 1.0, released 9 September 2026 as `tokenwise--v1.0.0`: the documentation
 
 Library-grade published plugin.
 
-Semver applies to the skill's behaviour: a changed recommendation is a minor bump, a changed answer format or a removed section is a major one. Documentation is a shipped artifact, not a trailing chore — the README, guide, findings, methodology and reference change in the same commit as the data they describe. No claim ships without a way for a reader to check it, and a figure that cannot be recomputed comes out rather than being softened.
+Semver applies to the skill's behaviour: a changed recommendation is a minor bump, a changed answer format or a removed section is a major one. The README, guide, findings, methodology and reference change in the same commit as the data they describe. No claim ships without a way for a reader to check it, and a figure that cannot be recomputed comes out rather than being softened.
 
 Anthropic moves aliases to new models and retires old ones. A routing row measured on a model users no longer get is stale, so keeping the evidence tied to current models is ongoing maintenance. `CONTRIBUTING.md` sets out the procedure for a model release and for a retirement.
 
 ## Decision
 
-Ces. A routing row changes only when a graded run says so. A falsified claim edits `SKILL.md`; it does not get argued around.
+Ces. A routing row changes only when a graded run says so. A falsified claim changes `SKILL.md`.
 
 ## Revision history
 
