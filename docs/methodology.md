@@ -26,15 +26,15 @@ Each case is a task with an objective grader. Each grader checks a stated fact a
 
 Three details make the graders harder to game.
 
-**Original tests are restored before grading.** A model that edits or deletes an existing test to make the suite green gets no credit, because its edits to `test/` are overwritten with the pristine copies before the hidden tests are added.
+**Original tests are restored before grading** for `implement` and `debug`. A model that edits or deletes an existing test to make the suite green gets no credit, because its edits to `test/` are overwritten with the pristine copies before the hidden tests are added. The chore grader does not restore them.
 
-**Hidden tests are never visible during the run.** They are copied in afterwards. For `implement` they encode the spec's exact rounding and error types; for `debug` they fail both on the planted bug and on plausible band-aid fixes.
+**Hidden tests are never visible during the run.** They are copied in afterwards. For `implement` they encode the spec's exact rounding and error types. For `debug`, three of the five fail on the planted bug and on plausible band-aid fixes, and two check that single-line totals and the helpers are unchanged.
 
-**The review diff passes its own test suite.** All 29 visible tests are green with the defects in place, because the CSV defect arrives with a pair of deleted assertions that used to catch it. A reviewer cannot find the bugs by running the tests. The diff also carries a behaviour-preserving refactor in `money.js`, which a reviewer should leave alone.
+**The review diff passes its own test suite.** All 29 visible tests are green with the defects in place, because the CSV defect arrives with a deleted assertion and a trimmed round-trip test that used to catch it. A reviewer cannot find the bugs by running the tests. The diff also carries a behaviour-preserving refactor in `money.js`, which a reviewer should leave alone.
 
 Every grader was validated before the matrix ran: a reference solution passes the hidden implement tests; the planted debug defect fails exactly one visible and three hidden tests, and the fixture passes those same hidden tests unmodified; each of the five review defects was reproduced with a concrete input.
 
-The review grader is the only one that reads prose, so it matches by proximity rather than by markdown structure: a defect counts as found when a mention of its file has one of its patterns within 700 characters, and a file mention with no planted defect explained near it counts as a false positive. The patterns name the mechanism of each defect. `bench/results/hand-grades.json` records a hand reading of one answer per cell and decides pass or fail for the runs it covers.
+The review grader is the only one that reads prose, so it matches by proximity rather than by markdown structure: a defect counts as found when a mention of its file has one of its patterns within 700 characters, and a file mention with no planted defect explained near it counts as a false positive. The patterns name the mechanism of each defect. `bench/results/hand-grades.json` records a hand reading of five answers across the four review cells and decides pass or fail for the runs it covers.
 
 ## Run conditions
 

@@ -7,6 +7,8 @@ Versions follow the bar in `SCOPE.md`: a changed recommendation is a minor bump,
 No routing recommendation changed.
 
 - **The bench reproduces.** `bench/matrix.json` sets each cell's size, so it expands to exactly the 57 published runs. `node bench/run.mjs --results bench/rerun` runs all of them into a fresh directory, and `scripts/check-matrix.mjs` fails in CI if the matrix and the published runs diverge. Before this, the committed runner could not produce two of the published replicates, and on a clean clone it ran nothing.
+- **Model and effort cost in different ways.** The model sets the price per token; effort changes how many tokens a task spends. `docs/findings.md` shows both from the run data, and records that no run used `max` effort or ultracode.
+- **Documentation corrected against the data.** Changes include re-run costs quoted from the published runs, ratios recomputed from unrounded medians, the debug hidden tests and review overlay described as they are, and the falsified claims attributed to the skill rather than the routing table.
 
 ## 1.0.0 — 2026-09-09
 
@@ -16,11 +18,11 @@ The routing table is now backed by a published benchmark, and every figure in th
 
 52 graded runs across five task types, plus five session resumes, on Claude Code 2.1.263. Thresholds were fixed in `bench/SCOPE.md` before the results were read, and `bench/summarize.mjs` computes the verdicts from them. The raw JSON for every run is in `bench/results/`.
 
-Four of the eight claims the table made were falsified, and the table changed to match:
+Four of the skill's eight claims were falsified, and the skill changed to match:
 
 - **Debugging a reproducible failure** starts on Sonnet at medium, not the top model at high. Sonnet fixed the planted bug in all three runs for a third of Opus's cost.
 - **Reviewing a diff** starts on Opus at low effort, not high. Low found all five planted defects in three turns; high found the same five in thirteen, for 3.3 times the cost.
-- **Forcing subagents onto Haiku** saves 30%, where the table had claimed 40%.
+- **Forcing subagents onto Haiku** saves 30%, short of the 40% the bench set as its pass mark.
 - **Splitting a small task** into a planning session and an implementation session cost more than doing it in one, so the protocol keeps its cache justification and drops the cost claim.
 
 Five of the nine rows carry no measurement and are marked untested in the table.

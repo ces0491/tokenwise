@@ -2,7 +2,7 @@
 
 Evidence and sources behind `SKILL.md`. Read this when a recommendation is challenged or the user asks why.
 
-Two kinds of evidence appear here. The token measurements below are observational, parsed from real Claude Code transcripts on one machine by `bench/context-profile.mjs`. The per-row model and effort recommendations were tested separately on a benchmark of graded tasks; that is in `../../docs/findings.md`, and it corrected four of the table's rows. Where the two disagree, the benchmark wins for anything it covers, which is task-level model and effort choice on a small codebase. It does not cover long-context sessions, which is what the numbers below describe.
+Two kinds of evidence appear here. The token measurements below are observational, parsed from real Claude Code transcripts on one machine by `bench/context-profile.mjs`. The per-row model and effort recommendations were tested separately on a benchmark of graded tasks; that is in `../../docs/findings.md`, and it falsified four of the skill's eight claims. Where the two disagree, the benchmark wins for anything it covers, which is task-level model and effort choice on a small codebase. It does not cover long-context sessions, which is what the numbers below describe.
 
 ## Where the tokens go
 
@@ -30,7 +30,9 @@ Context per call grows with the session, and the longest sessions on this machin
 
 ## Per-token prices and what they imply
 
-From the API pricing page. Output costs 5x input on every current model, and thinking is output. A cache read costs 0.1x input (0.025x on Fable 5.1). A cache write costs 1.25x input on the 5-minute cache and 2x on the 1-hour cache. Fable 5.1 is 5x Sonnet 5 per token and 10x Haiku 4.5.
+From the API pricing page. Output costs 5x input on every current model, and thinking is output. A cache read costs 0.1x input (0.025x on Fable 5.1). A cache write costs 1.25x input on the 5-minute cache and 2x on the 1-hour cache. Fable 5.1 is 5x Sonnet 5 per token and 10x Haiku 4.5; Opus 5 is 2.5x Sonnet 5. Models from Claude 4.7 on use a newer tokenizer that the page says produces about 30% more tokens for the same text. Haiku 4.5 predates 4.7, so its token counts are not directly comparable with the other current models'.
+
+The price table has no effort dimension. Effort changes how many tokens a task spends, through thinking and turns, and the model sets what each one costs. On the bench's rename, Opus 5 at xhigh and Sonnet 5 at low used about the same context over five or six turns, and Opus cost three times as much. `../../docs/findings.md` breaks that down, with how much effort added on each task.
 
 Per token, output is the expensive class. Volume makes cache reads matter anyway. Subscription plans do not bill per token and do not publish how usage draws down by model. Treat any dollar figure computed from token counts as a weighting for comparison.
 
@@ -57,6 +59,8 @@ The vision docs give an image's cost as ceil(width / 28) times ceil(height / 28)
 From the API docs on effort: `xhigh` is the strongest setting for most coding and agentic work on current models and the Claude Code default; `low` suits subagents and routine tasks, with fewer and more consolidated tool calls and less preamble; `max` earns its cost only where measurement shows headroom at the level below. Lower effort on the newest models often matches or exceeds a prior-generation model at high effort. Anthropic's July 2026 post frames effort as thoroughness rather than thinking time: it controls how many files Claude reads and how far it pushes through a task.
 
 The benchmark found that thoroughness is not free and does not always pay. On a six-file review diff, Opus at high effort took 13 turns to find the same five defects Opus at low effort found in 3, for 3.3 times the cost. On implementation from a written spec, raising effort on Sonnet cost less per completed task than upgrading to Opus at lower effort, which is the measured form of "raise effort before you change model".
+
+No bench run used `max` or ultracode, so the effort ladder's entries for those two carry no measurement.
 
 ## Related tools
 

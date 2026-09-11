@@ -1,6 +1,6 @@
 # tokenwise bench
 
-Measures whether the routing advice in `skills/route/SKILL.md` pays: for each task type, what each model and effort combination costs and whether it still gets the job done. Results are in `RESULTS.md`; the raw JSON for every run is in `results/`.
+Measures whether the routing advice in `../skills/route/SKILL.md` pays: for each task type, what each model and effort combination costs and whether it still gets the job done. Results are in `RESULTS.md`; the raw JSON for every run is in `results/`.
 
 ## What is measured
 
@@ -11,7 +11,7 @@ Tokens, cost, turn count and per-model usage come from Claude Code's own JSON re
 | Case | Task | Grader |
 | --- | --- | --- |
 | `implement` | Add a credit-note feature from `docs/spec.md` | 8 hidden tests plus the 29 originals, with the original tests restored first so edits to them do not count |
-| `debug` | One planted defect: VAT summed per line instead of once on the net. One visible test fails | 5 hidden tests that fail on the bug and on band-aid fixes, plus the originals |
+| `debug` | One planted defect: VAT summed per line instead of once on the net. One visible test fails | 5 hidden tests plus the originals: three fail on the bug and on band-aid fixes, two check that single-line totals and the helpers are unchanged |
 | `review` | An uncommitted diff with five planted defects and benign refactors, all visible tests passing | Recall of the five (a defect counts as found when a mention of its file has one of its patterns within 700 characters); file mentions with no planted defect explained near them count as false positives |
 | `explore` | Where is rounding decided and who depends on it, delegated to a subagent | Must name `roundHalfUp` and `money.js` and two of three dependent modules; per-model usage shows what the subagent cost |
 | `chore` | Rename `vatOn` to `vatAmount` across code, tests and README | Tests pass and no old name remains |
@@ -39,7 +39,7 @@ Each run in `matrix.json` sets its cell's size with `repeat`, so the matrix expa
 ## Limits
 
 - Cells that decide a verdict are run three times; the rest once. Differences under about 30% are within run-to-run noise.
-- The fixture is small; context per turn peaks at 52K, so the cache-read costs of long sessions are underrepresented here. The measurements in `skills/route/reference.md` cover that regime.
-- Review grading is keyword-based and approximate, and its patterns name the mechanism of each defect. The answers are saved in `results/*.answer.md`, and `results/hand-grades.json` records a hand reading of one answer per cell.
+- The fixture is small; context per turn peaks at 52K, so the cache-read costs of long sessions are underrepresented here. The measurements in `../skills/route/reference.md` cover that regime.
+- Review grading is keyword-based and approximate, and its patterns name the mechanism of each defect. The answers are saved in `results/*.answer.md`, and `results/hand-grades.json` records a hand reading of five answers across the four review cells.
 - `turns` is Claude Code's `num_turns`, which tracks API calls closely without being the same count.
 - Model aliases (`haiku`, `sonnet`, `opus`, `fable`) resolve to whatever Claude Code maps them to at run time; the raw JSON records the exact model ids.
