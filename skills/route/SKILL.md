@@ -1,5 +1,7 @@
 ---
 name: route
+context: fork
+background: false
 description: Pick the model and effort level for the task or phase at hand, say what the cheaper choice gives up, and switch at a point where the switch costs nothing. Use at the start of a task, at each phase change (plan, implement, test, review), when the user asks which model or effort to use, or mentions tokens, quota, usage, cost or context size. Invoke directly with /tokenwise:route <what you're about to do>.
 ---
 
@@ -7,7 +9,9 @@ description: Pick the model and effort level for the task or phase at hand, say 
 
 Task or phase to route: $ARGUMENTS
 
-If that is empty, route the task the user most recently described. `reference.md` in this directory holds the evidence and sources. Read it only when the user asks why.
+This skill runs in its own context and cannot see the conversation, so the line above is all there is to route. If it is empty, reply only that routing needs a description of the work, such as `/tokenwise:route implement the plan in docs/plan.md, about 12 files`. `reference.md` in this directory holds the evidence and sources. Read it only when the description asks why.
+
+Route from this file and that description. Do not read other files, run commands or check settings to answer, and keep the reasoning short. The answer returns to the user's conversation and is paid for on every later call there, like anything else in it.
 
 ## Three facts the recommendations rest on
 
@@ -66,9 +70,10 @@ Higher effort is not uniformly better. On the review case it bought 10 extra tur
 ## Phase-boundary protocol
 
 1. Finish the phase. Write what the next phase needs to a file: the plan, the findings, the task list.
-2. `/clear`. Use `/compact <what to keep>` only if continuity matters; compaction is itself a large request.
-3. `/model <alias>` then `/effort <level>`.
-4. Start the next phase from the file, not from memory.
+2. Route the next phase now, with `/tokenwise:route <next phase>`, so the next step clears this skill and its answer along with everything else.
+3. `/clear`. Use `/compact <what to keep>` only if continuity matters; compaction is itself a large request, and it carries invoked skills, this one included, into the compacted context.
+4. `/model <alias>` then `/effort <level>`.
+5. Start the next phase from the file, not from memory.
 
 The reason to switch at a boundary is the cache, not a cost saving on the work itself. Splitting a small task into a planning session and an implementation session cost more than doing it in one session on the expensive model, because the plan is written, read and paid for. Split when the phases are long enough that carrying the first one's context through the second would cost more than rebuilding it.
 
@@ -89,10 +94,10 @@ A short block, no preamble:
 
 - Phase:
 - Model and effort: the exact `/model` and `/effort` commands
-- Boundary: whether to `/clear` or `/compact` first, and what the switch costs if not
+- Boundary: whether to `/clear` or `/compact` first, and what the switch costs if not. Say that this answer stays in the user's context until their next `/clear`, so routing just before one costs least.
 - Delegate: what to push into subagents, if anything
 - Done when: the one check that says this phase is finished, stated so the user can run it. Tests green with no test file edited; every finding carries a file:line and a failing input; the plan names files, signatures and test cases; a grep shows no old name. A cheaper setting is only cheaper if this check passes first time, so the check comes before the next phase.
 - You give up: the concrete tradeoff of the cheaper choice
 - Escalate when: the signal, per the rule above
 
-Quote the cost of a warm switch as the current context size re-processed. Do not invent multipliers or dollar figures. Never report a switch you did not see the user make.
+Quote the cost of a warm switch as the user's whole current context re-processed, and point to `/context` for its size, which this skill cannot see. Do not invent multipliers or dollar figures. Never report a switch you did not see the user make.

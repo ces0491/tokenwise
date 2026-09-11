@@ -21,7 +21,7 @@ Two facts shape the advice. The prompt cache is per model, so a `/model` switch 
 - the signal that says move up a tier, using Anthropic's rule: didn't know enough means change model, didn't try hard enough means raise effort
 - what "done" is for that phase, as one check you can run before trusting the cheaper setting
 
-The skill also loads on its own at phase changes and whenever tokens, cost or quota come up. There is nothing to set up. `skills/route/reference.md` carries the measurements and sources.
+Claude also runs the skill when you ask which model or effort level to use. It runs in a forked subagent, so only its answer enters your conversation. There is nothing to set up. `skills/route/reference.md` carries the measurements and sources.
 
 ## Does it work
 
@@ -31,19 +31,22 @@ Fifty-two graded runs later, four of the skill's eight claims were wrong. Debugg
 
 Pass/fail thresholds were fixed before the results were read (`bench/SCOPE.md`) and the verdicts are computed from them. Full numbers in [docs/findings.md](docs/findings.md), method in [docs/methodology.md](docs/methodology.md), raw runs in `bench/results/`.
 
+Those task costs leave out the skill itself, so its cost is measured separately, on Opus 5 at xhigh effort. Loaded and unused, it adds 122 tokens of context. A route in a session already under way cost $0.136, and its answer, 876 tokens, is carried on every later call. Routing just before a `/clear` carries nothing, and for a single small chore, asking can cost about what the cheaper model saves.
+
 ## Checking the figures
 
-Every number above comes from a file in this repository or from a script in it. Two of the three checks are free and take seconds.
+Every number above comes from a file in this repository or from a script in it. The first three checks are free and take seconds.
 
 ```sh
 git clone https://github.com/ces0491/tokenwise && cd tokenwise
 
 node bench/summarize.mjs --check     # do the published tables follow from the published runs?
+node bench/skill-cost.mjs --compare 1.0.1,1.1.0@1.0.1   # the skill's own cost, from the saved sessions
 node bench/context-profile.mjs       # the token figures above, against your own transcripts
 node bench/run.mjs --results bench/rerun   # re-run all 57 runs on your account, into a fresh directory
 ```
 
-`--check` regenerates `bench/RESULTS.md` from `bench/results/runs.jsonl` and fails if the committed report differs, so you can confirm the tables were not edited by hand without spending anything. `context-profile.mjs` reports on your machine, not mine, so expect different numbers: the ratio and the cache share are the parts that should look familiar. Only the third command costs money: the published runs cost $28.47 at list price. `node bench/summarize.mjs --results bench/rerun --out bench/rerun/RESULTS.md` then builds the report and verdicts from your runs, to set beside the published one.
+`--check` regenerates `bench/RESULTS.md` from `bench/results/runs.jsonl` and fails if the committed report differs, so you can confirm the tables were not edited by hand without spending anything. `context-profile.mjs` reports on your machine, not mine, so expect different numbers: the ratio and the cache share are the parts that should look familiar. Only the last command costs money: the published runs cost $28.47 at list price. `node bench/summarize.mjs --results bench/rerun --out bench/rerun/RESULTS.md` then builds the report and verdicts from your runs, to set beside the published one.
 
 What the bench cannot show: all 52 graded runs passed, so it measures cost at equal outcomes and never reaches the point where an expensive setting earns its price. The fixture is small, so it says nothing about long-context sessions. And it measured the models the aliases pointed to on 8 September 2026: Haiku 4.5, Sonnet 5, Opus 5 and Fable 5.1. `node scripts/check-models.mjs --live` asks Claude Code what each alias points to today, for a small cost.
 
