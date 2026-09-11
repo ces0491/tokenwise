@@ -73,6 +73,29 @@ Opus at low effort found all five defects in three turns. Opus at high effort fo
 
 The planted defects were: a strict `<` where the documentation says `<=`; a `sort()` mutating its caller's array; `Math.round` substituted for half-away-from-zero rounding, which only diverges on negative values; a CSV quoting regex narrowed so newlines break the round-trip; and a `monthKey` rewritten to parse through `Date`, which shifts the month in any timezone behind UTC. The CSV defect ships with a deleted test assertion and a trimmed round-trip test that used to catch it, so the suite passes with the bug in place. A sixth change, a `sign()` helper extracted in `money.js`, is behaviour-preserving and is there to be left alone.
 
+## What routing itself costs
+
+The task runs above load no plugins, so none of their costs include the skill. `../bench/skill-cost.mjs` measures it in separate sessions on the same fixture with the plugin loaded, on Opus 5 at xhigh effort, one session per case. The table comes from `node bench/skill-cost.mjs --compare 1.0.1,1.1.0-inline@1.0.1,1.1.0@1.0.1`, which reads the saved transcripts and spends nothing.
+
+| | 1.0.1 | 1.1.0 without the fork | 1.1.0 |
+| --- | --- | --- | --- |
+| Context the plugin adds while never used | 122 tokens | 122 tokens | 122 tokens |
+| A route in a session already under way | $0.165 | $0.114 | $0.136 |
+| Context every later call carries after one route | 9.6K | 6.8K | 876 |
+| The next reply after that route (a session never routed: $0.023) | $0.072 | $0.050 | $0.031 |
+| A route as a session's first message, plus the reply after it | $0.441 | $0.321 | $0.478 |
+| "Which model and effort should I use?" in plain words: turn cost, then context carried | $0.309, 7.8K | $0.246, 5.3K | $0.334, 1.6K |
+
+In 1.0.1 most of what a route left behind was its answer and the thinking behind it, not the skill's text. The skill added about 3K tokens; the routing turn wrote 6,447 tokens of output, 5,368 of them thinking. It also ran a shell command to check the subagent environment variables.
+
+1.1.0 makes two changes. The skill tells the model to route from its own text and the user's description, without reading files, running commands or checking settings, and to keep its reasoning short. On its own that cut a warm routing turn's output from 4,361 tokens to 2,293. And the skill runs in a forked subagent (`context: fork`), so its text and reasoning stay in the subagent and only the answer returns: 876 tokens.
+
+The fork costs more on a session's first message, because the subagent builds its own context: $0.478 against $0.321 without it. The API pricing page puts an Opus 5 cache read at $0.50 per million tokens, so carrying 5.9K fewer tokens saves about $0.003 on each later call, and the difference is repaid after about 50 of them. In a session already under way, the reply after a route costs less straight away.
+
+The forked skill cannot see the conversation. It routes from the description typed after `/tokenwise:route`, answers a bare `/tokenwise:route` by asking for one, and points to `/context` for the context size a switch would re-process. Claude invoked it unprompted when asked in plain words which model and effort to use. In no version did it fire when asked how many tokens the session had used.
+
+For a single small chore, a route can cost about what it saves. A warm route on Opus 5 at xhigh costs $0.136, and moving the rename from Opus at xhigh to Sonnet at low saved $0.17.
+
 ## Claim by claim
 
 | Claim | Verdict |
@@ -99,5 +122,6 @@ Every change made to a grader or a criterion after runs had been seen is dated i
 - **Nothing about large contexts.** Context per turn peaks at 52K tokens on this fixture. The regime where cache reads dominate is covered by the observational measurements in `../skills/route/reference.md`, not by this bench.
 - **Nothing about where expensive settings pay off.** All 52 graded runs passed, so the ceiling was never reached.
 - **Nothing about `max` effort or ultracode.** No run used either, so the skill's effort ladder carries no measurement for them.
+- **Nothing about what routing costs on other models or effort levels.** The skill's own cost was measured on Opus 5 at xhigh, with one session per case.
 - **Nothing about other codebases.** A single small JavaScript library, five tasks, run on one machine over a day.
 - **Nothing about subscription quota.** Costs are Claude Code's list-price figures. How usage draws down against a Pro or Max plan is not published.

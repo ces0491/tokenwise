@@ -50,6 +50,12 @@ Hooks cannot change the model or effort of the session that is running. Tools th
 
 Each subagent runs in its own context window; only its summary returns. Agent files take `model` (`sonnet`, `haiku`, `opus`, `fable`, a full model id, or `inherit`) and, from v2.1.242, `effort`. The built-in Explore subagent inherits the main conversation's model, capped at Opus. `CLAUDE_CODE_SUBAGENT_MODEL` sets the model for general subagents; adding `CLAUDE_CODE_SUBAGENT_MODEL_FORCE=1` (v2.1.257 or later) applies it to every subagent, including Explore and Plan. A subagent's tokens still count toward usage.
 
+## What this skill costs
+
+From the Claude Code skills docs: "When you or Claude invoke a skill, the rendered `SKILL.md` content enters the conversation as a single message and stays there across later turns." A second invocation with different arguments appends the full content again, and auto-compaction re-attaches invoked skills after its summary, up to a token budget. `context: fork` runs a skill in a subagent instead: "The skill content becomes the prompt that drives the subagent. It won't have access to your conversation history."
+
+This skill runs forked for that reason. Measured on Opus 5 at xhigh effort (`../../docs/findings.md`), a route that ran in the conversation left 9.6K tokens behind for every later call, most of it the answer and its thinking. Forked, it leaves 876, the answer alone. The cost is that the skill routes from the description it is given and cannot see the conversation or its context size.
+
 ## Images
 
 The vision docs give an image's cost as ceil(width / 28) times ceil(height / 28) tokens. A 1024 by 1024 image is about 1.4K tokens; a 1920 by 1080 screenshot about 2.7K. Each stays in context and is re-sent on every later call. Fifty labelled images in one session is fifty images multiplied by every call after them, inside the per-call overhead. A script calling the API sees each once, on a cheaper model, at half price through the Batch API.
@@ -78,6 +84,7 @@ This skill covers what those do not: model and effort together per phase, the co
 - Prompt caching, Claude Code docs: <https://code.claude.com/docs/en/prompt-caching>
 - Model configuration, Claude Code docs: <https://code.claude.com/docs/en/model-config>
 - Create custom subagents, Claude Code docs: <https://code.claude.com/docs/en/sub-agents>
+- Skills, Claude Code docs: <https://code.claude.com/docs/en/skills>
 - Claude Code effort level and model selection, Anthropic blog, 7 July 2026: <https://claude.com/blog/claude-model-and-effort-level-in-claude-code>
 - API pricing: <https://platform.claude.com/docs/en/about-claude/pricing>
 - Image token cost: <https://platform.claude.com/docs/en/vision>

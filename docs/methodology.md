@@ -60,6 +60,21 @@ The per-model prompt cache. `claude -p --resume` starts a new process, so a resu
 
 Several graders and criteria changed after runs had been seen, some of them after publication. `bench/SCOPE.md`'s revision history dates each change, says what it was, and records what it did to the verdicts; no post-publication change moved one. Review and explore answers are saved, so a change to those graders is re-graded against every published run with `--regrade`. The tests, chore and plan graders read the run's working copy, which is not kept, so a change to one of them applies to new runs, and the revision history says what was checked about the published runs instead.
 
+## What the skill itself costs
+
+The task runs load no plugins, so their costs leave out the skill. `bench/skill-cost.mjs` measures it in sessions of its own. Each is a `claude -p` process in a fresh copy of the fixture on Opus 5 at xhigh effort, with the plugin loaded from the repository, and feeds its messages over stream-json one turn at a time, so later turns read the prompt cache the way an interactive session does.
+
+| Session | Messages | What it shows |
+| --- | --- | --- |
+| no-plugin | "Reply with OK." | The context a session starts with, without the plugin |
+| idle | "Reply with OK." twice | The context the plugin adds while never used |
+| invoked | a route, "Reply with OK.", a second route, "Reply with OK." | What a routing turn costs, what stays in context after it, and what a second route adds |
+| unprompted | a plain question about which model and effort to use, "Reply with OK." | Whether Claude runs the skill unasked, and what that leaves behind |
+| mention | a question about how many tokens the session has used, "Reply with OK." | Whether the skill runs when nobody asked for a route |
+| no-description | `/tokenwise:route` with nothing after it, "Reply with OK." | What the forked skill does with nothing to route |
+
+Context per call comes from each API call's usage, and each turn's output, thinking and cost from the result Claude Code writes when the turn ends, subagents included. Transcripts keep only those, with working directories, session ids and local paths removed, and each records a hash of the SKILL.md it ran against. The idle and mention sessions depend only on the skill's name and description, so versions that change neither reuse them. Each case ran once.
+
 ## Reproducing it
 
 ```sh
@@ -70,6 +85,8 @@ node bench/run.mjs --regrade                                               # re-
 node --test bench/graders.test.mjs                                         # the graders against cases built to game them
 node scripts/check-matrix.mjs                                              # matrix.json names exactly the published runs
 node scripts/check-models.mjs --live                                       # whether each alias still resolves to its measured model
+node bench/skill-cost.mjs --compare 1.0.1,1.1.0-inline@1.0.1,1.1.0@1.0.1    # what routing itself costs, from the saved sessions
+node bench/skill-cost.mjs --label <name> --sessions invoked,unprompted     # measure the current skill; about $1 at list price
 node bench/context-profile.mjs                                             # the observational table in skills/route/reference.md
 ```
 

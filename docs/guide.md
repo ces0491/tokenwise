@@ -11,7 +11,7 @@ The plugin adds one skill, with nothing to configure. This guide covers what it 
 
 In the VS Code extension the manager opens with `/plugins`. From the terminal, `claude plugin install tokenwise@ces0491-plugins` does the same thing and writes to the same settings.
 
-Idle, the skill costs only its name and description, which is all that loads until it fires. For 1.0.0, `claude plugin details tokenwise` estimates that at about 140 tokens per session, and about 2.7K each time the skill fires. Run it after installing for the figures on your version.
+Idle, the skill costs only its name and description, which is all that loads until it fires: 122 tokens of context, measured on Opus 5. What a route costs is under "What routing costs" below.
 
 ## Ask it
 
@@ -21,7 +21,15 @@ Idle, the skill costs only its name and description, which is all that loads unt
 
 It answers with the model and effort to use, the exact commands, whether to clear first, what to delegate, one check that tells you the phase is finished, what you give up by going cheaper, and the signal that says move up a tier.
 
-It also loads on its own when you change phase or mention tokens, cost or quota. It recommends and never acts, so you can ignore it.
+Claude also runs it without being asked by name when you ask which model or effort level to use. It recommends and never acts, so you can ignore it.
+
+## What routing costs
+
+The skill runs in its own subagent context. Its text and its reasoning stay there, and only the answer comes back into your conversation, where it is carried on every later call like anything else in context. Measured on Opus 5 at xhigh effort, that answer was 876 tokens, and a route in a session already under way cost $0.136. The numbers are in `findings.md`.
+
+- Route just before a `/clear`, at a phase boundary, and nothing it returns is carried.
+- For a single small chore, pick Sonnet or Haiku at low effort yourself. On the bench, moving a rename from Opus at xhigh to Sonnet at low saved $0.17, about what asking costs.
+- Describe the work after the command. The skill cannot see your conversation, so `/tokenwise:route` on its own only asks for a description.
 
 ## The one idea
 
@@ -66,9 +74,10 @@ The prompt cache is per model, so switching model on a warm context makes Claude
 Switch at a phase boundary:
 
 1. Write what the next phase needs to a file: the plan, the findings, the task list.
-2. `/clear`.
-3. `/model sonnet` then `/effort medium`.
-4. Start from the file.
+2. `/tokenwise:route <the next phase>`, so the next step clears its answer too.
+3. `/clear`.
+4. `/model sonnet` then `/effort medium`.
+5. Start from the file.
 
 A switch on a cleared context costs nothing. On a warm 300K context it re-processes 300K tokens.
 

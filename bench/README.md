@@ -20,6 +20,8 @@ Five extra runs resume the finished `implement-opus-xhigh` session with one shor
 
 `split-plan-opus-xhigh` writes `docs/plan.md` without code; `split-impl-sonnet-medium` then implements from that plan in a fresh session. Their combined cost is compared with the opus one-shot.
 
+None of these runs load the plugin, so none of their costs include the skill. `skill-cost.mjs` measures what the skill itself costs in sessions of its own, with transcripts in `results/skill-cost/`; `../docs/methodology.md` describes them.
+
 ## Run it
 
 ```sh
@@ -35,6 +37,8 @@ node --test bench/graders.test.mjs                # the graders against cases bu
 node bench/summarize.mjs                          # rebuild RESULTS.md
 node scripts/check-matrix.mjs                     # matrix.json names exactly the published runs
 node bench/context-profile.mjs                    # the observational table in skills/route/reference.md
+node bench/skill-cost.mjs --compare 1.0.1,1.1.0@1.0.1               # what routing costs, from the saved sessions
+node bench/skill-cost.mjs --label <name> --sessions invoked,unprompted  # measure the current skill; about $1
 ```
 
 Each run in `matrix.json` sets its cell's size with `repeat`, so the matrix expands to exactly the published runs, and `run.mjs` skips any run whose result file already exists. Pointed at the committed `results/`, it runs nothing; `--results` with a fresh directory runs everything. Working copies go to `<tmp>/tokenwise-bench/<run id>` (`--runs-root` overrides). Sessions run on your own Claude account. The published runs cost $28.47 at list price, across 91 minutes of session time at the default `--concurrency 2`. A session limit will interrupt a re-run, and the runs it kills are retried on the next invocation.

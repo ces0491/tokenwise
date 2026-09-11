@@ -2,6 +2,15 @@
 
 Versions follow the bar in `SCOPE.md`: a changed recommendation is a minor bump, a changed answer format or a removed section is a major one.
 
+## 1.1.0 — 2026-09-11
+
+Asking for a route costs less, and the cost is published.
+
+- **The skill runs in a forked subagent.** Its text and reasoning stay in the subagent and only the answer returns. Measured on Opus 5 at xhigh, a route left 9.6K tokens behind for every later call in 1.0.1, mostly the answer and its thinking; it now leaves 876. A route in a session already under way costs $0.136, against $0.165. The forked skill cannot see the conversation: it routes from the description after `/tokenwise:route`, asks for one when there is none, and points to `/context` for the context size a switch would re-process.
+- **It routes without looking around.** The skill no longer reads files, runs commands or checks settings to answer, and keeps its reasoning short.
+- **The phase-boundary protocol routes the next phase just before `/clear`**, so nothing the route returns is carried.
+- **`bench/skill-cost.mjs` measures what the skill itself costs**: idle, per route, what stays in context, and whether Claude runs it unasked. `docs/findings.md` has the figures, including that a route can cost about what a small chore saves.
+
 ## 1.0.1 — 2026-09-11
 
 No routing recommendation changed.
