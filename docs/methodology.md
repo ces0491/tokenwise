@@ -22,11 +22,11 @@ Each case is a task with an objective grader. Each grader checks a stated fact a
 | debug | One planted defect: VAT summed per line rather than once on the net | 5 hidden tests plus the originals |
 | review | An uncommitted diff carrying five planted defects among benign refactors | Recall of the five, and a count of findings that match none of them |
 | explore | Where is rounding decided and what depends on it, delegated to a subagent | Required identifiers named, plus per-model usage to show what the subagent cost |
-| chore | Rename a function across code, tests and README | Tests pass and no occurrence of the old name remains |
+| chore | Rename a function across code, tests and README | The original tests, with the rename applied, pass against the model's code; no original test file is deleted; no occurrence of the old name remains |
 
 Three details make the graders harder to game.
 
-**Original tests are restored before grading** for `implement` and `debug`. A model that edits or deletes an existing test to make the suite green gets no credit, because its edits to `test/` are overwritten with the pristine copies before the hidden tests are added. The chore grader does not restore them.
+**Original tests are restored before grading.** A model that edits an existing test to make the suite green gets no credit, because its edits to `test/` are overwritten with the pristine copies. For `implement` and `debug` the hidden tests are added after that. The chore task renames a function the tests call, so its grader restores the originals with the rename applied, and a run that deleted an original test file fails.
 
 **Hidden tests are never visible during the run.** They are copied in afterwards. For `implement` they encode the spec's exact rounding and error types. For `debug`, three of the five fail on the planted bug and on plausible band-aid fixes, and two check that single-line totals and the helpers are unchanged.
 
@@ -34,7 +34,7 @@ Three details make the graders harder to game.
 
 Every grader was validated before the matrix ran: a reference solution passes the hidden implement tests; the planted debug defect fails exactly one visible and three hidden tests, and the fixture passes those same hidden tests unmodified; each of the five review defects was reproduced with a concrete input.
 
-The review grader is the only one that reads prose, so it matches by proximity rather than by markdown structure: a defect counts as found when a mention of its file has one of its patterns within 700 characters, and a file mention with no planted defect explained near it counts as a false positive. The patterns name the mechanism of each defect. `bench/results/hand-grades.json` records a hand reading of five answers across the four review cells and decides pass or fail for the runs it covers.
+The review grader is the only one that reads prose. It splits an answer into findings, each starting on a line that leads with a code file:line reference, which the prompt asks for and every saved answer gives. A defect counts as found when a finding on its file contains one of the defect's patterns, and a finding that matches no planted defect counts as a false positive. The patterns name the mechanism of each defect, such as `<=`, `Math.round` or a newline, rather than words any mention of the file might use. `bench/results/hand-grades.json` records a hand reading of five answers across the four review cells and decides pass or fail for the runs it covers. `bench/graders.test.mjs` holds answers built to game the grader: file names next to vague words, one finding credited for two defects, fabricated findings. It also checks that every saved answer keeps its grade.
 
 ## Run conditions
 
@@ -44,7 +44,7 @@ Permissions are bypassed. In an early pilot the permission prompts turned a 16-c
 
 Tokens, cost, turn count and per-model usage come from Claude Code's own JSON result. Cost is its list-price figure, which on a subscription is a weighting for comparison rather than a bill.
 
-A run that hits the account's session limit returns HTTP 429 without attempting its task. The runner marks those invalid and deletes the result file so the next invocation retries them, and `bench/RESULTS.md` lists any still excluded when it is generated. Anyone rerunning this on a subscription will hit the same wall.
+A run that hits the account's session limit returns HTTP 429 without attempting its task. The runner marks those invalid and deletes the result file so the next invocation retries them, and `bench/RESULTS.md` lists any still excluded when it is generated. Anyone rerunning this on a subscription will hit the same wall. A run killed at the 25-minute timeout, or stopped by its $6 budget cap, did attempt its task, so it counts as a failure instead. None of the published runs hit either.
 
 ## What "done" means, fixed in advance
 
@@ -58,7 +58,7 @@ The per-model prompt cache. `claude -p --resume` starts a new process, so a resu
 
 ## Changes to the graders and criteria
 
-Several graders and criteria changed after runs had been seen, two of them after publication. `bench/SCOPE.md`'s revision history dates each change, says what it was, and records what it did to the verdicts; the two post-publication changes were re-graded to confirm they moved none.
+Several graders and criteria changed after runs had been seen, some of them after publication. `bench/SCOPE.md`'s revision history dates each change, says what it was, and records what it did to the verdicts; no post-publication change moved one. Review and explore answers are saved, so a change to those graders is re-graded against every published run with `--regrade`. The tests, chore and plan graders read the run's working copy, which is not kept, so a change to one of them applies to new runs, and the revision history says what was checked about the published runs instead.
 
 ## Reproducing it
 
@@ -66,7 +66,8 @@ Several graders and criteria changed after runs had been seen, two of them after
 node bench/run.mjs --results bench/rerun                                   # the 57 published runs, into a fresh directory
 node bench/summarize.mjs --results bench/rerun --out bench/rerun/RESULTS.md  # the report and verdicts from your runs
 node bench/run.mjs --only <ids>                                            # a subset
-node bench/run.mjs --regrade                                               # re-grade saved review answers
+node bench/run.mjs --regrade                                               # re-grade saved review and explore answers
+node --test bench/graders.test.mjs                                         # the graders against cases built to game them
 node scripts/check-matrix.mjs                                              # matrix.json names exactly the published runs
 node bench/context-profile.mjs                                             # the observational table in skills/route/reference.md
 ```

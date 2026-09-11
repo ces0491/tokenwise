@@ -18,7 +18,7 @@ Version 1.0, released 9 September 2026 as `tokenwise--v1.0.0`: the documentation
 - [x] Every URL cited in `skills/route/reference.md` resolves.
 - [x] Tagged `tokenwise--v1.0.0` with `claude plugin tag`, `plugin.json` and the marketplace entry agreeing.
 
-`.github/workflows/checks.yml` runs the mechanical part of this list on every pull request: the tests, the lint, `claude plugin validate`, and checks that `bench/RESULTS.md` still follows from the run data, that `bench/matrix.json` still names exactly the published runs, and that the guide's routing table still matches the skill's. What it cannot check is the first criterion, which is a reading of the prose against the runs.
+`.github/workflows/checks.yml` runs the mechanical part of this list on every pull request: the fixture and grader tests, the lint, `claude plugin validate`, and checks that `bench/RESULTS.md` still follows from the run data, that `bench/matrix.json` still names exactly the published runs, and that the guide's routing table still matches the skill's. What it cannot check is the first criterion, which is a reading of the prose against the runs.
 
 ## Out of scope
 

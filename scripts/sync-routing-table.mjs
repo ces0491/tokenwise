@@ -7,8 +7,9 @@
 //   node scripts/sync-routing-table.mjs           # rewrite the guide's table
 //   node scripts/sync-routing-table.mjs --check    # exit non-zero if it is out of date
 //
-// A row counts as measured unless its Measured cell opens with "Untested" or "Not separated", which
-// is the vocabulary SKILL.md uses for the rows the bench did not cover.
+// A row counts as measured unless its Measured cell opens with "Untested", "Not separated" or "Not
+// measured", the vocabulary for rows the bench did not cover. The match ignores case and leading markdown
+// emphasis, so "**Untested**" or "untested" cannot flip a row to measured.
 
 import fs from 'node:fs';
 import path from 'node:path';
@@ -34,7 +35,7 @@ function parseRoutingTable(md) {
     const c = cells(line);
     if (c.length !== 4) throw new Error(`row has ${c.length} cells, expected 4: ${line}`);
     const [task, start, escalate, measured] = c;
-    return { task, start, escalate, measured, isMeasured: !/^(Untested|Not separated)/.test(measured) };
+    return { task, start, escalate, measured, isMeasured: !/^[\s*_`]*(untested|not separated|not measured)(?![a-z])/i.test(measured) };
   });
 }
 

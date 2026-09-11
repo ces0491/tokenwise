@@ -8,6 +8,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { isInvalid, loadRecords, stoppedEarly } from './records.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const argOf = (name) => (process.argv.includes(name) ? path.resolve(process.argv[process.argv.indexOf(name) + 1]) : null);
@@ -17,19 +18,7 @@ const outPath = argOf('--out') ?? path.join(HERE, 'RESULTS.md');
 
 // ---- load: last record per run id, then group replicates (id#2, id#3) into cells ---------------
 
-const byId = new Map();
-for (const line of fs.readFileSync(src, 'utf8').split('\n')) {
-  if (!line.trim()) continue;
-  const r = JSON.parse(line);
-  // A later valid record for the same id replaces an earlier invalid one (a re-run after a usage limit).
-  const prev = byId.get(r.id);
-  if (prev && !prev.invalid && isInvalid(r)) continue;
-  byId.set(r.id, r);
-}
-function isInvalid(r) {
-  return !!r.invalid || r.metrics?.is_error === true || r.metrics?.terminal_reason === 'api_error' || r.metrics?.error != null;
-}
-const allRecords = [...byId.values()];
+const allRecords = loadRecords(src);
 const invalidRuns = allRecords.filter(isInvalid);
 const runs = allRecords.filter((r) => !isInvalid(r));
 const cellOf = (id) => id.replace(/#\d+$/, '');
@@ -47,16 +36,18 @@ let HAND = {};
 try { HAND = JSON.parse(fs.readFileSync(path.join(RESULTS, 'hand-grades.json'), 'utf8')); } catch { /* none */ }
 const handOf = (r) => (HAND[r.id] && typeof HAND[r.id] === 'object' ? HAND[r.id] : null);
 
+// found is a count of planted defects, so verdicts compare whole numbers rather than recall fractions:
+// 0.4 + 0.2 is not 0.6 in floating point, and a threshold of "one more defect" has to survive that.
 function reviewScore(r) {
   const h = handOf(r);
-  if (h) return { recall: h.recall / 5, fp: h.fp, source: 'hand' };
+  if (h) return { found: h.recall, recall: h.recall / 5, fp: h.fp, source: 'hand' };
   const g = r.grade || {};
-  return { recall: g.recall, fp: g.falsePositives, source: 'grader' };
+  return { found: g.found?.length, recall: g.recall, fp: g.falsePositives, source: 'grader' };
 }
 
 function passed(r) {
   const g = r.grade || {};
-  if (g.gradeError) return false;
+  if (g.gradeError || stoppedEarly(r)) return false;
   if ('recall' in g) { const sc = reviewScore(r); return sc.recall >= 0.8 && sc.fp <= 2; }
   if ('pass_all' in g) return !!g.pass_all;
   return false;
@@ -75,6 +66,7 @@ function stats(key) {
     key, n: rs.length, passes, rate, medianCost: median(costs), meanCost: m,
     costPerCompleted: rate > 0 && m != null ? m / rate : null,
     medianRecall: median(rs.map((r) => ('recall' in (r.grade || {}) ? reviewScore(r).recall : null))),
+    medianFound: median(rs.map((r) => ('recall' in (r.grade || {}) ? reviewScore(r).found : null))),
     medianFP: median(rs.map((r) => ('recall' in (r.grade || {}) ? reviewScore(r).fp : null))),
     medianCalls: median(rs.map((r) => r.metrics?.calls ?? null)),
     runs: rs,
@@ -101,7 +93,7 @@ function gradeText(r) {
   }
   if ('dependentsNamed' in g) return g.pass_all ? 'pass' : `fail (missing ${g.missingMust.join(',') || 'none'}, deps ${g.dependentsNamed})`;
   if ('planBytes' in g) return g.pass_all ? `plan ${K(g.planBytes)}B` : `fail (code touched: ${g.codeTouched})`;
-  if ('oldName' in g) return g.pass_all ? `pass (${g.pass}/${g.tests})` : `fail (${g.fail} failing, ${g.oldName} old names)`;
+  if ('oldName' in g) return g.pass_all ? `pass (${g.pass}/${g.tests})` : `fail (${g.fail ?? '?'} failing, ${g.oldName} old names${g.missingTests?.length ? `, ${g.missingTests.length} test files deleted` : ''})`;
   if ('tests' in g) return g.pass_all ? `pass (${g.pass}/${g.tests})` : `fail (${g.fail ?? '?'} failing of ${g.tests ?? '?'})`;
   return '';
 }
@@ -111,7 +103,7 @@ function runTable(rows) {
   const lines = [`| ${head.join(' | ')} |`, sep(head.length)];
   for (const r of rows) {
     const m = r.metrics || {};
-    lines.push(`| ${r.id} | ${r.model} | ${r.effort ?? '-'} | ${m.calls ?? '?'} | ${K(m.ctx_per_call)} | ${K(m.cache_write)} | ${K(m.cache_read)} | ${K(m.output)} | ${K(m.thinking)} | ${usd(m.usd)} | ${min(m.wall_ms)} | ${gradeText(r)}${m.denials ? ` (${m.denials} denials)` : ''}${r.timedOut ? ' (timeout)' : ''} |`);
+    lines.push(`| ${r.id} | ${r.model} | ${r.effort ?? '-'} | ${m.calls ?? '?'} | ${K(m.ctx_per_call)} | ${K(m.cache_write)} | ${K(m.cache_read)} | ${K(m.output)} | ${K(m.thinking)} | ${usd(m.usd)} | ${min(m.wall_ms)} | ${gradeText(r)}${m.denials ? ` (${m.denials} denials)` : ''}${r.timedOut ? ' (timeout)' : ''}${m.terminal_reason === 'budget_exhausted' ? ' (budget cap)' : ''} |`);
   }
   return lines.join('\n');
 }
@@ -157,8 +149,9 @@ function verdicts() {
     const a = s('implement-opus-medium'); const b = s('implement-sonnet-xhigh');
     const asWritten = a.costPerCompleted != null && (b.costPerCompleted == null || a.costPerCompleted <= b.costPerCompleted);
     const asNamed = b.costPerCompleted != null && (a.costPerCompleted == null || b.costPerCompleted <= a.costPerCompleted);
+    const passing = a.rate === 1 && b.rate === 1 ? 'both cells passing every run' : `sonnet xhigh ${b.passes}/${b.n}, opus medium ${a.passes}/${a.n}`;
     out.push(['C3 effort before model', `criterion as written: ${asWritten ? 'holds' : 'falsified'}; claim as named: ${asNamed ? 'supported' : 'falsified'}${prov(b)}`,
-      `cost per completed task, both cells passing every run: raise effort (sonnet xhigh) ${b.costPerCompleted == null ? 'never completed' : usd(b.costPerCompleted)} vs upgrade the model (opus medium) ${a.costPerCompleted == null ? 'never completed' : usd(a.costPerCompleted)}`]);
+      `cost per completed task, ${passing}: raise effort (sonnet xhigh) ${b.costPerCompleted == null ? 'never completed' : usd(b.costPerCompleted)} vs upgrade the model (opus medium) ${a.costPerCompleted == null ? 'never completed' : usd(a.costPerCompleted)}`]);
   } else out.push(['C3', 'not run', '']);
 
   // C4
@@ -173,11 +166,11 @@ function verdicts() {
   // C5
   if (need('review-opus-high', 'review-opus-low')) {
     const hi = s('review-opus-high'); const lo = s('review-opus-low');
-    const ok = hi.medianRecall != null && lo.medianRecall != null && hi.medianRecall >= lo.medianRecall + 0.2;
+    const ok = hi.medianFound != null && lo.medianFound != null && hi.medianFound >= lo.medianFound + 1;
     let note = `opus-high recall ${pct(hi.medianRecall)} (FP ${hi.medianFP}) vs opus-low ${pct(lo.medianRecall)} (FP ${lo.medianFP})`;
     const sh = s('review-sonnet-high');
     if (sh) {
-      const soft = sh.medianRecall >= hi.medianRecall && sh.medianFP <= hi.medianFP;
+      const soft = sh.medianFound >= hi.medianFound && sh.medianFP <= hi.medianFP;
       note += `; sonnet-high ${pct(sh.medianRecall)} (FP ${sh.medianFP})${soft ? ' — matches opus-high, row softens to "sonnet or above"' : ''}`;
     }
     out.push(['C5 review: keep effort high', (ok ? 'holds' : 'falsified (low effort allowed for reviews of this size)') + prov(hi), note]);
@@ -229,16 +222,24 @@ const days = [...new Set(runs.map(day).filter(Boolean))].sort();
 const window = days.length ? (days[0] === days[days.length - 1] ? days[0] : `${days[0]} to ${days[days.length - 1]}`) : 'unknown dates';
 const gradedCount = runs.filter((r) => r.grade && Object.keys(r.grade).length).length;
 parts.push(`Generated ${new Date().toISOString().slice(0, 16).replace('T', ' ')} UTC from ${runs.length} runs (${gradedCount} graded, the rest session resumes with no grader) recorded ${window} on Claude Code ${runs[0]?.claude_version ?? '?'}.\n`);
+// Stated from the data, not written in: a report that says "every run passed" has to stop saying it the
+// day one does not.
+const graded = runs.filter((r) => r.grade && Object.keys(r.grade).length);
+const allPassed = graded.length > 0 && graded.every(passed);
+const peakCtx = Math.max(...runs.map((r) => r.metrics?.ctx_per_call ?? 0));
+const outcomeNote = allPassed
+  ? `every graded run passed, so these runs measure cost at equal outcomes. They cannot show where the top model earns its price`
+  : `${graded.length - graded.filter(passed).length} of ${graded.length} graded runs failed`;
 parts.push(`## How to read this\n`);
 parts.push([
-  '- **Pass** means the grader for that case said so, nothing softer: all original tests (restored first, so edits to them do not count) plus all hidden tests green for implement and debug; tests green and no old name left for the chore; the required files named for explore; at least 4 of 5 planted defects found with at most 2 false-positive blocks for review.',
+  '- **Pass** means the grader for that case said so, nothing softer: all original tests (restored first, so edits to them do not count) plus all hidden tests green for implement and debug; for the chore, the original tests with the rename applied green against the model\'s code, no original test file deleted and no old name left; the required files named for explore; at least 4 of 5 planted defects found with at most 2 findings that match no planted defect for review. A run killed at the timeout or stopped by its budget cap fails.',
   '- **Cost** is the list-price figure Claude Code reports for the run. On a subscription it is a weighting, not a bill.',
   '- **n** is the number of runs in a cell. With n = 1 a result is an existence proof, not a rate. Cells that decide a verdict are replicated to n = 3 before the verdict is final; until then it is marked provisional.',
   '- **Cost per completed task** is mean cost divided by pass rate, so a setting that fails one run in three is charged for the retry.',
   '- **turns** is Claude Code\'s `num_turns` for the run, and **ctx/turn** divides the run\'s total context by it. A turn tracks an API call closely without being the same count, so read these columns as how much work the setting did, not as a request tally.',
   '- Differences under about 30% between single runs are noise.',
   '- Review pass/fail uses the hand reading in results/hand-grades.json where one exists; the keyword grader\'s figure is shown beside it. Token columns cover the main session; cost includes subagents.',
-  '- The fixture is small (context per turn peaks at 52K) and every model passed every graded run, so these runs measure cost at equal outcomes. They cannot show where the top model earns its price; the long-context regime is not measured here either. See skills/route/reference.md for that.',
+  `- The fixture is small (context per turn peaks at ${K(peakCtx)}) and ${outcomeNote}; the long-context regime is not measured here either. See skills/route/reference.md for that.`,
 ].join('\n'));
 parts.push('');
 
@@ -250,7 +251,7 @@ if (invalidRuns.length) {
   parts.push(`| run | reason |\n${sep(2)}`);
   for (const r of invalidRuns) parts.push(`| ${r.id} | ${(r.invalidReason || r.metrics?.terminal_reason || 'api error').replace(/\|/g, '/')} |`);
 } else {
-  parts.push('None. A run that hits a usage limit or an API error never attempted its task, so the runner marks it invalid and deletes its result file; the next invocation retries it. Every run below reached its grader.');
+  parts.push('None. A run that hits a usage limit or an API error never attempted its task, so the runner marks it invalid and deletes its result file; the next invocation retries it. A run killed at the timeout or stopped by its budget cap did attempt its task, so it is not excluded: it counts as a failure.');
 }
 parts.push('');
 

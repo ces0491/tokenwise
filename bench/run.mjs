@@ -16,8 +16,14 @@
 //   node bench/run.mjs --results bench/rerun
 //   node bench/summarize.mjs --results bench/rerun --out bench/rerun/RESULTS.md
 //
-// --regrade re-grades saved review answers with the current grader and appends the new records,
-// leaving the originals in place. --matrix runs a matrix file other than bench/matrix.json.
+// --regrade re-grades review and explore runs from their saved answers with the current graders and appends
+// the new records, leaving the originals in place. The tests, chore and plan graders read the run's working
+// copy, which is not kept, so a change to one of them applies to new runs only. --matrix runs a matrix file
+// other than bench/matrix.json.
+//
+// A run that hits a usage limit or API error never attempted its task: it is marked invalid, excluded from
+// the report and retried next time. A run killed at the timeout or stopped by its budget cap did attempt the
+// task, and is recorded as a failure.
 //
 // Each run gets a fresh copy of bench/fixture with the case overlay applied, in <runs-root>/<id>
 // (default: <tmp>/tokenwise-bench). Raw JSON results land in <results>/<id>.json, answers in
@@ -30,10 +36,10 @@ import os from 'node:os';
 import { spawn, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { MATRIX, cellOf, expandRuns, loadMatrix } from './matrix.mjs';
+import { CASES, DIR_GRADERS, FIXTURE, git, grade } from './graders.mjs';
+import { loadRuns } from './records.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
-const FIXTURE = path.join(HERE, 'fixture');
-const CASES = path.join(HERE, 'cases');
 const CLAUDE = process.env.CLAUDE_BIN || 'claude';
 
 const args = parseArgs(process.argv.slice(2));
@@ -62,12 +68,6 @@ function parseArgs(argv) {
 }
 
 const log = (...m) => process.stdout.write(`[${new Date().toISOString().slice(11, 19)}] ${m.join(' ')}\n`);
-
-function git(dir, ...gitArgs) {
-  const r = spawnSync('git', ['-c', 'user.name=bench', '-c', 'user.email=bench@localhost', ...gitArgs], { cwd: dir, encoding: 'utf8' });
-  if (r.status !== 0) throw new Error(`git ${gitArgs.join(' ')} failed: ${r.stderr}`);
-  return r.stdout;
-}
 
 function applyOverlay(caseName, dir) {
   const overlay = path.join(CASES, caseName, 'overlay');
@@ -141,118 +141,6 @@ function parseResult(stdout) {
   try { return JSON.parse(stdout.slice(i)); } catch { return null; }
 }
 
-// ---- grading -----------------------------------------------------------------
-
-function runTests(dir) {
-  const r = spawnSync('node', ['--test', '--test-reporter=tap', 'test/**/*.test.js'], { cwd: dir, encoding: 'utf8', timeout: 120_000 });
-  const out = `${r.stdout || ''}\n${r.stderr || ''}`;
-  const n = (label) => { const m = new RegExp(`^# ${label} (\\d+)`, 'm').exec(out); return m ? Number(m[1]) : null; };
-  return { tests: n('tests'), pass: n('pass'), fail: n('fail'), exit: r.status };
-}
-
-function countInFiles(dir, needle, rel) {
-  let count = 0;
-  const walk = (p) => {
-    const st = fs.statSync(p);
-    if (st.isDirectory()) { for (const e of fs.readdirSync(p)) walk(path.join(p, e)); return; }
-    if (!/\.(js|md)$/.test(p)) return;
-    count += (fs.readFileSync(p, 'utf8').match(new RegExp(needle, 'g')) || []).length;
-  };
-  for (const r of rel) { const p = path.join(dir, r); if (fs.existsSync(p)) walk(p); }
-  return count;
-}
-
-function gradeTests(run, dir) {
-  const conf = matrix.cases[run.case] || {};
-  if (conf.restoreTests) fs.cpSync(path.join(FIXTURE, 'test'), path.join(dir, 'test'), { recursive: true, force: true });
-  let hiddenFiles = 0;
-  if (conf.hidden) {
-    const hidden = path.join(CASES, conf.hidden, 'hidden');
-    for (const f of fs.readdirSync(hidden)) { fs.copyFileSync(path.join(hidden, f), path.join(dir, 'test', f)); hiddenFiles++; }
-  }
-  const t = runTests(dir);
-  return { ...t, hiddenFiles, pass_all: t.fail === 0 && t.tests !== null && t.tests > 0 };
-}
-
-function gradeChore(run, dir) {
-  const t = runTests(dir);
-  const oldName = countInFiles(dir, '\\bvatOn\\b', ['src', 'test', 'README.md']);
-  const newName = countInFiles(dir, '\\bvatAmount\\b', ['src', 'test', 'README.md']);
-  return { ...t, oldName, newName, pass_all: t.fail === 0 && oldName === 0 && newName > 0 };
-}
-
-function splitBlocks(text) {
-  return String(text || '')
-    .split(/\n\s*\n|\n(?=\s*(?:[-*•]\s|\d+[.)]\s|#{1,6}\s|\*\*))/)
-    .map((b) => b.trim())
-    .filter(Boolean);
-}
-
-const WINDOW = 700; // characters either side of a file mention that count as the same finding
-
-/**
- * Review grading by proximity rather than by block. Answers format findings very differently —
- * one paragraph each, or `**File**:` / `**Defect**:` on separate lines — and splitting on markdown
- * structure charged those formats with misses they had not made. A defect counts as found when a
- * mention of its file has one of its keywords within WINDOW characters.
- */
-function gradeReview(run, dir, text) {
-  const expected = JSON.parse(fs.readFileSync(path.join(CASES, run.case, 'expected.json'), 'utf8'));
-  const hay = String(text || '').toLowerCase();
-  const spans = (needle) => {
-    const out = [];
-    for (let i = hay.indexOf(needle); i >= 0; i = hay.indexOf(needle, i + 1)) out.push(i);
-    return out;
-  };
-  const nearby = (at) => hay.slice(Math.max(0, at - WINDOW), at + WINDOW);
-  const foundIds = [];
-  const claimed = [];
-  for (const d of expected.defects) {
-    const hits = spans(d.file.toLowerCase()).filter((i) => d.any.some((p) => nearby(i).includes(p.toLowerCase())));
-    if (hits.length) { foundIds.push(d.id); claimed.push(...hits.map((i) => [Math.max(0, i - WINDOW), i + WINDOW])); }
-  }
-  // A false positive is a source-file mention with no planted defect explained near it.
-  const covered = (i) => claimed.some(([a, b]) => i >= a && i <= b);
-  const fileRe = /\b(?:src|test)\/[\w-]+\.(?:js|md)\b|\b[\w-]+\.test\.js\b/g;
-  const uncovered = new Set();
-  for (const m of hay.matchAll(fileRe)) if (!covered(m.index)) uncovered.add(`${m[0]}@${Math.floor(m.index / WINDOW)}`);
-  return {
-    found: foundIds,
-    missed: expected.defects.map((d) => d.id).filter((id) => !foundIds.includes(id)),
-    recall: foundIds.length / expected.defects.length,
-    falsePositives: uncovered.size,
-    blocks: splitBlocks(text).length,
-  };
-}
-
-function gradeExplore(run, dir, text) {
-  const expected = JSON.parse(fs.readFileSync(path.join(CASES, run.case, 'expected.json'), 'utf8'));
-  const t = String(text || '');
-  const must = expected.mustMention.filter((m) => !t.includes(m));
-  const hits = expected.atLeast.of.filter((m) => t.includes(m)).length;
-  return { missingMust: must, dependentsNamed: hits, pass_all: must.length === 0 && hits >= expected.atLeast.n };
-}
-
-function gradePlan(run, dir) {
-  const p = path.join(dir, 'docs', 'plan.md');
-  const exists = fs.existsSync(p);
-  const srcChanged = git(dir, 'status', '--porcelain', 'src', 'test').trim();
-  return { planBytes: exists ? fs.statSync(p).size : 0, codeTouched: srcChanged.length > 0, pass_all: exists && !srcChanged };
-}
-
-function grade(run, dir, result) {
-  const grader = run.grader ?? matrix.cases[run.case]?.grader ?? 'none';
-  const text = result?.result;
-  switch (grader) {
-    case 'tests': return gradeTests(run, dir);
-    case 'chore': return gradeChore(run, dir);
-    case 'review': return gradeReview(run, dir, text);
-    case 'explore': return gradeExplore(run, dir, text);
-    case 'plan': return gradePlan(run, dir);
-    default: return {};
-  }
-}
-
 // ---- metrics ------------------------------------------------------------------
 
 function metrics(result, elapsedMs) {
@@ -295,12 +183,16 @@ async function execute(run) {
   const result = parseResult(stdout);
   if (result) fs.writeFileSync(path.join(RESULTS, `${run.id}.json`), JSON.stringify(result, null, 1));
   else fs.writeFileSync(path.join(RESULTS, `${run.id}.error.txt`), `exit ${code}${timedOut ? ' (timeout)' : ''}\n--- stdout ---\n${stdout}\n--- stderr ---\n${stderr}`);
+  // A timed-out run leaves no result JSON. Write a marker in its place so the next invocation skips the run
+  // instead of retrying it: it attempted the task and is recorded as a failure.
+  if (timedOut && !result) fs.writeFileSync(path.join(RESULTS, `${run.id}.json`), `${JSON.stringify({ timedOut: true, exit: code }, null, 1)}\n`);
   if (result?.result) fs.writeFileSync(path.join(RESULTS, `${run.id}.answer.md`), String(result.result));
   // A run killed by a usage limit or other API error never attempted the task. Mark it invalid so it
   // is excluded from results and re-run next time, rather than scored as a failure.
-  const invalid = result ? (result.terminal_reason === 'api_error' || result.api_error_status != null) : true;
+  const invalid = !timedOut && (result ? (result.terminal_reason === 'api_error' || result.api_error_status != null) : true);
   let g = {};
-  if (!invalid) { try { g = grade(run, dir, result); } catch (e) { g = { gradeError: String(e?.message || e) }; } }
+  if (timedOut) g = { pass_all: false, timedOut: true };
+  else if (!invalid) { try { g = grade(run, dir, result, matrix); } catch (e) { g = { gradeError: String(e?.message || e) }; } }
   const record = {
     invalid: invalid || undefined,
     invalidReason: invalid ? (result ? `${result.api_error_status ?? result.terminal_reason}: ${String(result.result || '').slice(0, 120)}` : `no result JSON (exit ${code}${timedOut ? ', timeout' : ''})`) : undefined,
@@ -319,22 +211,26 @@ async function execute(run) {
   log(`done  ${run.id}: $${(m.usd ?? 0).toFixed(2)} ${m.calls ?? '?'} calls ctx/call ${m.ctx_per_call ?? '?'} out ${m.output ?? '?'} grade ${JSON.stringify(g)}`);
 }
 
+// Only graders that read the saved answer can re-grade a published run. The others read the working copy,
+// and a later invocation re-prepares that directory under the same id, so nothing on disk can show that a
+// copy is still the run it was graded from.
 function regrade() {
-  // Re-grade saved review answers with the current grader and append updated records.
-  const lines = fs.readFileSync(path.join(RESULTS, 'runs.jsonl'), 'utf8').split('\n').filter(Boolean).map((l) => JSON.parse(l));
-  const latest = new Map();
-  for (const r of lines) latest.set(r.id, r);
+  const runs = new Map(expandRuns(matrix).map((r) => [r.id, r]));
   let n = 0;
-  for (const r of latest.values()) {
-    if (r.case !== 'review') continue;
+  const skipped = [];
+  for (const r of loadRuns(path.join(RESULTS, 'runs.jsonl'))) {
+    const run = runs.get(r.id);
+    const grader = run?.grader ?? matrix.cases[r.case]?.grader ?? 'none';
+    if (!run || grader === 'none') continue;
+    if (DIR_GRADERS.has(grader)) { skipped.push(`${r.id}: its grader reads the working copy`); continue; }
     const answer = path.join(RESULTS, `${r.id}.answer.md`);
-    if (!fs.existsSync(answer)) continue;
-    const g = gradeReview({ case: 'review' }, null, fs.readFileSync(answer, 'utf8'));
+    if (!fs.existsSync(answer)) { skipped.push(`${r.id}: no saved answer`); continue; }
+    const g = grade(run, null, { result: fs.readFileSync(answer, 'utf8') }, matrix);
     fs.appendFileSync(path.join(RESULTS, 'runs.jsonl'), `${JSON.stringify({ ...r, grade: g, regraded: new Date().toISOString() })}\n`);
     log(`regraded ${r.id}: ${JSON.stringify(g)}`);
     n++;
   }
-  log(`regraded ${n} review run(s)`);
+  log(`regraded ${n} run(s) from saved answers; ${skipped.length} not regraded because ${[...new Set(skipped.map((s) => s.split(': ')[1]))].join(', or ')}`);
 }
 
 async function main() {

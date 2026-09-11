@@ -80,7 +80,9 @@ function wrap(text, width, indent) {
   return out;
 }
 
-const fields = fs.readFileSync(answerPath, 'utf8').trim().split('\n').filter(Boolean).map((l) => {
+// A capture redirected by PowerShell or saved on Windows can carry CRLF line endings, which the field regex
+// below would reject on the trailing \r.
+const fields = fs.readFileSync(answerPath, 'utf8').replace(/\r\n?/g, '\n').trim().split('\n').filter(Boolean).map((l) => {
   const m = /^- \*\*(.+?):\*\*\s*(.*)$/.exec(l);
   if (!m) throw new Error(`unparsed answer line: ${l.slice(0, 60)}`);
   // Markdown emphasis and code ticks are formatting, not content; a terminal shows neither.
@@ -111,8 +113,10 @@ const duration = Math.ceil(t + 3.2);
 // ---- filter graph ----------------------------------------------------------------------------------
 
 const esc = (s) => String(s).replace(/,/g, '\\,');
+// expansion=none: drawtext otherwise reads % as the start of a format sequence, logs "Stray %", renders
+// the whole line blank and still exits 0. Answers quote percentages ("saved 30%").
 fs.writeFileSync(path.join(HERE, 'filters.txt'), blocks.map((b) =>
-  `drawtext=fontfile=font.ttf:textfile=${b.file}:x=${X}:y=${b.y}:fontsize=${FONT}` +
+  `drawtext=fontfile=font.ttf:textfile=${b.file}:expansion=none:x=${X}:y=${b.y}:fontsize=${FONT}` +
   `:fontcolor=${b.color}:enable='${esc(`gte(t,${b.t.toFixed(2)})`)}'`
 ).join(',\n'));
 fs.writeFileSync(path.join(HERE, 'meta.json'), `${JSON.stringify({ duration, blocks: blocks.length, lastY: y, width: W, height: H }, null, 1)}\n`);

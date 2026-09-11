@@ -12,9 +12,9 @@ Tokens, cost, turn count and per-model usage come from Claude Code's own JSON re
 | --- | --- | --- |
 | `implement` | Add a credit-note feature from `docs/spec.md` | 8 hidden tests plus the 29 originals, with the original tests restored first so edits to them do not count |
 | `debug` | One planted defect: VAT summed per line instead of once on the net. One visible test fails | 5 hidden tests plus the originals: three fail on the bug and on band-aid fixes, two check that single-line totals and the helpers are unchanged |
-| `review` | An uncommitted diff with five planted defects and benign refactors, all visible tests passing | Recall of the five (a defect counts as found when a mention of its file has one of its patterns within 700 characters); file mentions with no planted defect explained near them count as false positives |
+| `review` | An uncommitted diff with five planted defects and benign refactors, all visible tests passing | Recall of the five: the answer is split into findings, each led by a code file:line reference, and a defect counts as found when a finding on its file names its mechanism. Findings that match no planted defect count as false positives |
 | `explore` | Where is rounding decided and who depends on it, delegated to a subagent | Must name `roundHalfUp` and `money.js` and two of three dependent modules; per-model usage shows what the subagent cost |
-| `chore` | Rename `vatOn` to `vatAmount` across code, tests and README | Tests pass and no old name remains |
+| `chore` | Rename `vatOn` to `vatAmount` across code, tests and README | The original tests with the rename applied pass against the model's code, no original test file is deleted, and no old name remains |
 
 Five extra runs resume the finished `implement-opus-xhigh` session with one short question each, three on the same model and two on Sonnet, to probe what a model switch on a warm context costs. They do not isolate it — see C7 in `SCOPE.md`.
 
@@ -28,7 +28,8 @@ node bench/summarize.mjs --results bench/rerun --out bench/rerun/RESULTS.md
 node bench/run.mjs --only debug-haiku             # a subset; a base id brings its cell's replicates
 node bench/run.mjs --only review-opus-low#3       # one replicate
 node bench/run.mjs --force                        # rerun into bench/results, replacing the published runs
-node bench/run.mjs --regrade                      # re-grade saved review answers with the current grader
+node bench/run.mjs --regrade                      # re-grade saved review and explore answers with the current graders
+node --test bench/graders.test.mjs                # the graders against cases built to game them
 node bench/summarize.mjs                          # rebuild RESULTS.md
 node scripts/check-matrix.mjs                     # matrix.json names exactly the published runs
 node bench/context-profile.mjs                    # the observational table in skills/route/reference.md
@@ -40,6 +41,7 @@ Each run in `matrix.json` sets its cell's size with `repeat`, so the matrix expa
 
 - Cells that decide a verdict are run three times; the rest once. Differences under about 30% are within run-to-run noise.
 - The fixture is small; context per turn peaks at 52K, so the cache-read costs of long sessions are underrepresented here. The measurements in `../skills/route/reference.md` cover that regime.
-- Review grading is keyword-based and approximate, and its patterns name the mechanism of each defect. The answers are saved in `results/*.answer.md`, and `results/hand-grades.json` records a hand reading of five answers across the four review cells.
+- Review grading matches patterns, so it can be wrong on an answer unlike the saved ones; its patterns name the mechanism of each defect. The answers are saved in `results/*.answer.md`, `results/hand-grades.json` records a hand reading of five answers across the four review cells, and `graders.test.mjs` holds answers built to game the grader.
+- The tests, chore and plan graders read each run's working copy, which is not kept, so a change to one of them cannot be re-graded against published runs.
 - `turns` is Claude Code's `num_turns`, which tracks API calls closely without being the same count.
 - Model aliases (`haiku`, `sonnet`, `opus`, `fable`) resolve to whatever Claude Code maps them to at run time; the raw JSON records the exact model ids.
