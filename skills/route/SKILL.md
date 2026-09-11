@@ -11,7 +11,7 @@ If that is empty, route the task the user most recently described. `reference.md
 
 ## Three facts the recommendations rest on
 
-1. Every API call re-sends the whole conversation. A turn costs context size multiplied by calls, plus output, and thinking is output. Across 140 sessions on one machine, input outweighed output 444 to 1, and 99% of input was cached context re-read on every call. Anything that enters the main context is paid for on every later call.
+1. Every API call re-sends the whole conversation. A turn costs context size multiplied by calls, plus output, and thinking is output. The model sets the price per token; effort changes how many tokens are spent, through thinking and extra turns. Across 137 sessions on one machine, input outweighed output 428 to 1, and 99% of input was cached context re-read on every call. Anything that enters the main context is paid for on every later call.
 2. The prompt cache is per model. Switching model on a warm context re-processes all of it, and Claude Code asks you to confirm when that is about to happen. A switch after `/clear` costs nothing. (Documented behaviour; not measured by the bench.)
 3. Nothing can switch the running session's model or effort for you. Hooks and plugins can recommend, or change settings for the next session. You run `/model` and `/effort`.
 
@@ -26,14 +26,14 @@ Reading volume is how much must enter context to do the job. Judgment density is
 
 ## Routing table
 
-Start at the cheap end of each row. The bench behind these rows is in `bench/RESULTS.md`; costs quoted are from it, at API list price on a small test project.
+Start at the cheap end of each row. The bench behind these rows is in `../../bench/RESULTS.md`; costs quoted are from it, at API list price on a small test project.
 
 | Phase or task | Start here | Escalate to | Measured |
 | --- | --- | --- | --- |
 | Plan, architect, resolve an ambiguous spec | opus, `high` | fable, `xhigh` | Not separated from implementation by the bench. Plan mode, then write the plan to a file. |
 | Implement from a written spec or plan | sonnet, `medium` | opus, `medium`, then `xhigh` | Sonnet at medium passed every run at 17% of the cost of opus at xhigh, which also passed every run. |
 | Implement without a spec, or a cross-cutting change | sonnet, `high` | opus, `xhigh` | Untested. Escalation here is a judgment call, not a measurement. |
-| Debug a failure you can reproduce | sonnet, `medium` | opus, `high` | Both passed every run. Opus cost 3.4x as much for the same fix on a bug with a failing test pointing at it. |
+| Debug a failure you can reproduce | sonnet, `medium` | opus, `high` | Both passed every run. Opus cost 3.3x as much for the same fix on a bug with a failing test pointing at it. |
 | Debug a failure with no reproduction | opus, `high` | fable, `xhigh` | Untested. |
 | Tests, docs, mechanical refactors, renames | sonnet or haiku, `low` | sonnet, `medium` | Both passed every run at a third and a quarter of the cost of opus at xhigh. |
 | Review a diff | opus, `low` | opus, `high` for a large or unfamiliar diff | On a six-file diff, opus at low effort found all five planted defects in 3 turns; opus at high effort found the same five in 13 turns for 3.3x the cost. Sonnet at high missed one defect in two runs of three. |

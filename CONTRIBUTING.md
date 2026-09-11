@@ -10,6 +10,7 @@ Everything runs offline against committed files. No Claude account, no bench run
 cd bench/fixture && node --test 'test/**/*.test.js' && cd ../..
 npx markdownlint-cli@0.47.0 '*.md' 'docs/*.md' 'bench/*.md' 'skills/route/*.md' --config .markdownlint.json
 node bench/summarize.mjs --check       # RESULTS.md still follows from results/runs.jsonl
+node scripts/check-matrix.mjs          # matrix.json expands to exactly the published runs
 node scripts/check-manifests.mjs       # manifests agree, changelog matches plugin.json
 node scripts/sync-routing-table.mjs --check
 claude plugin validate .
@@ -32,18 +33,18 @@ Five of the nine rows carry no measurement. Adding evidence for one of them is t
 A case is a task with a grader that checks a fact. No grader reads for quality.
 
 1. Add a directory under `bench/cases/<name>/` with `prompt.md`, and whichever of `overlay/` (files copied over the fixture), `hidden/` (tests copied in after the run) and `expected.json` the grader needs.
-2. Register it in `bench/matrix.json` under `cases`, with the grader it uses, then add runs to the `runs` array.
+2. Register it in `bench/matrix.json` under `cases`, with the grader it uses, then add runs to the `runs` array. Give a run `"repeat": 3` when its cell decides a verdict, so the matrix records the cell's size and a re-run reproduces it.
 3. If it needs a grader that does not exist, add one to `grade()` in `bench/run.mjs`.
 4. Validate the grader before running the matrix: confirm a reference solution passes, and that the planted defect actually fails the tests you expect it to fail. A grader that passes everything measures nothing.
 5. Write the pass mark into `bench/SCOPE.md` **before** looking at results, along with what changes in the skill if the claim fails.
 
 ```sh
-node bench/run.mjs --only <id>     # one cell
-node bench/run.mjs --repeat 3      # three runs per cell, per the replication rule
+node bench/run.mjs --only <id>     # one cell, with the replicates its repeat sets
 node bench/summarize.mjs           # rebuild RESULTS.md
+node scripts/check-matrix.mjs      # the matrix still names exactly the published runs
 ```
 
-Runs cost real money on your own account. The published matrix was about $30 and ninety minutes.
+Runs cost real money on your own account. The published runs cost $28.47 at list price.
 
 ## Changing an instrument after seeing data
 

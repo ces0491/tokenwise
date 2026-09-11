@@ -32,7 +32,7 @@ Each claim gets a recorded verdict of **holds**, **falsified**, or **not testabl
 ## Out of scope
 
 - Judging prose, plan quality or code style. Only the graders count.
-- The long-context regime (over 100K tokens per call). The fixture stays under 50K per call; the observational measurements in `skills/route/reference.md` cover the rest.
+- The long-context regime (over 100K tokens per call). Context on this fixture peaks at 52K per call; the observational measurements in `skills/route/reference.md` cover the rest.
 - Latency as a criterion. Wall time is recorded, not judged.
 - Statistical tests beyond the replication rule.
 - Languages, repositories or task sizes other than this fixture.
@@ -40,7 +40,7 @@ Each claim gets a recorded verdict of **holds**, **falsified**, or **not testabl
 
 ## Bar
 
-Research experiment. Correct on this fixture, reproducible from the repo with `node bench/run.mjs`, results published whatever they show. Not a general benchmark of the models.
+Research experiment. Correct on this fixture, reproducible from the repo with `node bench/run.mjs --results bench/rerun`, results published whatever they show. Not a general benchmark of the models.
 
 ## Decision
 
@@ -48,8 +48,9 @@ Ces, after reading `RESULTS.md` and the per-claim verdicts. A falsified claim ch
 
 ## Revision history
 
+- 2026-09-11, after publication: **the runner can reproduce the published matrix.** Two published replicates, `implement-opus-xhigh#2` and `#3`, came from a runner version that was never committed. The committed one refused to replicate any run another run resumed from, and `--only` could not select a replicate. `matrix.json` now sets each cell's size with `repeat`, a resumed run can be replicated because the resumes name the base id, and `--results` writes a re-run to a fresh directory. `scripts/check-matrix.mjs` confirms the expanded matrix is the 57 published runs with the same case, model and effort. No grader changed and no run was re-graded, so every verdict is unchanged. Separately, the out-of-scope section now gives the 52K peak that the 2026-09-09 entry recorded.
 - 2026-09-09, after publication: **two instruments tightened, neither changing a verdict.** The review grader credited the `csv-newline` defect on the words "test", "assert", "removed", "deleted", "dropped" and "weaken", which the defect's own cover story makes common in any answer that mentions the file at all; the patterns now name the mechanism (newline, line break, round-trip) only. All ten review answers were re-graded and every recall and false-positive figure is unchanged. Separately, C6's automated check credited "the subagent ran on haiku" whenever a haiku key appeared in the run's per-model usage, which is true of both arms because Claude Code makes its own small haiku calls; it now requires haiku output and cache traffic above 10K tokens, which separates the arms by 175K-527K against 15-16. C6's verdict is unchanged: it fails on cost, not on the mechanism.
-- 2026-09-09: two figures in the surrounding docs corrected against the data. Context per turn on this fixture peaks at 52K, not under 50K as the out-of-scope section below says, and the fixed per-call overhead is 19K to 28K tokens rather than a flat 19K. Neither is a threshold and no verdict depends on either.
+- 2026-09-09: two figures in the surrounding docs corrected against the data. Context per turn on this fixture peaks at 52K, not under 50K as the out-of-scope section above says, and the fixed per-call overhead is 19K to 28K tokens rather than a flat 19K. Neither is a threshold and no verdict depends on either.
 - 2026-09-08: initial scope, written mid-run with three chore results already seen.
 - 2026-09-08 18:50 UTC, after replication: **the review grader now matches by proximity, not by markdown block.** A replicate that formatted each finding as `**File**:` / `**Defect**:` / `**Concrete input**:` on separate lines scored 1 of 5 from the block-based grader, because the file name and the keyword landed in different blocks. Hand reading showed it had found four of the five. A defect now counts as found when a mention of its file has one of its keywords within 700 characters, and a false positive is a file mention with no planted defect explained near it. All ten review answers were re-graded and the result agrees with every hand grade on record. The keyword thresholds themselves did not change.
 - 2026-09-08 18:40 UTC, after replication: **C3's test was written backwards relative to the claim it names.** The claim "effort before model" advises raising effort on the current model before upgrading the model. The correct comparison is therefore whether `implement-sonnet-xhigh` (raise effort, keep the cheap model) beats `implement-opus-medium` (upgrade the model, keep effort low) on cost per completed task. The criterion as written asked the opposite, holding only if opus-medium was the cheaper of the two. The error is left in the text above rather than edited out, and both readings are reported: under the criterion as written C3 is falsified; under the claim as named the data supports it. No threshold was changed after seeing data.

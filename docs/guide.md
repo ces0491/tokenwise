@@ -11,7 +11,7 @@ The plugin adds one skill, with nothing to configure. This guide covers what it 
 
 In the VS Code extension the manager opens with `/plugins`. From the terminal, `claude plugin install tokenwise@ces0491-plugins` does the same thing and writes to the same settings.
 
-Idle, the skill costs roughly 150 tokens of context per session — its name and description, which is all that loads until it fires — and about 2.1K when it does. `claude plugin details tokenwise` reports the exact figures once it is installed.
+Idle, the skill costs only its name and description, which is all that loads until it fires. For 1.0.0, `claude plugin details tokenwise` estimates that at about 140 tokens per session, and about 2.7K each time the skill fires. Run it after installing for the figures on your version.
 
 ## Ask it
 
@@ -25,7 +25,7 @@ It also loads on its own when you change phase or mention tokens, cost or quota.
 
 ## The one idea
 
-Every API call re-sends the whole conversation. Cost is context size multiplied by the number of calls, plus output, and thinking counts as output. That is why a review of a small repository can cost as much as building a feature: the review reads everything into context early, then carries it for hundreds of calls.
+Every API call re-sends the whole conversation. Cost is context size multiplied by the number of calls, plus output, and thinking counts as output. The price of each token depends on the model. Effort doesn't change that price, but it changes how many tokens a task spends: how much Claude thinks, and how many turns it takes, each re-reading the context. That is why a review of a small repository can cost as much as building a feature: the review reads everything into context early, then carries it on every later call.
 
 Two consequences follow. Keep reading out of the main context, and match the model to the work rather than defaulting to the top of the range.
 
@@ -47,13 +47,13 @@ Start at the cheap end and escalate on a failure you can point to. The Measured 
 | Bulk labelling, classification, extraction | not Claude Code | | no |
 <!-- /routing-table -->
 
-On the four measured rows, the cheap setting finished the job in every run on a small test project, and the expensive settings cost up to fifteen times more for the same result. The rest carry no measurement. The numbers are in `findings.md`.
+On the four measured rows, the cheap setting finished the job in every run on a small test project, and the expensive settings cost up to nine times more for the same result. The rest carry no measurement. The numbers are in `findings.md`.
 
 ## Escalating
 
 Anthropic's rule: if Claude failed with the context it had, it did not know enough, so change the model. If it skipped files, did not run tests, or stopped early, it did not try hard enough, so raise the effort.
 
-Raise effort on the model you are on before upgrading the model. Higher effort is not uniformly better: on a code review it bought ten extra turns and three times the cost for the same findings.
+Raise effort on the model you are on before upgrading the model. Higher effort is not uniformly better: on a code review it bought ten extra turns and 3.3 times the cost for the same findings.
 
 Judge by cost per completed task. A cheaper setting that needs a retry is not cheaper.
 
