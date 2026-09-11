@@ -4,11 +4,13 @@ Versions follow the bar in `SCOPE.md`: a changed recommendation is a minor bump,
 
 ## 1.1.2 — 2026-09-11
 
-No routing recommendation changed.
+No row of the routing table changed.
 
-- **The skill counts effort changes as cache breaks.** Claude Code's prompt caching docs give each effort level its own cache on most models, so raising effort on a warm context re-processes it just as a model switch does. The skill said only the model cache mattered, and a measured 1.1.1 route said an effort change "doesn't touch the cache". It now covers both, notes that Fable 5.1 on an API key or subscription keeps its cache across effort changes, and says a change straight after `/clear` costs what a new session costs. The escalation advice, the phase-boundary protocol and the answer format follow suit, as do the reference, the guide and the README.
-- **Where a route pays for itself.** `bench/breakeven.mjs` draws `docs/breakeven.svg` from the published runs: what each setting cost on the bench's tasks, what a route costs from Sonnet 5 at medium, Opus 5 at high and Opus 5 at xhigh, and the task sizes below which a route costs more than it saves. CI runs its `--check`, which also fails when `SKILL.md` differs from the text the charted routes ran against.
-- **Figures.** The skill's cost is re-measured on the shipped `SKILL.md` from all three settings: a route in a session already under way costs $0.04, $0.12 and $0.17, and leaves 590 to 889 tokens behind. A second run of 1.1.1 on identical text shows how far a single route's cost moves between runs.
+- **The skill counts effort changes as cache breaks.** Claude Code's prompt caching docs give each effort level its own cache on most models, so raising effort on a warm context re-processes it just as a model switch does. The skill named only the model cache, and a measured 1.1.1 route said an effort change "doesn't touch the cache". It now covers both, notes that Fable 5.1 on an API key or subscription keeps its cache across effort changes, and says that after `/clear` a change usually costs what a new session's first request costs, outside the documented-behaviour note because it is inferred from the docs. Escalating on a large context now starts with writing down where the work stands and running `/clear`.
+- **The description no longer says a switch costs nothing.** It says to switch after `/clear` so the conversation is not re-processed, and `plugin.json` and the README match.
+- **Where a route pays for itself.** `bench/breakeven.mjs` draws `docs/breakeven.svg` from the published runs: what each setting cost on the bench's tasks, what a route costs from Sonnet 5 at medium, Opus 5 at high and Opus 5 at xhigh, and the task sizes below which a route costs more than it saves. CI runs its `--check`, which fails when `SKILL.md` differs from the text the charted routes ran against, and `bench/breakeven.test.mjs` covers its axes, bands and parsing.
+- **Figures.** The skill's cost is measured on the shipped `SKILL.md` from all three settings: a route in a session already under way costs $0.04, $0.10 and $0.14, and leaves 620 to 826 tokens behind. Loaded and unused, the plugin adds 129 tokens. A second run of 1.1.1 on identical text shows a single route's cost moving by $0.025 between runs.
+- **`bench/skill-cost.mjs` runs as a command when started through a symlink or junction**, where it previously exited without doing anything.
 
 ## 1.1.1 — 2026-09-11
 
