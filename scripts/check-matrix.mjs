@@ -6,10 +6,10 @@
 //
 //   node scripts/check-matrix.mjs
 
-import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { cellOf, expandRuns, loadMatrix } from '../bench/matrix.mjs';
+import { loadRuns } from '../bench/records.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const fail = [];
@@ -21,16 +21,8 @@ try {
   fail.push(`bench/matrix.json does not expand: ${e.message}`);
 }
 
-// The last valid record per id is the published one, as in summarize.mjs. An invalid record (a run that
-// never attempted its task) is retried under the same id, so it does not count as a published run.
-const published = new Map();
-const lines = fs.readFileSync(path.join(ROOT, 'bench', 'results', 'runs.jsonl'), 'utf8').split('\n');
-for (const line of lines) {
-  if (!line.trim()) continue;
-  const r = JSON.parse(line);
-  if (r.invalid || r.metrics?.is_error === true || r.metrics?.terminal_reason === 'api_error' || r.metrics?.error != null) continue;
-  published.set(r.id, r);
-}
+// The standing valid record per id is the published run, by the same rule summarize.mjs reports from.
+const published = new Map(loadRuns(path.join(ROOT, 'bench', 'results', 'runs.jsonl')).map((r) => [r.id, r]));
 
 const ids = new Set(expected.map((r) => r.id));
 for (const r of expected) {

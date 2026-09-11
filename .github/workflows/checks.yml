@@ -26,6 +26,9 @@ jobs:
         working-directory: bench/fixture
         run: node --test --test-reporter=tap 'test/**/*.test.js'
 
+      - name: Grader tests
+        run: node --test bench/graders.test.mjs
+
       - name: Markdown lint
         run: npx --yes markdownlint-cli@0.47.0 '*.md' 'docs/*.md' 'bench/*.md' 'skills/route/*.md' --config .markdownlint.json
 

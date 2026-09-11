@@ -1,21 +1,21 @@
 # Bench results
 
-Generated 2026-09-09 05:51 UTC from 57 runs (52 graded, the rest session resumes with no grader) recorded 2026-09-08 on Claude Code 2.1.263 (Claude Code).
+Generated 2026-09-11 08:39 UTC from 57 runs (52 graded, the rest session resumes with no grader) recorded 2026-09-08 on Claude Code 2.1.263 (Claude Code).
 
 ## How to read this
 
-- **Pass** means the grader for that case said so, nothing softer: all original tests (restored first, so edits to them do not count) plus all hidden tests green for implement and debug; tests green and no old name left for the chore; the required files named for explore; at least 4 of 5 planted defects found with at most 2 false-positive blocks for review.
+- **Pass** means the grader for that case said so, nothing softer: all original tests (restored first, so edits to them do not count) plus all hidden tests green for implement and debug; for the chore, the original tests with the rename applied green against the model's code, no original test file deleted and no old name left; the required files named for explore; at least 4 of 5 planted defects found with at most 2 findings that match no planted defect for review. A run killed at the timeout or stopped by its budget cap fails.
 - **Cost** is the list-price figure Claude Code reports for the run. On a subscription it is a weighting, not a bill.
 - **n** is the number of runs in a cell. With n = 1 a result is an existence proof, not a rate. Cells that decide a verdict are replicated to n = 3 before the verdict is final; until then it is marked provisional.
 - **Cost per completed task** is mean cost divided by pass rate, so a setting that fails one run in three is charged for the retry.
 - **turns** is Claude Code's `num_turns` for the run, and **ctx/turn** divides the run's total context by it. A turn tracks an API call closely without being the same count, so read these columns as how much work the setting did, not as a request tally.
 - Differences under about 30% between single runs are noise.
 - Review pass/fail uses the hand reading in results/hand-grades.json where one exists; the keyword grader's figure is shown beside it. Token columns cover the main session; cost includes subagents.
-- The fixture is small (context per turn peaks at 52K) and every model passed every graded run, so these runs measure cost at equal outcomes. They cannot show where the top model earns its price; the long-context regime is not measured here either. See skills/route/reference.md for that.
+- The fixture is small (context per turn peaks at 93K) and every graded run passed, so these runs measure cost at equal outcomes. They cannot show where the top model earns its price; the long-context regime is not measured here either. See skills/route/reference.md for that.
 
 ## Runs excluded
 
-None. A run that hits a usage limit or an API error never attempted its task, so the runner marks it invalid and deletes its result file; the next invocation retries it. Every run below reached its grader.
+None. A run that hits a usage limit or an API error never attempted its task, so the runner marks it invalid and deletes its result file; the next invocation retries it. A run killed at the timeout or stopped by its budget cap did attempt its task, so it is not excluded: it counts as a failure.
 
 ## Verdicts on the claims in SCOPE.md
 

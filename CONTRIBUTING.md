@@ -8,6 +8,7 @@ Everything runs offline against committed files. No Claude account, no bench run
 
 ```sh
 cd bench/fixture && node --test 'test/**/*.test.js' && cd ../..
+node --test bench/graders.test.mjs     # the graders, including answers built to game them
 npx markdownlint-cli@0.47.0 '*.md' 'docs/*.md' 'bench/*.md' 'skills/route/*.md' --config .markdownlint.json
 node bench/summarize.mjs --check       # RESULTS.md still follows from results/runs.jsonl
 node scripts/check-matrix.mjs          # matrix.json expands to exactly the published runs
@@ -34,8 +35,8 @@ A case is a task with a grader that checks a fact. No grader reads for quality.
 
 1. Add a directory under `bench/cases/<name>/` with `prompt.md`, and whichever of `overlay/` (files copied over the fixture), `hidden/` (tests copied in after the run) and `expected.json` the grader needs.
 2. Register it in `bench/matrix.json` under `cases`, with the grader it uses, then add runs to the `runs` array. Give a run `"repeat": 3` when its cell decides a verdict, so the matrix records the cell's size and a re-run reproduces it.
-3. If it needs a grader that does not exist, add one to `grade()` in `bench/run.mjs`.
-4. Validate the grader before running the matrix: confirm a reference solution passes, and that the planted defect actually fails the tests you expect it to fail. A grader that passes everything measures nothing.
+3. If it needs a grader that does not exist, add one to `bench/graders.mjs` and dispatch it from `grade()`. A grader that reads the working copy cannot be re-graded later, since the copy is not kept; one that reads the saved answer can.
+4. Validate the grader before running the matrix: confirm a reference solution passes, and that the planted defect actually fails the tests you expect it to fail. Then add cases to `bench/graders.test.mjs` for the ways a run could pass without doing the task. A grader that passes everything measures nothing.
 5. Write the pass mark into `bench/SCOPE.md` **before** looking at results, along with what changes in the skill if the claim fails.
 
 ```sh
@@ -55,6 +56,8 @@ Record the change in `bench/SCOPE.md`'s revision history with the date, what cha
 ```sh
 node bench/run.mjs --regrade && node bench/summarize.mjs
 ```
+
+`--regrade` reaches the review and explore graders, which read saved answers. A change to the tests, chore or plan grader cannot be re-applied to published runs, so the revision history has to say what evidence there is instead, or that there is none.
 
 An instrument tightened after publication that moves no verdict is worth having. One that moves a verdict needs the move stated in `docs/findings.md`, not just in the history.
 
