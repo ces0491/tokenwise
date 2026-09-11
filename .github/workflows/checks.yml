@@ -26,8 +26,8 @@ jobs:
         working-directory: bench/fixture
         run: node --test --test-reporter=tap 'test/**/*.test.js'
 
-      - name: Grader tests
-        run: node --test bench/graders.test.mjs
+      - name: Grader and matrix tests
+        run: node --test bench/graders.test.mjs bench/matrix.test.mjs
 
       - name: Markdown lint
         run: npx --yes markdownlint-cli@0.47.0 '*.md' 'docs/*.md' 'bench/*.md' 'skills/route/*.md' --config .markdownlint.json
@@ -37,6 +37,9 @@ jobs:
 
       - name: Matrix names exactly the published runs
         run: node scripts/check-matrix.mjs
+
+      - name: Docs name the models the published runs used
+        run: node scripts/check-models.mjs
 
       - name: Manifests and skill frontmatter
         run: node scripts/check-manifests.mjs

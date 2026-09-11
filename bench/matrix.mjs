@@ -23,6 +23,28 @@ export function loadMatrix(file = MATRIX) {
   return JSON.parse(fs.readFileSync(file, 'utf8'));
 }
 
+// The runs to repeat when the models behind some aliases change: every run on those aliases or naming one in its
+// environment (explore-opus-haiku-sub forces its subagents onto haiku), the runs whose working directory or session
+// one of them needs (dirFrom, resumeFrom), and the runs built on any run already chosen, until nothing new joins. A
+// Sonnet resume of the Opus implement session brings that session's run, and with it the other resumes of it; a new
+// plan brings the implementation built from it.
+export const usesModel = (r, models) => models.has(r.model) || Object.values(r.env || {}).some((v) => models.has(v));
+
+export function selectForModels(runs, models) {
+  const chosen = new Set(runs.filter((r) => usesModel(r, models)).map((r) => r.id));
+  let grew = true;
+  while (grew) {
+    grew = false;
+    for (const r of runs) {
+      const needs = [r.dirFrom, r.resumeFrom].filter(Boolean);
+      const join = (id) => { if (!chosen.has(id)) { chosen.add(id); grew = true; } };
+      if (chosen.has(r.id)) needs.forEach(join);
+      else if (needs.some((id) => chosen.has(id))) join(r.id);
+    }
+  }
+  return runs.filter((r) => chosen.has(r.id));
+}
+
 export function expandRuns(matrix, { repeat = 1 } = {}) {
   const dirTargets = new Set(matrix.runs.map((r) => r.dirFrom).filter(Boolean));
   const base = [];

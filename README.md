@@ -45,7 +45,7 @@ node bench/run.mjs --results bench/rerun   # re-run all 57 runs on your account,
 
 `--check` regenerates `bench/RESULTS.md` from `bench/results/runs.jsonl` and fails if the committed report differs, so you can confirm the tables were not edited by hand without spending anything. `context-profile.mjs` reports on your machine, not mine, so expect different numbers: the ratio and the cache share are the parts that should look familiar. Only the third command costs money: the published runs cost $28.47 at list price. `node bench/summarize.mjs --results bench/rerun --out bench/rerun/RESULTS.md` then builds the report and verdicts from your runs, to set beside the published one.
 
-What the bench cannot show: all 52 graded runs passed, so it measures cost at equal outcomes and never reaches the point where an expensive setting earns its price. The fixture is small, so it says nothing about long-context sessions.
+What the bench cannot show: all 52 graded runs passed, so it measures cost at equal outcomes and never reaches the point where an expensive setting earns its price. The fixture is small, so it says nothing about long-context sessions. And it measured the models the aliases pointed to on 8 September 2026: Haiku 4.5, Sonnet 5, Opus 5 and Fable 5.1. `node scripts/check-models.mjs --live` asks Claude Code what each alias points to today, for a small cost.
 
 ## Documentation
 

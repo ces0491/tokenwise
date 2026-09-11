@@ -69,7 +69,8 @@ node bench/run.mjs --only <ids>                                            # a s
 node bench/run.mjs --regrade                                               # re-grade saved review and explore answers
 node --test bench/graders.test.mjs                                         # the graders against cases built to game them
 node scripts/check-matrix.mjs                                              # matrix.json names exactly the published runs
+node scripts/check-models.mjs --live                                       # whether each alias still resolves to its measured model
 node bench/context-profile.mjs                                             # the observational table in skills/route/reference.md
 ```
 
-`matrix.json` lists every run, and `repeat: 3` on a run gives its cell three runs, so the matrix expands to exactly the 57 published runs. Writing to a fresh results directory runs all of them and leaves the published data in `bench/results/` untouched. Working copies go to `<tmp>/tokenwise-bench/<run id>`. The published runs cost $28.47 at list price, across 91 minutes of session time. Sessions run on your own account, so a session limit will interrupt a re-run; excluded runs are retried on the next invocation.
+`matrix.json` lists every run, and `repeat: 3` on a run gives its cell three runs, so the matrix expands to exactly the 57 published runs. It names models by alias, so a re-run reproduces the published runs only while the aliases still resolve to the models they used; the `--live` check says whether they do. Writing to a fresh results directory runs all of them and leaves the published data in `bench/results/` untouched. Working copies go to `<tmp>/tokenwise-bench/<run id>`. The published runs cost $28.47 at list price, across 91 minutes of session time. Sessions run on your own account, so a session limit will interrupt a re-run; excluded runs are retried on the next invocation.

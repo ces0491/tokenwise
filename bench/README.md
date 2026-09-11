@@ -28,6 +28,8 @@ node bench/summarize.mjs --results bench/rerun --out bench/rerun/RESULTS.md
 node bench/run.mjs --only debug-haiku             # a subset; a base id brings its cell's replicates
 node bench/run.mjs --only review-opus-low#3       # one replicate
 node bench/run.mjs --force                        # rerun into bench/results, replacing the published runs
+node bench/run.mjs --force --models sonnet        # rerun what a change to the sonnet alias affects
+node scripts/check-models.mjs --live              # whether each alias still resolves to the model it was measured on
 node bench/run.mjs --regrade                      # re-grade saved review and explore answers with the current graders
 node --test bench/graders.test.mjs                # the graders against cases built to game them
 node bench/summarize.mjs                          # rebuild RESULTS.md
@@ -44,4 +46,4 @@ Each run in `matrix.json` sets its cell's size with `repeat`, so the matrix expa
 - Review grading matches patterns, so it can be wrong on an answer unlike the saved ones; its patterns name the mechanism of each defect. The answers are saved in `results/*.answer.md`, `results/hand-grades.json` records a hand reading of five answers across the four review cells, and `graders.test.mjs` holds answers built to game the grader.
 - The tests, chore and plan graders read each run's working copy, which is not kept, so a change to one of them cannot be re-graded against published runs.
 - `turns` is Claude Code's `num_turns`, which tracks API calls closely without being the same count.
-- Model aliases (`haiku`, `sonnet`, `opus`, `fable`) resolve to whatever Claude Code maps them to at run time; the raw JSON records the exact model ids.
+- Model aliases (`haiku`, `sonnet`, `opus`, `fable`) resolve to whatever Claude Code maps them to at run time; the raw JSON records the exact model ids. The published runs used `claude-haiku-4-5-20251001`, `claude-sonnet-5`, `claude-opus-5` and `claude-fable-5-1`, and a re-run after Anthropic moves an alias measures a different model. `../CONTRIBUTING.md` has the procedure.

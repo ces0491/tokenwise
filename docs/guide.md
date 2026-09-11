@@ -33,6 +33,8 @@ Two consequences follow. Keep reading out of the main context, and match the mod
 
 Start at the cheap end and escalate on a failure you can point to. The Measured column says whether the bench covered that row; the skill's own table carries the evidence for each one.
 
+Measured means measured on `claude-haiku-4-5-20251001`, `claude-sonnet-5`, `claude-opus-5` and `claude-fable-5-1`, the models the aliases pointed to on 8 September 2026. When Anthropic moves an alias to a newer model, the advice follows the alias, but the evidence stays with the older model until the bench is re-run.
+
 <!-- routing-table: generated from skills/route/SKILL.md by scripts/sync-routing-table.mjs -->
 | Work | Start | Escalate to | Measured |
 | --- | --- | --- | --- |

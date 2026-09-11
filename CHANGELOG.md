@@ -2,10 +2,11 @@
 
 Versions follow the bar in `SCOPE.md`: a changed recommendation is a minor bump, a changed answer format or a removed section is a major one.
 
-## Unreleased
+## 1.0.1 — 2026-09-11
 
 No routing recommendation changed.
 
+- **The evidence names the models it was measured on.** The skill, guide and findings name `claude-haiku-4-5-20251001`, `claude-sonnet-5`, `claude-opus-5` and `claude-fable-5-1`, and the skill tells users when their model is newer than the one a row was measured on. `scripts/check-models.mjs` checks those names against the published runs in CI, and with `--live` asks Claude Code what each alias resolves to today. `CONTRIBUTING.md` sets out what to do when Anthropic releases or retires a model, and `bench/run.mjs --models <alias>` re-runs what an alias change affects.
 - **The bench reproduces.** `bench/matrix.json` sets each cell's size, so it expands to exactly the 57 published runs. `node bench/run.mjs --results bench/rerun` runs all of them into a fresh directory, and `scripts/check-matrix.mjs` fails in CI if the matrix and the published runs diverge. Before this, the committed runner could not produce two of the published replicates, and on a clean clone it ran nothing.
 - **`context-profile.mjs` attributes subagent transcripts to their project.** It had been naming their project `subagents`, which let the bench's own subagents into the default report and dropped subagents from `--match` reports. The observational figures in the README, skill and reference are re-run with the fixed script and dated 11 September 2026.
 - **Model and effort cost in different ways.** The model sets the price per token; effort changes how many tokens a task spends. `docs/findings.md` shows both from the run data, and records that no run used `max` effort or ultracode.

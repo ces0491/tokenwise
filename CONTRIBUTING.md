@@ -8,10 +8,11 @@ Everything runs offline against committed files. No Claude account, no bench run
 
 ```sh
 cd bench/fixture && node --test 'test/**/*.test.js' && cd ../..
-node --test bench/graders.test.mjs     # the graders, including answers built to game them
+node --test bench/graders.test.mjs bench/matrix.test.mjs   # graders against gaming cases; matrix expansion and --models
 npx markdownlint-cli@0.47.0 '*.md' 'docs/*.md' 'bench/*.md' 'skills/route/*.md' --config .markdownlint.json
 node bench/summarize.mjs --check       # RESULTS.md still follows from results/runs.jsonl
 node scripts/check-matrix.mjs          # matrix.json expands to exactly the published runs
+node scripts/check-models.mjs          # the docs name exactly the models the published runs used
 node scripts/check-manifests.mjs       # manifests agree, changelog matches plugin.json
 node scripts/sync-routing-table.mjs --check
 claude plugin validate .
@@ -61,6 +62,49 @@ node bench/run.mjs --regrade && node bench/summarize.mjs
 
 An instrument tightened after publication that moves no verdict is worth having. One that moves a verdict needs the move stated in `docs/findings.md`, not just in the history.
 
+## When Anthropic releases or retires a model
+
+The routing table gives its advice in aliases: `haiku`, `sonnet`, `opus`, `fable`. Its evidence comes from the models those aliases resolved to when the bench ran, which `skills/route/SKILL.md`, `docs/guide.md` and `docs/findings.md` name. When Anthropic points an alias at a new model, the advice follows the alias and the evidence does not. None of the offline checks can see that happen, so it has to be looked for:
+
+```sh
+node scripts/check-models.mjs --live   # what each alias resolves to now; $0.21 at list price on 11 September 2026
+```
+
+Run it when Anthropic announces a model or a retirement, and before tagging a release. It exits non-zero when an alias resolves to a model other than the one measured, or to none, and lists the routing rows that start or escalate on it. Without `--live` the same script runs in CI, and fails when those three documents name models other than the ones the published runs used.
+
+### An alias points at a newer model
+
+`/model sonnet` still works, so there is no deadline. What has gone stale is "measured" on every row that uses the alias, and the skill tells users as much when their model is newer than the one it names. Re-measure in one pull request:
+
+1. Re-run what the change affects. `--models` selects every run on the alias, every run that forces it through its environment, and the runs those need or feed. Check the selection and its size with `--dry` first.
+
+   ```sh
+   node bench/run.mjs --dry --force --models sonnet
+   node bench/run.mjs --force --models sonnet
+   node bench/summarize.mjs
+   ```
+
+   The earlier records stay in `bench/results/runs.jsonl`, the report takes the latest record per run, and git keeps the previous result files.
+2. Update the model ids in the three documents. `node scripts/check-models.mjs` fails until they match the new runs.
+3. Update the prices and tokenizer notes in `skills/route/reference.md` from the pricing page, with the date.
+4. Read the new verdicts. A flipped verdict changes its row as in "Changing a routing row", and that is a minor release. Figures that moved without a verdict flipping are a patch, and every figure the docs quote from the re-run cells gets checked against the new `bench/RESULTS.md`.
+
+Until the bench can be re-run, change the affected Measured cells to name the model they describe, for example "Measured on `claude-sonnet-5`: ...", and leave the model ids alone.
+
+### A new alias or model family
+
+Add it to the alias list in `SKILL.md`. It stays out of every row's Start and Escalate cells until it has cells in `bench/matrix.json`, with pass marks written into `bench/SCOPE.md` before the runs, as in "Adding a bench case".
+
+### A model is retired
+
+This has a deadline. From the retirement date, a row that starts or escalates on the model sends users to a model that no longer exists, or to whatever the alias resolves to by then. Anthropic lists retirement dates on its [model deprecations page](https://platform.claude.com/docs/en/about-claude/model-deprecations). Before the date:
+
+1. Point each affected row at the replacement, and open its Measured cell with "Untested on" the replacement, followed by the retired model it was measured on, until the bench re-runs those cells. The guide then shows the row as unmeasured.
+2. Check the settings built on the model as well as the rows. `CLAUDE_CODE_SUBAGENT_MODEL=haiku` is recommended in the README, the guide and `SKILL.md`, and its 30% saving was measured on `claude-haiku-4-5-20251001`.
+3. Once the replacement is available, re-measure with `--models` as above.
+
+If the alias itself goes away, its cells need new ids in `bench/matrix.json`, and the pass marks in `bench/SCOPE.md` and the verdict code in `bench/summarize.mjs` refer to cells by id. The published runs on a retired model stay in git as the record of what was measured, but they can no longer be reproduced: the runner asks for the alias, and the alias means something else.
+
 ## Figures
 
 No number in this repository should be one a reader cannot recompute. In practice:
@@ -77,9 +121,10 @@ Documentation is part of the change, not a follow-up: the README, guide, finding
 
 `SCOPE.md` sets what versions mean. A changed recommendation is a minor bump; a changed answer format or a removed section is major.
 
-1. Bump `version` in `.claude-plugin/plugin.json`.
-2. Add the entry to `CHANGELOG.md`. `check-manifests.mjs` fails if the newest heading and `plugin.json` disagree, which is a check that exists because they once did.
-3. Merge, then `claude plugin tag --push -m 'tokenwise %s'` from a clean `main`.
+1. Run `node scripts/check-models.mjs --live`. A release shipped after an alias moved should say so, or re-measure first.
+2. Bump `version` in `.claude-plugin/plugin.json`.
+3. Add the entry to `CHANGELOG.md`. `check-manifests.mjs` fails if the newest heading and `plugin.json` disagree, which is a check that exists because they once did.
+4. Merge, then `claude plugin tag --push -m 'tokenwise %s'` from a clean `main`.
 
 ## The demo
 
