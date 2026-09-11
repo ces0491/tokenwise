@@ -2,6 +2,31 @@
 
 Versions follow the bar in `SCOPE.md`: a changed recommendation is a minor bump, a changed answer format or a removed section is a major one.
 
+## 1.1.1 — 2026-09-11
+
+No routing recommendation changed.
+
+- **The skill's own claims are corrected.**
+  - The effort ladder gave `xhigh` as Claude Code's default. Claude Code's model configuration docs give `high` on every model that supports effort, except Opus 4.7.
+  - The phase-boundary protocol said `/clear` removes the skill's text and that compaction carries it. That described the skill before it ran forked.
+  - The subagent note gave Plan the Opus cap that the docs give Explore.
+- **The bench report states the matrix's context and cost from the data.**
+  - `bench/RESULTS.md` gave context per turn as peaking at 93K, which was a single resume call. It now gives the highest per-turn average in a graded run, 52K, as the docs do.
+  - It states the total cost and session time of the published runs, so `--check` covers the figures the docs quote.
+  - It names the verdicts that rest on single runs.
+- **The runner fails loudly.**
+  - A run that fails blocks the runs that depend on it, and `bench/run.mjs` exits non-zero.
+  - An invalid run no longer leaves its answer behind.
+  - `bench/skill-cost.mjs` stops on a git failure before a paid session starts.
+  - `bench/context-profile.mjs` leaves out the skill-cost sessions.
+- **Checks.**
+  - The grader tests cover the implement reference solution and the planted debug defect.
+  - CI runs `actions/checkout` and `actions/setup-node` v7, markdownlint-cli 0.49.1, and a pinned Claude Code CLI.
+- **Figures.**
+  - The skill's cost is re-measured on the shipped `SKILL.md`: a route leaves 754 tokens behind.
+  - The draft skill text behind the middle column of the findings table is saved beside its transcripts.
+  - The documentation is corrected against the data and its cited sources, and tightened against the project's writing rules.
+
 ## 1.1.0 — 2026-09-11
 
 Asking for a route costs less, and the cost is published.

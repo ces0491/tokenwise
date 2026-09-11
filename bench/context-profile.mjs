@@ -8,8 +8,8 @@
 //                                  [--match SUBSTR,...] [--exclude SUBSTR,...] [--sessions N] [--json]
 //
 // --dir defaults to ~/.claude/projects. --exclude drops sessions whose project directory contains any
-// of the substrings, and defaults to the bench's own runs, which would otherwise dominate the count
-// with short sessions; --match keeps only those that do, and overrides the default exclusion.
+// of the substrings, and defaults to the sessions the bench and skill-cost.mjs start, which would otherwise
+// fill the count with short sessions; --match keeps only those that do, and overrides the default exclusion.
 // --sessions N lists the N largest sessions by call count (default 10).
 //
 // One API response is written to the transcript as several lines — a thinking block, a text block, one
@@ -18,30 +18,20 @@
 // across files as well as within one.
 //
 // Subagent transcripts sit below their session, at <project>/<session>/subagents/agent-*.jsonl, so a
-// transcript's project is the first directory under --dir, not the directory holding the file. Taking the
-// parent directory named every subagent file's project "subagents", which let the bench's own subagents
-// past the default exclusion and dropped every subagent call from a --match report.
+// transcript's project is the first directory under --dir. Taking the directory holding the file would name
+// every subagent file's project "subagents", letting the bench's subagents past the default exclusion and
+// dropping them from --match reports.
 
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
+import { parseArgs } from './args.mjs';
 
-const args = parseArgs(process.argv.slice(2));
+const args = parseArgs();
 const ROOT = args.dir ? path.resolve(args.dir) : path.join(os.homedir(), '.claude', 'projects');
 const MATCH = args.match ? String(args.match).split(',').map((s) => s.trim()).filter(Boolean) : null;
-const EXCLUDE = MATCH ? [] : String(args.exclude ?? 'tokenwise-bench').split(',').map((s) => s.trim()).filter(Boolean);
+const EXCLUDE = MATCH ? [] : String(args.exclude ?? 'tokenwise-bench,tokenwise-skill-cost').split(',').map((s) => s.trim()).filter(Boolean);
 const TOP = Number(args.sessions || 10);
-
-function parseArgs(argv) {
-  const out = {};
-  for (let i = 0; i < argv.length; i++) {
-    const a = argv[i];
-    if (!a.startsWith('--')) continue;
-    const next = argv[i + 1];
-    if (next !== undefined && !next.startsWith('--')) { out[a.slice(2)] = next; i++; } else out[a.slice(2)] = true;
-  }
-  return out;
-}
 
 function* transcripts(dir) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -134,7 +124,12 @@ function floorOf(calls) {
   return main.length ? Math.min(...main) : 0;
 }
 
-const median = (xs) => { const s = [...xs].sort((a, b) => a - b); const m = Math.floor(s.length / 2); return s.length % 2 ? s[m] : Math.round((s[m - 1] + s[m]) / 2); };
+const median = (xs) => {
+  if (!xs.length) return null;
+  const s = [...xs].sort((a, b) => a - b);
+  const m = Math.floor(s.length / 2);
+  return s.length % 2 ? s[m] : Math.round((s[m - 1] + s[m]) / 2);
+};
 
 if (args.json) {
   process.stdout.write(`${JSON.stringify({ root: ROOT, filesRead, filesSkipped, totals, perSession }, null, 2)}\n`);
@@ -143,7 +138,7 @@ if (args.json) {
 
 // ---- report --------------------------------------------------------------------------------------
 
-const K = (n) => (n >= 1e9 ? `${(n / 1e9).toFixed(2)} billion` : n >= 1e6 ? `${(n / 1e6).toFixed(1)} million` : n >= 1e3 ? `${Math.round(n / 1e3)}K` : String(n));
+const K = (n) => (n == null ? '?' : n >= 1e9 ? `${(n / 1e9).toFixed(2)} billion` : n >= 1e6 ? `${(n / 1e6).toFixed(1)} million` : n >= 1e3 ? `${Math.round(n / 1e3)}K` : String(n));
 const pct = (a, b) => (b ? `${Math.round((a / b) * 100)}%` : '0%');
 const out = [];
 const models = [...new Set(all.map((c) => c.model).filter(Boolean))];
@@ -168,6 +163,6 @@ out.push('');
 out.push('| session | project | date | calls | ctx/call | floor |');
 out.push('|---|---|---|---|---|---|');
 for (const s of perSession.slice(0, TOP)) {
-  out.push(`| ${s.id.slice(0, 8)} | ${s.project.replace(/^.*Documents-/, '').slice(0, 40)} | ${s.day || '?'} | ${s.calls} | ${K(s.ctxPerCall)} | ${K(s.floor)} |`);
+  out.push(`| ${s.id.slice(0, 8)} | ${s.project.slice(-40)} | ${s.day || '?'} | ${s.calls} | ${K(s.ctxPerCall)} | ${K(s.floor)} |`);
 }
 process.stdout.write(`${out.join('\n')}\n`);

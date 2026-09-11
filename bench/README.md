@@ -33,11 +33,11 @@ node bench/run.mjs --force                        # rerun into bench/results, re
 node bench/run.mjs --force --models sonnet        # rerun what a change to the sonnet alias affects
 node scripts/check-models.mjs --live              # whether each alias still resolves to the model it was measured on
 node bench/run.mjs --regrade                      # re-grade saved review and explore answers with the current graders
-node --test bench/graders.test.mjs                # the graders against cases built to game them
+node --test bench/graders.test.mjs bench/matrix.test.mjs   # graders against gaming cases; matrix expansion
 node bench/summarize.mjs                          # rebuild RESULTS.md
 node scripts/check-matrix.mjs                     # matrix.json names exactly the published runs
 node bench/context-profile.mjs                    # the observational table in skills/route/reference.md
-node bench/skill-cost.mjs --compare 1.0.1,1.1.0@1.0.1               # what routing costs, from the saved sessions
+node bench/skill-cost.mjs --compare 1.0.1,1.1.1@1.0.1               # what routing costs, from the saved sessions
 node bench/skill-cost.mjs --label <name> --sessions invoked,unprompted  # measure the current skill; about $1
 ```
 
@@ -45,8 +45,8 @@ Each run in `matrix.json` sets its cell's size with `repeat`, so the matrix expa
 
 ## Limits
 
-- Cells that decide a verdict are run three times; the rest once. Differences under about 30% are within run-to-run noise.
-- The fixture is small; context per turn peaks at 52K, so the cache-read costs of long sessions are underrepresented here. The measurements in `../skills/route/reference.md` cover that regime.
+- Cells whose verdict would flip if one run flipped ran three times; the rest ran once, including the cells behind C7 and C8. `SCOPE.md` treats cost differences under 30% between single runs as noise.
+- The fixture is small; no graded run averaged more than 52K tokens of context per turn, so the cache-read costs of long sessions are underrepresented here. The measurements in `../skills/route/reference.md` cover that regime.
 - Review grading matches patterns, so it can be wrong on an answer unlike the saved ones; its patterns name the mechanism of each defect. The answers are saved in `results/*.answer.md`, `results/hand-grades.json` records a hand reading of five answers across the four review cells, and `graders.test.mjs` holds answers built to game the grader.
 - The tests, chore and plan graders read each run's working copy, which is not kept, so a change to one of them cannot be re-graded against published runs.
 - `turns` is Claude Code's `num_turns`, which tracks API calls closely without being the same count.

@@ -59,8 +59,8 @@ export function expandRuns(matrix, { repeat = 1 } = {}) {
         : dirTargets.has(r.id) ? 'is the directory another run builds on'
           : null;
     if (reason) {
-      // A declared repeat that cannot be honoured is a matrix error, not something to skip quietly:
-      // a silently dropped replicate is how the published matrix stopped being reproducible.
+      // A declared repeat that cannot be honoured is a matrix error: a dropped replicate leaves the matrix unable
+      // to reproduce the published runs.
       if (declared > 1) throw new Error(`${r.id} sets repeat: ${declared} but ${reason}, so it cannot be replicated`);
       continue;
     }

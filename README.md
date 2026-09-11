@@ -4,11 +4,11 @@ A one-skill Claude Code plugin for choosing the model and effort level per phase
 
 ## Why
 
-Every API call re-sends the whole conversation. Across 137 sessions on one machine, input tokens outweighed output 428 to 1, and 99% of input was cached context re-read on every call. Of the ten sessions with the most calls, seven carried 396K to 535K tokens of context per call. Context size multiplied by call count is the bill. The model sets the price per token, and effort changes how many tokens get spent, through thinking and extra turns.
+Every API call re-sends the whole conversation. Across 137 sessions on one machine, input tokens outweighed output 428 to 1, and 99% of input was cached context re-read on every call. Of the ten sessions with the most calls, seven carried 396K to 535K tokens of context per call. Cost is context size times call count, plus output. The model sets the price per token, and effort changes how many tokens get spent, through thinking and extra turns.
 
 Those are one machine's numbers, dated 11 September 2026. `node bench/context-profile.mjs` produces the same table from your own transcripts, so you can check the shape of it rather than take mine.
 
-Two facts shape the advice. The prompt cache is per model, so a `/model` switch on a warm context re-processes all of it. And nothing can switch the running session's model for you: hooks can nudge or change the next session's settings, but the mid-session switch is your own `/model` and `/effort`. So the useful tool is one that tells you what to run, when, and what the cheaper option gives up.
+Two facts shape the advice. The prompt cache is per model, so a `/model` switch on a warm context re-processes all of it. And nothing can switch the running session's model for you: hooks can nudge or change the next session's settings, but the mid-session switch is your own `/model` and `/effort`.
 
 ## What it does
 
@@ -21,17 +21,17 @@ Two facts shape the advice. The prompt cache is per model, so a `/model` switch 
 - the signal that says move up a tier, using Anthropic's rule: didn't know enough means change model, didn't try hard enough means raise effort
 - what "done" is for that phase, as one check you can run before trusting the cheaper setting
 
-Claude also runs the skill when you ask which model or effort level to use. It runs in a forked subagent, so only its answer enters your conversation. There is nothing to set up. `skills/route/reference.md` carries the measurements and sources.
+Claude also runs the skill when you ask which model or effort level to use. It runs in a forked subagent, so only its answer enters your conversation. `skills/route/reference.md` carries the measurements and sources.
 
 ## Does it work
 
-Four of the routing table's nine rows were run against a small test project where "works" is decided by a grader, not by reading the output: hidden tests for implementing and debugging, with the original tests restored first so a model that edits tests to pass gets no credit; recall of five planted defects for reviewing; tests plus a grep for a rename. The table's last column says which rows those are, and marks the rest untested.
+Four of the routing table's nine rows were run against a small test project where a grader decides whether a run worked: hidden tests for implementing and debugging, with the original tests restored first so a model that edits tests to pass gets no credit; recall of five planted defects for reviewing; tests plus a grep for a rename. The table's last column says which rows those are, and marks the rest untested or not separated.
 
-Fifty-two graded runs later, four of the skill's eight claims were wrong. Debugging and reviewing named a more expensive setting than the work needed. Forcing subagents onto Haiku saved 30%, short of the bench's 40% pass mark. And splitting a small task into a planning session and an implementation session cost more than doing it in one. Each row starts at the cheap end and names the failure that justifies moving up. Implementing a feature from a spec cost $0.17 on Haiku and $2.63 on Fable at xhigh, and both passed the same 37 tests. Reviewing a diff on Opus at low effort found all five planted defects in 3 turns; the same model at high effort found the same five in 13 turns for 3.3 times the cost.
+Across 52 graded runs, four of the skill's eight claims were wrong. Debugging and reviewing named a more expensive setting than the work needed. Forcing subagents onto Haiku saved 30%, short of the bench's 40% pass mark. And splitting a small task into a planning session and an implementation session cost more than doing it in one. Each row starts at the cheap end and names the failure that justifies moving up. Implementing a feature from a spec cost $0.17 on Haiku and $2.63 on Fable at xhigh, and both passed the same 37 tests. Reviewing a diff on Opus at low effort found all five planted defects in 3 turns; the same model at high effort found the same five in 13 turns for 3.3 times the cost.
 
 Pass/fail thresholds were fixed before the results were read (`bench/SCOPE.md`) and the verdicts are computed from them. Full numbers in [docs/findings.md](docs/findings.md), method in [docs/methodology.md](docs/methodology.md), raw runs in `bench/results/`.
 
-Those task costs leave out the skill itself, so its cost is measured separately, on Opus 5 at xhigh effort. Loaded and unused, it adds 122 tokens of context. A route in a session already under way cost $0.136, and its answer, 876 tokens, is carried on every later call. Routing just before a `/clear` carries nothing, and for a single small chore, asking can cost about what the cheaper model saves.
+Those task costs leave out the skill itself, so its cost is measured separately, on Opus 5 at xhigh effort. Loaded and unused, it adds 122 tokens of context. A route in a session already under way cost $0.155, and the first route left 754 tokens behind, carried on every later call. Routing just before a `/clear` carries nothing, and for a single small chore, asking can cost about what the cheaper model saves.
 
 ## Checking the figures
 
@@ -41,18 +41,18 @@ Every number above comes from a file in this repository or from a script in it. 
 git clone https://github.com/ces0491/tokenwise && cd tokenwise
 
 node bench/summarize.mjs --check     # do the published tables follow from the published runs?
-node bench/skill-cost.mjs --compare 1.0.1,1.1.0@1.0.1   # the skill's own cost, from the saved sessions
+node bench/skill-cost.mjs --compare 1.0.1,1.1.1@1.0.1   # the skill's own cost, from the saved sessions
 node bench/context-profile.mjs       # the token figures above, against your own transcripts
 node bench/run.mjs --results bench/rerun   # re-run all 57 runs on your account, into a fresh directory
 ```
 
-`--check` regenerates `bench/RESULTS.md` from `bench/results/runs.jsonl` and fails if the committed report differs, so you can confirm the tables were not edited by hand without spending anything. `context-profile.mjs` reports on your machine, not mine, so expect different numbers: the ratio and the cache share are the parts that should look familiar. Only the last command costs money: the published runs cost $28.47 at list price. `node bench/summarize.mjs --results bench/rerun --out bench/rerun/RESULTS.md` then builds the report and verdicts from your runs, to set beside the published one.
+`--check` regenerates `bench/RESULTS.md` from `bench/results/runs.jsonl` and fails if the committed report differs, so you can confirm the tables were not edited by hand without spending anything. `context-profile.mjs` reads your own transcripts, so expect different numbers: the ratio and the cache share are the parts that should look familiar. Only the last command costs money: the published runs cost $28.47 at list price. `node bench/summarize.mjs --results bench/rerun --out bench/rerun/RESULTS.md` then builds the report and verdicts from your runs, to set beside the published one.
 
 What the bench cannot show: all 52 graded runs passed, so it measures cost at equal outcomes and never reaches the point where an expensive setting earns its price. The fixture is small, so it says nothing about long-context sessions. And it measured the models the aliases pointed to on 8 September 2026: Haiku 4.5, Sonnet 5, Opus 5 and Fable 5.1. `node scripts/check-models.mjs --live` asks Claude Code what each alias points to today, for a small cost.
 
 ## Documentation
 
-- [User guide](docs/guide.md) — day-to-day use, what to run where, the two settings worth changing.
+- [User guide](docs/guide.md) — day-to-day use, what to run where, and the two environment variables worth setting.
 - [Findings](docs/findings.md) — what the bench measured, claim by claim, and the two verdicts that need a caveat.
 - [Methodology](docs/methodology.md) — fixture, graders, run conditions, and what the harness cannot measure.
 - [Contributing](CONTRIBUTING.md) — the checks to run, how to change a routing row, and what adding a bench case involves.
