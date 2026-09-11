@@ -35,3 +35,7 @@ export function loadRecords(file) {
 }
 
 export const loadRuns = (file) => loadRecords(file).filter((r) => !isInvalid(r));
+
+// Summary statistics over run figures, skipping runs that did not record the figure.
+export const median = (xs) => { const s = [...xs].filter((x) => x != null).sort((a, b) => a - b); if (!s.length) return null; const m = Math.floor(s.length / 2); return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
+export const mean = (xs) => { const s = xs.filter((x) => x != null); return s.length ? s.reduce((a, b) => a + b, 0) / s.length : null; };

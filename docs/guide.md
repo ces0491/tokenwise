@@ -11,7 +11,7 @@ The plugin adds one skill. This guide covers what it does, when to reach for it,
 
 In the VS Code extension the manager opens with `/plugins`. From the terminal, `claude plugin install tokenwise@ces0491-plugins` does the same thing and writes to the same settings.
 
-Idle, the skill costs only its name and description, which is all that loads until it fires: 122 tokens of context, measured on Opus 5. What a route costs is under "What routing costs" below.
+Idle, the skill costs only its name and description, which is all that loads until it fires: 131 tokens of context, measured on Opus 5. What a route costs is under "What routing costs" below.
 
 ## Ask it
 
@@ -25,10 +25,10 @@ Claude also runs it without being asked by name when you ask which model or effo
 
 ## What routing costs
 
-The skill runs in its own subagent context. Its text and its reasoning stay there, and only the answer comes back into your conversation, where it is carried on every later call like anything else in context. The skill runs on your session's model and effort. A route in a session already under way cost $0.04 asked from Sonnet 5 at medium, $0.12 from Opus 5 at high and $0.17 from Opus 5 at xhigh, and the first route left 590 to 889 tokens behind. `findings.md` has the numbers, and a chart of the task sizes where a route pays for itself.
+The skill runs in its own subagent context. Its text and its reasoning stay there, and only the answer comes back into your conversation, where it is carried on every later call like anything else in context. The skill runs on your session's model and effort. A route in a session already under way cost $0.04 asked from Sonnet 5 at medium, $0.10 from Opus 5 at high and $0.14 from Opus 5 at xhigh, and the first route left 622 to 828 tokens behind. `findings.md` has the numbers, and a chart of the task sizes where a route pays for itself.
 
 - Route just before a `/clear`, at a phase boundary, and nothing it returns is carried.
-- For a single small chore, pick Sonnet or Haiku at low effort yourself. On the bench, moving a rename from Opus at xhigh to Sonnet at low saved $0.17, about what asking costs on Opus.
+- For a single small chore, pick Sonnet or Haiku at low effort yourself. On the bench, moving a rename from Opus at xhigh to Sonnet at low saved $0.17, a little more than asking costs from Opus 5 at xhigh.
 - Describe the work after the command. The skill cannot see your conversation, so `/tokenwise:route` on its own only asks for a description.
 
 ## The one idea
@@ -79,9 +79,9 @@ Switch at a phase boundary:
 4. `/model sonnet` then `/effort medium`.
 5. Start from the file.
 
-A switch on a cleared context costs what starting a new session costs: the system prompt and project context, with no conversation behind them.
+On a cleared context there is no conversation to re-process, so a switch usually costs what a new session's first request costs: the system prompt and project context.
 
-The same holds for escalating mid-task. Raising effort re-processes a warm context on most models just as changing model does, so on a large context write down where the work stands and `/clear` first.
+Escalating mid-task is a switch too. On a large context, write down where the work stands and `/clear` before raising effort or changing model.
 
 Split work across sessions so a model or effort change does not re-process a warm cache. On a small task, planning on Opus and implementing on Sonnet cost more than one Opus session, because the plan has to be written, read and paid for. Split when the phases are long enough that carrying the first one's context through the second would cost more than rebuilding it.
 
@@ -112,4 +112,4 @@ Subagent tokens still count against your usage. Delegation moves reading to a ch
 
 - It cannot change your model or effort. Only you can, with `/model` and `/effort`.
 - It does not track your spend. The tools above do that.
-- It does not know your subscription quota. Costs quoted anywhere in this plugin are API list prices, useful for comparison, not a bill.
+- It does not know your subscription quota. Costs quoted anywhere in this plugin are API list prices, a weighting for comparing settings.

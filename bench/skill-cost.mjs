@@ -102,9 +102,9 @@ const reduce = (raw) => raw.split('\n').filter(Boolean).map((l) => { try { retur
 
 // ---- run --------------------------------------------------------------------------------------------
 
-function session(args, cwd, messages) {
+function session(cliArgs, cwd, messages) {
   return new Promise((resolve) => {
-    const child = spawn(CLAUDE, args, { cwd, stdio: ['pipe', 'pipe', 'pipe'] });
+    const child = spawn(CLAUDE, cliArgs, { cwd, stdio: ['pipe', 'pipe', 'pipe'] });
     let stdout = '';
     let stderr = '';
     let buffered = '';
@@ -131,7 +131,7 @@ function session(args, cwd, messages) {
 
 // Transcripts record a hash of the SKILL.md each session ran against, with line endings normalised, so a figure can
 // be traced to the exact skill text that produced it.
-const skillHash = (text) => crypto.createHash('sha256').update(String(text).replace(/\r\n/g, '\n')).digest('hex').slice(0, 12);
+export const skillHash = (text) => crypto.createHash('sha256').update(String(text).replace(/\r\n/g, '\n')).digest('hex').slice(0, 12);
 
 // The inline variant: a temporary copy of the plugin whose skill runs in the main conversation instead of a forked
 // subagent, to measure what `context: fork` changes.
@@ -167,11 +167,11 @@ async function run(label) {
       try {
         fs.cpSync(FIXTURE, dir, { recursive: true });
         git(dir, 'init', '-q', '-b', 'main'); git(dir, 'add', '-A'); git(dir, 'commit', '-q', '-m', 'base');
-        const args = ['-p', '--model', model, '--effort', effort, '--input-format', 'stream-json', '--output-format', 'stream-json', '--verbose',
+        const cliArgs = ['-p', '--model', model, '--effort', effort, '--input-format', 'stream-json', '--output-format', 'stream-json', '--verbose',
           '--setting-sources', 'project', '--strict-mcp-config', '--dangerously-skip-permissions', '--max-budget-usd', String(BUDGET_USD)];
-        if (s.plugin) args.push('--plugin-dir', plugin);
+        if (s.plugin) cliArgs.push('--plugin-dir', plugin);
         process.stdout.write(`${label}/${s.id}: ${s.messages.length} message(s) on ${model} at ${effort}${s.plugin ? `, plugin ${version}${variant ? ` (${variant})` : ''}` : ''}\n`);
-        const r = await session(args, dir, s.messages);
+        const r = await session(cliArgs, dir, s.messages);
         const meta = { type: 'tokenwise-skill-cost', label, session: s.id, plugin: s.plugin ? version : null, variant: variant ?? null, skill: s.plugin ? skill : null, model, effort, budget_usd: BUDGET_USD, timeout_minutes: TIMEOUT_MINUTES, messages: s.messages, exit: r.code, recorded: new Date().toISOString() };
         const out = fileOf(label, s.id);
         fs.mkdirSync(path.dirname(out), { recursive: true });
@@ -302,7 +302,7 @@ function compare(labels) {
 }
 
 // breakeven.mjs imports the figures, so the command line only runs when this file is the entry point.
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+if (import.meta.main ?? (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url))) {
   if (typeof args.compare === 'string') compare(args.compare.split(','));
   else if (typeof args.report === 'string') report(args.report);
   else if (typeof args.label === 'string') run(args.label).then(() => report(args.label));

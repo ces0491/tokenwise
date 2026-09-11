@@ -10,7 +10,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from './args.mjs';
 import { cellOf } from './matrix.mjs';
-import { isInvalid, loadRecords, stoppedEarly } from './records.mjs';
+import { isInvalid, loadRecords, mean, median, stoppedEarly } from './records.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const args = parseArgs();
@@ -58,8 +58,6 @@ function passed(r) {
   if ('pass_all' in g) return !!g.pass_all;
   return false;
 }
-const median = (xs) => { const s = [...xs].filter((x) => x != null).sort((a, b) => a - b); if (!s.length) return null; const m = Math.floor(s.length / 2); return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
-const mean = (xs) => { const s = xs.filter((x) => x != null); return s.length ? s.reduce((a, b) => a + b, 0) / s.length : null; };
 
 function stats(key) {
   const rs = cells.get(key);

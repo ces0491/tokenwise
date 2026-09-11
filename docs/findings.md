@@ -75,42 +75,40 @@ The planted defects were: a strict `<` where the documentation says `<=`; a `sor
 
 ## What routing itself costs
 
-The task runs above load no plugins, so none of their costs include the skill. `../bench/skill-cost.mjs` measures it in separate sessions on the same fixture with the plugin loaded, on Opus 5 at xhigh effort, one session per case. The table comes from `node bench/skill-cost.mjs --compare 1.0.1,1.1.0-inline@1.0.1,1.1.2@1.0.1`, which reads the saved transcripts and spends nothing.
+The task runs above load no plugins, so none of their costs include the skill. `../bench/skill-cost.mjs` measures it in separate sessions on the same fixture with the plugin loaded. The table compares versions on Opus 5 at xhigh effort, one session per case; other settings follow under "By the setting you ask from". It comes from `node bench/skill-cost.mjs --compare 1.0.1,1.1.0-inline@1.0.1,1.1.2`, which reads the saved transcripts and spends nothing.
 
 | | 1.0.1 | 1.1.0 draft without the fork | 1.1.2 |
 | --- | --- | --- | --- |
-| Context the plugin adds while never used | 122 tokens | 122 tokens | 122 tokens |
-| A route in a session already under way | $0.165 | $0.114 | $0.167 |
-| Context every later call carries after one route | 9.6K | 6.8K | 889 |
-| The next reply after that route (a session never routed: $0.023) | $0.072 | $0.050 | $0.030 |
-| A route as a session's first message, plus the reply after it | $0.441 | $0.321 | $0.491 |
-| "Which model and effort should I use?" in plain words: turn cost, then context carried | $0.309, 7.8K | $0.246, 5.3K | $0.390, 2.9K |
+| Context the plugin adds while never used | 122 tokens | 122 tokens | 131 tokens |
+| A route in a session already under way | $0.165 | $0.114 | $0.137 |
+| Context every later call carries after one route | 9.6K | 6.8K | 828 |
+| The next reply after that route (a session never routed: $0.023) | $0.072 | $0.050 | $0.031 |
+| A route as a session's first message, plus the reply after it | $0.441 | $0.321 | $0.439 |
+| "Which model and effort should I use?" in plain words: turn cost, then context carried | $0.309, 7.8K | $0.246, 5.3K | $0.331, 1.6K |
 
 In 1.0.1 most of what a route left behind was its answer and the thinking behind it, not the skill's text. The skill added about 3K tokens; the routing turn wrote 6,447 tokens of output, 5,368 of them thinking. It also ran a shell command to check the subagent environment variables.
 
-Version 1.1 makes two changes. The skill tells the model to route from its own text and the user's description, without reading files, running commands or checking settings, and to keep its reasoning short. In a draft of 1.1.0 run without the fork, whose `SKILL.md` is saved beside its transcripts in `../bench/results/skill-cost/1.1.0-inline/`, that cut a warm routing turn's output from 4,361 tokens to 2,293. And the skill runs in a forked subagent (`context: fork`), so its text and reasoning stay in the subagent and only the answer returns: 889 tokens.
+Version 1.1 makes two changes. The skill tells the model to route from its own text and the user's description, without reading files, running commands or checking settings, and to keep its reasoning short. In a draft of 1.1.0 run without the fork, whose `SKILL.md` is saved beside its transcripts in `../bench/results/skill-cost/1.1.0-inline/`, that cut a warm routing turn's output from 4,361 tokens to 2,293. And the skill runs in a forked subagent (`context: fork`), so its text and reasoning stay in the subagent and only the answer returns: 828 tokens.
 
-The fork costs more on a session's first message, because the subagent builds its own context: $0.491 against $0.321 without it. The API pricing page puts an Opus 5 cache read at $0.50 per million tokens, so carrying 5.9K fewer tokens saves $0.003 on each later call, and the difference is repaid after 58 of them. In a session already under way, a route and the reply after it cost $0.197 against $0.164 without the fork, repaid after 11 more calls.
+The fork costs more on a session's first message, because the subagent builds its own context: $0.439 against $0.321 without it. The API pricing page puts an Opus 5 cache read at $0.50 per million tokens, so carrying 6.0K fewer tokens saves $0.003 on each later call, and the difference is repaid on the 40th. In a session already under way, a route and the reply after it cost $0.167 against $0.164 without the fork, repaid on the second later call.
 
-Single runs of the same text vary. The 1.1.1 routing session ran twice on an identical `SKILL.md` and Claude Code version (`--compare 1.1.1@1.0.1,1.1.1-r2@1.0.1`), and its warm route cost $0.155 and $0.129. 1.1.2 adds the effort-level cache to the skill's text, and its one warm route cost $0.167, a difference from 1.1.1 smaller than the gap between those two runs.
+Single runs of the same text vary. The 1.1.1 routing session ran twice on an identical `SKILL.md` and Claude Code version (`--compare 1.1.1@1.0.1,1.1.1-r2@1.0.1`), and a route in a session already under way cost $0.155 and $0.129, $0.025 apart. The 1.1.2 route at xhigh cost $0.137, between those two.
 
-The forked skill cannot see the conversation. It routes from the description typed after `/tokenwise:route`, answers a bare `/tokenwise:route` by asking for one, and points to `/context` for the context size a switch would re-process. Claude invoked it unprompted when asked in plain words which model and effort to use. It did not fire in the one session that asked how many tokens had been used, which ran on 1.0.1; 1.1 keeps that description.
-
-For a single small chore, a route can cost about what it saves. A warm route on Opus 5 at xhigh cost $0.167, and moving the rename from Opus at xhigh to Sonnet at low saved $0.17.
+The forked skill cannot see the conversation. It routes from the description typed after `/tokenwise:route`, answers a bare `/tokenwise:route` by asking for one (`--report 1.1.0@1.0.1`), and points to `/context` for the context size a switch would re-process. Claude invoked it unprompted when asked in plain words which model and effort to use, and did not invoke it in the session that asked how many tokens had been used.
 
 ### By the setting you ask from
 
-A route runs on the session's own model and effort, so its price depends on the setting you ask from. The routing session ran once on each of three settings against the 1.1.2 `SKILL.md`, from `node bench/skill-cost.mjs --compare 1.1.2@1.0.1,1.1.2-opus-high@1.0.1,1.1.2-sonnet-medium@1.0.1`.
+A route runs on the session's own model and effort, so its cost depends on the setting you ask from. The routing session ran once on each of three settings against the 1.1.2 `SKILL.md`, from `node bench/skill-cost.mjs --compare 1.1.2,1.1.2-opus-high@1.1.2,1.1.2-sonnet-medium@1.1.2`.
 
 | Asking from | A route in a session already under way | Context carried after one route | A route as a session's first message, plus the reply after it |
 | --- | --- | --- | --- |
-| Opus 5, xhigh | $0.167 | 889 | $0.491 |
-| Opus 5, high | $0.122 | 860 | $0.261 |
-| Sonnet 5, medium | $0.041 | 590 | $0.279 |
+| Opus 5, xhigh | $0.137 | 828 | $0.439 |
+| Opus 5, high | $0.105 | 622 | $0.249 |
+| Sonnet 5, medium | $0.040 | 689 | $0.163 |
 
 Claude Code's model configuration docs give `high` as the default effort on every model except Opus 4.7, and Opus 5 as the default model on Max, Team Premium, Enterprise and the API, so the Opus 5 at high row is where those plans start. Pro and Team Standard default to Sonnet 5 at high, which was not measured.
 
-All three routing sessions recommended the same model and effort for both tasks, and each warned that changing model or effort on a warm context re-processes it. Sonnet 5 at medium wrote answers about half the length of the Opus ones.
+All three routing sessions recommended the same model and effort for both tasks, and each said in at least one of its two answers that changing model or effort on a warm context re-processes it. Sonnet 5 at medium wrote the shortest answers, 178 and 200 words against 263 to 360 for Opus.
 
 ### Where a route pays for itself
 
@@ -125,15 +123,15 @@ All three routing sessions recommended the same model and effort for both tasks,
 | debug | Opus 5, high: $0.41 | Sonnet 5, medium: $0.12 | $0.29 | 70% |
 | review | Opus 5, high: $0.82 | Opus 5, low: $0.25 | $0.57 | 70% |
 
-With that share held fixed, a route costs more than it saves on a task that would cost less than the route's price divided by 0.70 on the setting you are on, and saves less than twice its price up to double that.
+With that share held fixed, a route costs more than it saves on a task that would cost less than the route's cost divided by 0.70 on the setting you are on, and saves less than twice its cost up to double that.
 
 | Asking from | Costs more than it saves below | Saves less than twice its cost below |
 | --- | --- | --- |
 | Sonnet 5, medium | $0.06 | $0.12 |
-| Opus 5, high | $0.17 | $0.35 |
-| Opus 5, xhigh | $0.24 | $0.48 |
+| Opus 5, high | $0.15 | $0.30 |
+| Opus 5, xhigh | $0.20 | $0.39 |
 
-The bench's chore sits on the breakeven line for Opus 5 at xhigh: the rename cost $0.25, and routing it saved $0.171 for a route that cost $0.167. That margin is smaller than the spread between two runs of the same route, so on this task asking breaks even. The other three tasks land in the top band. On a session already running the setting a route recommends, a route saves nothing, whatever the task size.
+The bench's rename falls in the middle band for Opus 5 at xhigh: moving it to Sonnet 5 at low saved $0.171, and asking cost $0.137. That $0.034 margin is not much larger than the $0.025 between two runs of the same route. The other three tasks land where a route saves more than twice its cost. On a session already running the setting a route recommends, a route saves nothing, whatever the task size.
 
 The 70% was measured on small tasks. Whether a larger task saves the same share on the cheaper setting is untested, so the bands extend the measurements to sizes the bench did not run.
 
@@ -163,6 +161,6 @@ Every change made to a grader or a criterion after runs had been seen is dated i
 - **Nothing about large contexts.** No graded run averaged more than 52K tokens of context per turn. Sessions over 100K tokens per call are covered by the observational measurements in `../skills/route/reference.md`.
 - **Nothing about where expensive settings pay off.** All 52 graded runs passed, so the ceiling was never reached.
 - **Nothing about `max` effort or ultracode.** No run used either, so the skill's effort ladder carries no measurement for them.
-- **Nothing about what routing costs on other models or effort levels.** The skill's own cost was measured on Opus 5 at xhigh, with one session per case.
+- **Little about how much a route's cost varies.** Each setting's route ran once on the shipped text, and Sonnet 5 at high, the default on Pro and Team Standard, did not run.
 - **Nothing about other codebases.** A single small JavaScript library, five tasks, run on one machine over a day.
 - **Nothing about subscription quota.** Costs are Claude Code's list-price figures. How usage draws down against a Pro or Max plan is not published.

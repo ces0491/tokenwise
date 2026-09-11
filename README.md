@@ -1,6 +1,6 @@
 # tokenwise
 
-A one-skill Claude Code plugin for choosing the model and effort level per phase of a session, and switching at a point where the switch costs nothing.
+A one-skill Claude Code plugin for choosing the model and effort level per phase of a session, and switching after `/clear` so the conversation is not re-processed.
 
 ## Why
 
@@ -31,7 +31,7 @@ Across 52 graded runs, four of the skill's eight claims were wrong. Debugging an
 
 Pass/fail thresholds were fixed before the results were read (`bench/SCOPE.md`) and the verdicts are computed from them. Full numbers in [docs/findings.md](docs/findings.md), method in [docs/methodology.md](docs/methodology.md), raw runs in `bench/results/`.
 
-Those task costs leave out the skill itself, so its cost is measured separately. Loaded and unused, it adds 122 tokens of context. It runs on your session's model and effort: a route in a session already under way cost $0.04 asked from Sonnet 5 at medium, $0.12 from Opus 5 at high and $0.17 from Opus 5 at xhigh. The first route left 590 to 889 tokens behind, carried on every later call, and routing just before a `/clear` carries nothing. For a single small chore, asking can cost about what the cheaper model saves.
+Those task costs leave out the skill itself, so its cost is measured separately. Loaded and unused, it adds 131 tokens of context. It runs on your session's model and effort: a route in a session already under way cost $0.04 asked from Sonnet 5 at medium, $0.10 from Opus 5 at high and $0.14 from Opus 5 at xhigh. The first route left 622 to 828 tokens behind, carried on every later call, and routing just before a `/clear` carries nothing. For a single small chore, asking can cost about what the cheaper model saves.
 
 ![What each setting cost on the bench's tasks, what a route costs from three settings, and the task sizes where a route pays for itself](docs/breakeven.svg)
 

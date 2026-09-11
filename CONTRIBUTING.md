@@ -8,7 +8,7 @@ Everything below runs offline against committed files, needs only Node, and spen
 
 ```sh
 cd bench/fixture && node --test 'test/**/*.test.js' && cd ../..
-node --test bench/graders.test.mjs bench/matrix.test.mjs   # graders against gaming cases; matrix expansion and --models
+node --test bench/graders.test.mjs bench/matrix.test.mjs bench/breakeven.test.mjs   # graders, matrix expansion, the chart's helpers
 npx markdownlint-cli@0.49.1 '*.md' 'docs/*.md' 'bench/*.md' 'skills/route/*.md' --config .markdownlint.json
 node bench/summarize.mjs --check       # RESULTS.md still follows from results/runs.jsonl
 node bench/breakeven.mjs --check       # docs/breakeven.svg still follows from the saved runs and SKILL.md
@@ -33,22 +33,17 @@ Five of the nine rows carry no measurement. Evidence for one of them needs a new
 
 ## Changing the skill's text
 
-What a route costs depends on `SKILL.md`: how much the model thinks, what it reads, and what the answer leaves in the user's context. After a change that could alter how the skill answers, measure it again and update the figures in `docs/findings.md`, `docs/guide.md` and the README:
+What a route costs depends on `SKILL.md`: how much the model thinks, what it reads, and what the answer leaves in the user's context. Any change to `SKILL.md` fails `bench/breakeven.mjs --check` until the skill is measured again, since each transcript records a hash of the text it ran against. Label the runs with the new version from `plugin.json`:
 
 ```sh
-node bench/skill-cost.mjs --label <version> --sessions invoked,unprompted   # about $1 at list price on 11 September 2026
-node bench/skill-cost.mjs --compare <previous>,<version>@<previous>
-```
-
-A change to the skill's name or description also needs the `idle` and `mention` sessions, since those are all that loads until the skill fires. Each transcript records a hash of the `SKILL.md` it ran against, so a figure can be traced to the text that produced it.
-
-`bench/breakeven.mjs --check` fails on any change to `SKILL.md` until the routes it charts are measured again, because a route's price is what the chart is about. Re-run the invoked session from each setting it uses, point `ROUTES` in that script at the new labels, and regenerate the chart. The four sessions cost $1.86 at list price on 11 September 2026.
-
-```sh
+node bench/skill-cost.mjs --label <version> --sessions idle,invoked,unprompted
 node bench/skill-cost.mjs --label <version>-opus-high --sessions invoked --model opus --effort high
 node bench/skill-cost.mjs --label <version>-sonnet-medium --sessions invoked --model sonnet --effort medium
 node bench/breakeven.mjs
+node bench/skill-cost.mjs --compare <previous>,<version>
 ```
+
+Add `mention` to the first command when the skill's name or description changes, since those are all that loads until the skill fires. The chart reads the xhigh route and the idle session from the bare version label and the other two routes from the suffixed ones. With `mention`, the six sessions cost $1.95 at list price on 11 September 2026. Then update the figures in `docs/findings.md`, `docs/guide.md` and the README.
 
 ## Adding a bench case
 

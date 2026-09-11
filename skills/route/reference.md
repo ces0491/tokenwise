@@ -42,7 +42,7 @@ The cache lifetime is one hour on a subscription and five minutes on an API key 
 
 From the Claude Code prompt caching docs: "Each model has its own cache. Switching models recomputes the entire request even when the content is identical." And: "on most models, each effort level has its own cache, so changing effort mid-session recomputes the entire request. On Fable 5.1 with an API key or a Claude subscription, the cache stays intact by default." Claude Code asks for confirmation on `/model` only while the cache is warm (from v2.1.238), and asks before an effort change while the cache is warm.
 
-The same page puts CLAUDE.md and memory in a project-context layer that `/clear` rebuilds, after the system prompt and before the conversation. A change straight after `/clear` therefore re-processes the system prompt and project context, as a new session does, and a change on a warm context re-processes everything. The phase-boundary protocol follows from this.
+The page states those two rules, and the cost of a change on a cleared context follows from them without being stated there. After `/clear` the request holds the system prompt and project context and no conversation, so recomputing the entire request re-processes what a new session's first request would. The exception is a model and effort level that still has the same prefix cached: the page says any two requests with the same model and prefix read the same cache. The phase-boundary protocol follows from this.
 
 ## Nothing switches the live session for you
 
@@ -56,7 +56,7 @@ Each subagent runs in its own context window; only its summary returns. Agent fi
 
 From the Claude Code skills docs: "When you or Claude invoke a skill, the rendered `SKILL.md` content enters the conversation as a single message and stays there across later turns." A second invocation with different arguments appends the full content again, and auto-compaction re-attaches invoked skills after its summary, up to a token budget. `context: fork` runs a skill in a subagent instead: "The skill content becomes the prompt that drives the subagent. It won't have access to your conversation history."
 
-This skill runs forked for that reason. Measured on Opus 5 at xhigh effort (`../../docs/findings.md`), a route that ran in the conversation left 9.6K tokens behind for every later call, most of it the answer and its thinking. Forked, it leaves 889, the answer alone. The cost is that the skill routes from the description it is given and cannot see the conversation or its context size.
+This skill runs forked for that reason. Measured on Opus 5 at xhigh effort (`../../docs/findings.md`), a route that ran in the conversation left 9.6K tokens behind for every later call, most of it the answer and its thinking. Forked, it leaves 828, the answer alone. The cost is that the skill routes from the description it is given and cannot see the conversation or its context size.
 
 ## Images
 
