@@ -2,7 +2,7 @@
 
 Versions follow the bar in `SCOPE.md`: a changed recommendation is a minor bump, a changed answer format or a removed section is a major one.
 
-## Unreleased
+## 1.0.1 — 2026-09-11
 
 No routing recommendation changed.
 
