@@ -8,8 +8,8 @@ Everything below runs offline against committed files, needs only Node, and spen
 
 ```sh
 cd bench/fixture && node --test 'test/**/*.test.js' && cd ../..
-node --test bench/graders.test.mjs bench/matrix.test.mjs bench/breakeven.test.mjs bench/stream.test.mjs   # graders, matrix expansion, the chart's helpers, the stream reader
-npx markdownlint-cli@0.49.1 '*.md' 'docs/*.md' 'bench/*.md' 'skills/route/*.md' --config .markdownlint.json
+node --test bench/graders.test.mjs bench/matrix.test.mjs bench/breakeven.test.mjs bench/stream.test.mjs experiments/doc-format/measure.test.mjs   # graders, matrix expansion, the chart's helpers, the stream reader, the document-format reader
+npx markdownlint-cli@0.49.1 '*.md' 'docs/*.md' 'bench/*.md' 'skills/route/*.md' 'experiments/*/*.md' --config .markdownlint.json
 node bench/summarize.mjs --check       # RESULTS.md still follows from results/runs.jsonl
 node bench/breakeven.mjs --check       # docs/breakeven.svg still follows from the saved runs and SKILL.md
 node scripts/check-matrix.mjs          # matrix.json expands to exactly the published runs

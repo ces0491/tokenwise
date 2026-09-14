@@ -1,0 +1,12 @@
+{
+  "documents": [
+    {
+      "id": "attention",
+      "title": "Attention Is All You Need (arXiv 1706.03762v7)",
+      "formats": {
+        "pdf": "https://arxiv.org/pdf/1706.03762v7",
+        "html": "https://arxiv.org/html/1706.03762v7"
+      }
+    }
+  ]
+}
