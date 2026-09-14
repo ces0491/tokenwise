@@ -27,10 +27,10 @@ jobs:
         run: node --test --test-reporter=tap 'test/**/*.test.js'
 
       - name: Grader, matrix and chart tests
-        run: node --test bench/graders.test.mjs bench/matrix.test.mjs bench/breakeven.test.mjs bench/stream.test.mjs
+        run: node --test bench/graders.test.mjs bench/matrix.test.mjs bench/breakeven.test.mjs bench/stream.test.mjs experiments/doc-format/measure.test.mjs
 
       - name: Markdown lint
-        run: npx --yes markdownlint-cli@0.49.1 '*.md' 'docs/*.md' 'bench/*.md' 'skills/route/*.md' --config .markdownlint.json
+        run: npx --yes markdownlint-cli@0.49.1 '*.md' 'docs/*.md' 'bench/*.md' 'skills/route/*.md' 'experiments/*/*.md' --config .markdownlint.json
 
       - name: Report matches the run data
         run: node bench/summarize.mjs --check
