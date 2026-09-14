@@ -8,8 +8,8 @@ import { expandRuns, loadMatrix, selectForModels } from './matrix.mjs';
 const runs = expandRuns(loadMatrix());
 const ids = (rs) => rs.map((r) => r.id).sort();
 
-test('the matrix expands to the 57 published runs', () => {
-  assert.equal(runs.length, 57);
+test('the matrix expands to 68 runs', () => {
+  assert.equal(runs.length, 68);
   assert.ok(runs.some((r) => r.id === 'implement-opus-xhigh#3'), 'a run other runs resume from is still replicated');
 });
 

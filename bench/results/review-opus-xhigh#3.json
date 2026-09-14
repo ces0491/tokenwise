@@ -1,0 +1,111 @@
+{
+ "duration_api_ms": 75324,
+ "stop_reason": "end_turn",
+ "session_id": "38f2fb47-63df-4b9d-92a7-b1c11e4d2184",
+ "total_cost_usd": 0.5012835,
+ "usage": {
+  "input_tokens": 12,
+  "cache_creation_input_tokens": 25740,
+  "cache_read_input_tokens": 190853,
+  "output_tokens": 5894,
+  "output_tokens_details": {
+   "thinking_tokens": 2935
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 25740,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2418,
+    "cache_read_input_tokens": 40844,
+    "cache_creation_input_tokens": 341,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 341
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard"
+ },
+ "modelUsage": {
+  "claude-haiku-4-5-20251001": {
+   "inputTokens": 972,
+   "outputTokens": 15,
+   "cacheReadInputTokens": 0,
+   "cacheCreationInputTokens": 0,
+   "webSearchRequests": 0,
+   "costUSD": 0.001047,
+   "contextWindow": 200000,
+   "maxOutputTokens": 32000,
+   "thinkingTokens": 0,
+   "canonicalModel": "claude-haiku-4-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  },
+  "claude-opus-5": {
+   "inputTokens": 12,
+   "outputTokens": 5894,
+   "cacheReadInputTokens": 190853,
+   "cacheCreationInputTokens": 25740,
+   "webSearchRequests": 0,
+   "costUSD": 0.5002365,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 64000,
+   "thinkingTokens": 2935,
+   "canonicalModel": "claude-opus-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "is_error": false,
+ "num_turns": 6,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "**src/csv.js:37**\n`csvField` no longer quotes fields that contain `\\n` or `\\r`. `toCsv` writes the line break unquoted, so `parseCsv` reads it as the end of a row and the round-trip breaks. The comment on `parseCsv` says it handles newlines inside quoted fields, but the writer no longer produces them.\nInput: `parseCsv(toCsv([['C-3', 'two\\nlines']]))` returns `[[\"C-3\",\"two\"],[\"lines\"]]` instead of `[[\"C-3\",\"two\\nlines\"]]`.\n\n**test/csv.test.js:21–22 and :26**\nThe test was weakened. The assertion `csvField('x\\ny') === '\"x\\ny\"'` was deleted, and the `['C-3', 'two\\nlines']` row was removed from the round-trip test. Those were the only checks on line breaks inside fields, so the regression above now passes (`npm test`: 29 pass, 0 fail).\nInput: put either removed line back and the suite fails against the current `src/csv.js`.\n\n**src/discounts.js:91**\n`tier.minQty < qty` should be `<=`. A quantity exactly equal to a tier's `minQty` no longer gets that tier. This contradicts the module's own rule at line 8: \"the highest tier whose minQty is less than or equal to the quantity\". The existing tests use qty 9, 12, 20 and 100, so none of them hit the boundary.\nInput: with `tiers = [{minQty:10, percent:5}, {minQty:50, percent:12}]`, `volumeTier(tiers, 10)` returns `null`, so `applyDiscount(1000, {type:'volume', tiers}, 10)` returns `1000` instead of `950`. `volumeTier(tiers, 50)` returns the 5% tier instead of the 12% tier.\n\n**src/discounts.js:88**\n`tiers.sort(...)` sorts the caller's array in place. That changes the order of the discount config the caller passed in: `createInvoice` copies lines shallowly, so the `discounts` and `tiers` arrays are still shared with the caller. It also throws on a frozen tiers array.\nInput: `volumeTier(Object.freeze([{minQty:50, percent:12}, {minQty:10, percent:5}]), 20)` throws `TypeError: Cannot assign to read only property '0'`. With an unfrozen `[{minQty:50,…}, {minQty:10,…}]`, the caller's array comes back reordered to `[{minQty:10,…}, {minQty:50,…}]`.\n\n**src/tax.js:30**\n`netFromGross` now calls `Math.round` instead of `roundHalfUp`. That breaks the README rule that `src/money.js` owns rounding, half away from zero. `Math.round` rounds negative halves toward zero, so credit or refund amounts round the wrong way (`cents()` accepts negative values).\nInput: `netFromGross(-3, 'GB')`, where -3 / 1.2 = -2.5, returns `-2`. The rule gives `-3`, which is what `roundHalfUp` returned before the change.\n\n**src/report.js:5–6**\n`monthKey` now parses `issuedOn` with `new Date(...)` and reads local-time fields. This breaks the README rule \"Monthly reports group by the first seven characters of `issuedOn`\". A date-only `YYYY-MM-DD` string is parsed as UTC midnight, so in any timezone west of UTC, invoices dated the 1st land in the previous month in `monthlySummary`. Years below 100 also lose their zero padding.\nInput: under `TZ=America/New_York`, `monthKey({ issuedOn: '2026-03-01' })` returns `'2026-02'` (confirmed by running it). In any timezone, `monthKey({ issuedOn: '0099-03-01' })` returns `'99-03'`.",
+ "ttft_ms": 2286,
+ "type": "result",
+ "duration_ms": 76740,
+ "uuid": "0b580856-73de-4ca1-9180-4b0e07961254",
+ "ttft_stream_ms": 1180,
+ "time_to_request_ms": 66,
+ "first_content_frame_ms": 1704,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

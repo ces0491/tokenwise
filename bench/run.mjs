@@ -33,6 +33,12 @@
 // (default: <tmp>/tokenwise-bench). Raw JSON results land in <results>/<id>.json, answers in
 // <results>/<id>.answer.md, and one summary line per run is appended to <results>/runs.jsonl.
 // Runs whose result file already exists are skipped unless --force is given.
+//
+// An ultracode run (effort "ultracode") streams its session (bench/stream.mjs) and keeps a reduced copy in
+// <results>/<id>.stream.jsonl: tool names and usage, no message text. The stream shows whether the session was offered
+// the Workflow tool and how often it called it. Claude Code offers that tool whenever workflows are available, with
+// ultracode on or off, so being offered it does not show ultracode applied. Not being offered it shows workflows were
+// unavailable, and the docs say ultracode is then off, so such a run is marked invalid rather than scored as ultracode.
 
 import fs from 'node:fs';
 import path from 'node:path';
@@ -43,6 +49,7 @@ import { parseArgs } from './args.mjs';
 import { MATRIX, cellOf, expandRuns, loadMatrix, selectForModels, usesModel } from './matrix.mjs';
 import { CASES, DIR_GRADERS, FIXTURE, git, grade } from './graders.mjs';
 import { isInvalid, loadRuns } from './records.mjs';
+import { outsideMain, parseStream, reduceStream } from './stream.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const CLAUDE = process.env.CLAUDE_BIN || 'claude';
@@ -97,11 +104,14 @@ function promptFor(run) {
   return fs.readFileSync(path.join(CASES, run.case, run.prompt || 'prompt.md'), 'utf8');
 }
 
+const streamed = (run) => run.effort === 'ultracode';
+
 function claudeArgs(run) {
   const d = matrix.defaults;
   // Permissions are bypassed: every run works in a throwaway copy of the fixture under the temp
   // directory, and any denied tool call would show up as extra turns and distort the comparison.
-  const a = ['-p', '--model', run.model, '--output-format', 'json', '--setting-sources', 'project', '--strict-mcp-config',
+  const format = streamed(run) ? ['--output-format', 'stream-json', '--verbose'] : ['--output-format', 'json'];
+  const a = ['-p', '--model', run.model, ...format, '--setting-sources', 'project', '--strict-mcp-config',
     '--dangerously-skip-permissions', '--max-budget-usd', String(run.maxBudgetUsd ?? d.maxBudgetUsd)];
   if (run.effort) a.push('--effort', run.effort);
   if (run.resumeFrom) {
@@ -137,7 +147,7 @@ function parseResult(stdout) {
 
 // ---- metrics ------------------------------------------------------------------
 
-function metrics(result, elapsedMs) {
+function metrics(result, elapsedMs, workflow) {
   if (!result) return { error: 'no result JSON', wall_ms: elapsedMs };
   const u = result.usage || {};
   const context = (u.input_tokens || 0) + (u.cache_creation_input_tokens || 0) + (u.cache_read_input_tokens || 0);
@@ -163,6 +173,8 @@ function metrics(result, elapsedMs) {
     api_ms: result.duration_api_ms,
     wall_ms: elapsedMs,
     models: perModel,
+    outside_main: outsideMain(result),
+    ...(workflow ? { workflow } : {}),
   };
 }
 
@@ -176,7 +188,9 @@ async function execute(run) {
   log(`start ${run.id} (${run.model}${run.effort ? ` ${run.effort}` : ''}) in ${dir}`);
   if (args.dry) { log(`  ${CLAUDE} ${claudeArgs(run).join(' ')}`); return 'dry'; }
   const { code, stdout, stderr, timedOut } = await runClaude(run, dir, prompt);
-  const result = parseResult(stdout);
+  const stream = streamed(run) ? parseStream(stdout) : null;
+  const result = stream ? stream.result : parseResult(stdout);
+  if (stream) fs.writeFileSync(path.join(RESULTS, `${run.id}.stream.jsonl`), `${reduceStream(stdout).map((e) => JSON.stringify(e)).join('\n')}\n`);
   if (result) fs.writeFileSync(path.join(RESULTS, `${run.id}.json`), JSON.stringify(result, null, 1));
   else fs.writeFileSync(path.join(RESULTS, `${run.id}.error.txt`), `exit ${code}${timedOut ? ' (timeout)' : ''}\n--- stdout ---\n${stdout}\n--- stderr ---\n${stderr}`);
   // A timed-out run leaves no result JSON. Write a marker in its place so the next invocation skips the run
@@ -185,14 +199,16 @@ async function execute(run) {
   if (result?.result) fs.writeFileSync(path.join(RESULTS, `${run.id}.answer.md`), String(result.result));
   // A run killed by a usage limit or other API error never attempted the task. records.mjs decides that for the
   // report too; an invalid run is excluded from results and re-run next time, rather than scored as a failure.
-  const m = metrics(result, Date.now() - started);
-  const invalid = isInvalid({ timedOut, metrics: m });
+  const m = metrics(result, Date.now() - started, stream?.workflow);
+  const notApplied = !!result && stream?.workflow.offered === false;
+  const invalid = isInvalid({ timedOut, metrics: m }) || notApplied;
   let g = {};
   if (timedOut) g = { pass_all: false, timedOut: true };
   else if (!invalid) { try { g = grade(run, dir, result, matrix); } catch (e) { g = { gradeError: String(e?.message || e) }; } }
   const record = {
     invalid: invalid || undefined,
-    invalidReason: invalid ? (result ? `${result.api_error_status ?? result.terminal_reason}: ${String(result.result || '').slice(0, 120)}` : `no result JSON (exit ${code})`) : undefined,
+    invalidReason: notApplied ? 'ultracode could not apply: the session was not offered the Workflow tool, so workflows were unavailable'
+      : invalid ? (result ? `${result.api_error_status ?? result.terminal_reason}: ${String(result.result || '').slice(0, 120)}` : `no result JSON (exit ${code})`) : undefined,
     id: run.id, case: run.case ?? null, model: run.model, effort: run.effort ?? null, env: run.env ?? null,
     prompt: run.prompt ?? (run.promptText ? 'inline' : 'prompt.md'), resumeFrom: run.resumeFrom ?? null, dirFrom: run.dirFrom ?? null,
     started: new Date(started).toISOString(), finished: new Date().toISOString(), claude_version: VERSION,
@@ -201,7 +217,7 @@ async function execute(run) {
   fs.appendFileSync(path.join(RESULTS, 'runs.jsonl'), `${JSON.stringify(record)}\n`);
   if (invalid) {
     // Removed so the run is retried rather than skipped, and so no answer from a run that never happened is left behind.
-    for (const f of [`${run.id}.json`, `${run.id}.answer.md`]) fs.rmSync(path.join(RESULTS, f), { force: true });
+    for (const f of [`${run.id}.json`, `${run.id}.answer.md`, `${run.id}.stream.jsonl`]) fs.rmSync(path.join(RESULTS, f), { force: true });
     log(`INVALID ${run.id}: ${record.invalidReason}`);
     return 'invalid';
   }

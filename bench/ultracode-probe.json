@@ -1,0 +1,7 @@
+{
+  "defaults": { "maxBudgetUsd": 3, "timeoutMinutes": 20 },
+  "cases": { "review": { "overlayUncommitted": true, "grader": "review" } },
+  "runs": [
+    { "id": "probe-review-sonnet-ultracode", "case": "review", "model": "sonnet", "effort": "ultracode" }
+  ]
+}

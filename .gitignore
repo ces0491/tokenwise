@@ -9,3 +9,5 @@ bench/rerun/
 # demo/build.mjs rebuilds them in seconds, so it is the only tracked file here.
 demo/*
 !demo/build.mjs
+# The ultracode probe (node bench/run.mjs --matrix bench/ultracode-probe.json --results bench/probe) stays local.
+bench/probe/

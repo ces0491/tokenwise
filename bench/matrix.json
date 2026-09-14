@@ -23,11 +23,14 @@
     { "id": "debug-sonnet-medium", "repeat": 3, "case": "debug", "model": "sonnet", "effort": "medium" },
     { "id": "debug-sonnet-xhigh", "case": "debug", "model": "sonnet", "effort": "xhigh" },
     { "id": "debug-opus-high", "repeat": 3, "case": "debug", "model": "opus", "effort": "high" },
-    { "id": "debug-opus-xhigh", "case": "debug", "model": "opus", "effort": "xhigh" },
+    { "id": "debug-opus-xhigh", "repeat": 3, "case": "debug", "model": "opus", "effort": "xhigh" },
+    { "id": "debug-opus-ultracode", "repeat": 3, "case": "debug", "model": "opus", "effort": "ultracode", "maxBudgetUsd": 20, "timeoutMinutes": 45 },
 
     { "id": "review-sonnet-high", "repeat": 3, "case": "review", "model": "sonnet", "effort": "high" },
     { "id": "review-opus-low", "repeat": 3, "case": "review", "model": "opus", "effort": "low" },
     { "id": "review-opus-high", "repeat": 3, "case": "review", "model": "opus", "effort": "high" },
+    { "id": "review-opus-xhigh", "repeat": 3, "case": "review", "model": "opus", "effort": "xhigh" },
+    { "id": "review-opus-ultracode", "repeat": 3, "case": "review", "model": "opus", "effort": "ultracode", "maxBudgetUsd": 20, "timeoutMinutes": 45 },
     { "id": "review-fable-high", "case": "review", "model": "fable", "effort": "high" },
 
     { "id": "implement-haiku", "case": "implement", "model": "haiku" },

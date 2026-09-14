@@ -1,10 +1,10 @@
 # What the bench found
 
-Fifty-two graded runs across five task types, plus five ungraded session resumes, on Claude Code 2.1.263, 8 September 2026, against `claude-haiku-4-5-20251001`, `claude-sonnet-5`, `claude-opus-5` and `claude-fable-5-1`. `methodology.md` describes how the tasks and graders were built, `../bench/RESULTS.md` holds the generated tables, and `../bench/SCOPE.md` the criteria fixed before the results were read.
+Sixty-three graded runs across five task types, plus five ungraded session resumes, on Claude Code 2.1.263 on 8 September 2026 and 2.1.270 on 14 September 2026, against `claude-haiku-4-5-20251001`, `claude-sonnet-5`, `claude-opus-5` and `claude-fable-5-1`. `methodology.md` describes how the tasks and graders were built, `../bench/RESULTS.md` holds the generated tables, and `../bench/SCOPE.md` the criteria fixed before the results were read.
 
 ## The short version
 
-On a small, well-specified codebase, every model and effort level tested passed every graded run, and on the implement task the cost of doing so varied nearly sixteen-fold. Four of the skill's eight claims were wrong, in three different ways: two named a more expensive setting than the work required, one saved less than the bench's pass mark, and one recommended a split that cost more than not splitting.
+On a small, well-specified codebase, every model and effort level tested passed every graded run, and on the implement task the cost of doing so varied nearly sixteen-fold. Of the nine claims tested, four were wrong, in three different ways: two named a more expensive setting than the work required, one saved less than the bench's pass mark, and one recommended a split that cost more than not splitting. The ninth, on ultracode, held on the review, where a workflow found the same defects as `xhigh` for 9.5 times the cost, and could not be tested on the bug fix, where no workflow started.
 
 ## Cost at equal outcomes
 
@@ -27,7 +27,7 @@ Every cell in these three cases passed every run.
 | sonnet, medium (n=3) | $0.12 |
 | sonnet, xhigh | $0.16 |
 | opus, high (n=3) | $0.41 |
-| opus, xhigh | $0.44 |
+| opus, xhigh (n=3) | $0.35 |
 
 | Rename a function everywhere | Cost |
 | --- | --- |
@@ -51,7 +51,7 @@ A cheaper model can also take more turns and still cost less. Haiku took 16 or 1
 
 | Task | Lower effort | Higher effort | What grew |
 | --- | --- | --- | --- |
-| Fix a reproducible bug, opus | high: 8 or 9 turns, $0.41 median | xhigh (n=1): 9 turns, $0.44 | Nothing beyond single-run noise |
+| Fix a reproducible bug, opus | high: 8 or 9 turns, $0.41 median | xhigh (n=3): 9 or 10 turns, $0.35 median | Nothing. The xhigh median came in below the high one |
 | Fix a reproducible bug, sonnet | medium: 7 or 8 turns, $0.12 median | xhigh (n=1): 11 turns, $0.16 | Turns, though the cost difference is within single-run noise |
 | Implement from a spec, opus | medium: 8 to 14 turns, 8K to 14K output, 263K to 519K cache read, $0.86 median | xhigh: 14 to 18 turns, 25K to 30K output, 651K to 825K cache read, $1.65 median | Output, most of the increase thinking (674 to 1K rising to 10K to 15K), and context |
 | Review a diff, opus | low: 3 turns, 2K output, 72K to 73K cache read, $0.25 | high: 12 or 13 turns, 8K to 11K output, 449K to 512K cache read, $0.82 median | Context, from the extra turns, and output |
@@ -98,17 +98,19 @@ The forked skill cannot see the conversation. It routes from the description typ
 
 ### By the setting you ask from
 
-A route runs on the session's own model and effort, so its cost depends on the setting you ask from. The routing session ran once on each of three settings against the 1.1.2 `SKILL.md`, from `node bench/skill-cost.mjs --compare 1.1.2,1.1.2-opus-high@1.1.2,1.1.2-sonnet-medium@1.1.2`.
+A route runs on the session's own model and effort, so its cost depends on the setting you ask from. The routing session ran once on each of three settings against the 1.2.0 `SKILL.md`, on Claude Code 2.1.270, from `node bench/skill-cost.mjs --compare 1.2.0,1.2.0-opus-high@1.2.0,1.2.0-sonnet-medium@1.2.0`.
 
 | Asking from | A route in a session already under way | Context carried after one route | A route as a session's first message, plus the reply after it |
 | --- | --- | --- | --- |
-| Opus 5, xhigh | $0.137 | 828 | $0.439 |
-| Opus 5, high | $0.105 | 622 | $0.249 |
-| Sonnet 5, medium | $0.040 | 689 | $0.163 |
+| Opus 5, xhigh | $0.103 | 838 | $0.308 |
+| Opus 5, high | $0.098 | 699 | $0.225 |
+| Sonnet 5, medium | $0.038 | 638 | $0.117 |
+
+Loaded and never used, the 1.2.0 plugin adds 157 tokens of context, against 131 for 1.1.2, whose description mentioned neither ultracode nor `ultrathink`. The 1.1.2 route at xhigh cost $0.137 and left 828 tokens. The 1.2.0 sessions ran on a newer Claude Code, which starts every session about 16.6K tokens smaller, so the difference cannot be put down to the skill's text alone. `methodology.md` records what else changed between the versions.
 
 Claude Code's model configuration docs give `high` as the default effort on every model except Opus 4.7, and Opus 5 as the default model on Max, Team Premium, Enterprise and the API, so the Opus 5 at high row is where those plans start. Pro and Team Standard default to Sonnet 5 at high, which was not measured.
 
-All three routing sessions recommended the same model and effort for both tasks, and each said in at least one of its two answers that changing model or effort on a warm context re-processes it. Sonnet 5 at medium wrote the shortest answers, 178 and 200 words against 263 to 360 for Opus.
+All three routing sessions recommended the same model and effort for both tasks, and each said in at least one of its two answers that changing model or effort on a warm context re-processes it. The Opus sessions ruled ultracode out in three of their four answers, each time because the work fits one context or because of its measured cost on the review, and all four suggested `ultrathink` for a single hard turn before changing effort or model. Sonnet 5 at medium wrote the shortest answers, 166 and 164 words against 236 to 364 for Opus, and mentioned neither. On the review it gave "nothing much" under what the cheaper choice gives up.
 
 ### Where a route pays for itself
 
@@ -127,19 +129,34 @@ With that share held fixed, a route costs more than it saves on a task that woul
 
 | Asking from | Costs more than it saves below | Saves less than twice its cost below |
 | --- | --- | --- |
-| Sonnet 5, medium | $0.06 | $0.12 |
-| Opus 5, high | $0.15 | $0.30 |
-| Opus 5, xhigh | $0.20 | $0.39 |
+| Sonnet 5, medium | $0.05 | $0.11 |
+| Opus 5, high | $0.14 | $0.28 |
+| Opus 5, xhigh | $0.15 | $0.30 |
 
-The bench's rename falls in the middle band for Opus 5 at xhigh: moving it to Sonnet 5 at low saved $0.171, and asking cost $0.137. That $0.034 margin is not much larger than the $0.025 between two runs of the same route. The other three tasks land where a route saves more than twice its cost. On a session already running the setting a route recommends, a route saves nothing, whatever the task size.
+The bench's rename falls in the middle band for Opus 5 at xhigh: moving it to Sonnet 5 at low saved $0.171, and asking cost $0.103, a margin of $0.068. The other three tasks land where a route saves more than twice its cost. On a session already running the setting a route recommends, a route saves nothing, whatever the task size.
 
 The 70% was measured on small tasks. Whether a larger task saves the same share on the cheaper setting is untested, so the bands extend the measurements to sizes the bench did not run.
+
+## Ultracode on two small tasks
+
+Both cases ran on Opus 5 with ultracode on and at `xhigh`, three runs each (C9 in `../bench/SCOPE.md`).
+
+| Case, opus | xhigh | ultracode | Runs that started a workflow |
+| --- | --- | --- | --- |
+| Review a diff | 5 of 5 defects every run, $0.50 median | 5 of 5 defects every run, $4.75 median ($3.18 to $7.92) | 3 of 3 |
+| Fix a reproducible bug | Passed every run, $0.35 median | Passed every run, $0.45 median | 0 of 3 |
+
+On the review, Claude started one workflow in each run. The workflow found the same five defects as `xhigh`, with no false positives, at 9.5 times the median cost, and took 4.6 to 8.6 minutes against 1.2 or 1.3. The workflow agents ran on Opus. Beyond the main loop's own usage, each run read 1.1M to 2.9M cached tokens and wrote 38K to 94K output tokens, which the per-model usage cannot split between the agents and Claude Code's internal calls.
+
+On the bug fix, no run started a workflow, so those runs measure `xhigh` with ultracode switched on. Their median cost was 1.26 times the `xhigh` median, and C9 records the case as not testable.
+
+Every run passed, so nothing here shows a workflow finding something `xhigh` missed. The review is small enough for one context to hold. Whether ultracode pays on work that splits into parts large enough to fill a context each is outside what this fixture can test.
 
 ## Claim by claim
 
 | Claim | Verdict |
 | --- | --- |
-| Chores go to Sonnet or Haiku at low effort | Holds. Both passed every run at a third and a quarter of the cost of Opus at xhigh. |
+| Chores go to Sonnet at low effort, or Haiku | Holds. Both passed every run at a third and a quarter of the cost of Opus at xhigh. |
 | Implementing from a written spec goes to Sonnet at medium | Holds. Passed every run at 17% of the cost of Opus at xhigh. |
 | Raise effort before upgrading the model | Supported, though the pre-registered test was written backwards. See below. |
 | Debugging goes to the top model at high effort | Falsified. Sonnet at medium fixed the bug in all three runs for a third of Opus's cost. |
@@ -147,6 +164,7 @@ The 70% was measured on small tasks. Whether a larger task saves the same share 
 | Forcing subagents onto Haiku saves at least 40%, the bench's pass mark | Falsified on the threshold. The mechanism works and saved 30%. |
 | The prompt cache is per model | Not testable through this harness. Retained as documented behaviour. |
 | Planning on Opus then implementing on Sonnet is cheaper | Falsified on cost. The split cost $2.50 against $1.65 for one Opus session. |
+| On tasks this size, ultracode costs more than `xhigh` for no better result | Holds on the review, at 9.5 times the cost for the same five defects. Not testable on the bug fix, where no workflow started. |
 
 ## Two verdicts that need a caveat
 
@@ -158,9 +176,9 @@ Every change made to a grader or a criterion after runs had been seen is dated i
 
 ## What this does not tell you
 
-- **Nothing about large contexts.** No graded run averaged more than 52K tokens of context per turn. Sessions over 100K tokens per call are covered by the observational measurements in `../skills/route/reference.md`.
-- **Nothing about where expensive settings pay off.** All 52 graded runs passed, so the ceiling was never reached.
-- **Nothing about `max` effort or ultracode.** No run used either, so the skill's effort ladder carries no measurement for them.
+- **Nothing about large contexts.** No graded run averaged more than 72K tokens of context per turn. Sessions over 100K tokens per call are covered by the observational measurements in `../skills/route/reference.md`.
+- **Nothing about where expensive settings pay off.** All 63 graded runs passed, so the ceiling was never reached.
+- **Nothing about `max` effort or `ultrathink`, and ultracode only on small tasks.** No run used `max` or `ultrathink`. Ultracode ran on a review and a bug fix, both small enough for one context.
 - **Little about how much a route's cost varies.** Each setting's route ran once on the shipped text, and Sonnet 5 at high, the default on Pro and Team Standard, did not run.
-- **Nothing about other codebases.** A single small JavaScript library, five tasks, run on one machine over a day.
+- **Nothing about other codebases.** A single small JavaScript library, five tasks, run on one machine on 8 and 14 September 2026.
 - **Nothing about subscription quota.** Costs are Claude Code's list-price figures. How usage draws down against a Pro or Max plan is not published.

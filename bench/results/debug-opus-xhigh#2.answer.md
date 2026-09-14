@@ -1,0 +1,3 @@
+`invoiceTotals` in `src/invoice.js` worked out and rounded VAT for each line and then added those up, but the README says VAT is calculated once on the invoice net total. With three 3-cent GB lines, each line's 0.6c rounded up to 1c, giving 3c of VAT where 20% of the 9c total rounds to 2c. I changed it to `vatOn(net, region)` and removed the unused `lineVat` helper, which only did per-line VAT and wasn't exported from `index.js`, and `npm test` now passes 29 of 29.
+
+The README needs no change, since it already describes this behaviour. Nothing is committed.

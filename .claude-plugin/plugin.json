@@ -1,6 +1,6 @@
 {
   "name": "tokenwise",
-  "version": "1.1.2",
+  "version": "1.2.0",
   "description": "Pick the model and effort level for each phase of a Claude Code session, see what the cheaper choice gives up, and switch after /clear so the conversation is not re-processed.",
   "author": { "name": "Cesaire Tobias", "url": "https://github.com/ces0491" },
   "homepage": "https://github.com/ces0491/tokenwise",

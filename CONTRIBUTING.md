@@ -8,7 +8,7 @@ Everything below runs offline against committed files, needs only Node, and spen
 
 ```sh
 cd bench/fixture && node --test 'test/**/*.test.js' && cd ../..
-node --test bench/graders.test.mjs bench/matrix.test.mjs bench/breakeven.test.mjs   # graders, matrix expansion, the chart's helpers
+node --test bench/graders.test.mjs bench/matrix.test.mjs bench/breakeven.test.mjs bench/stream.test.mjs   # graders, matrix expansion, the chart's helpers, the stream reader
 npx markdownlint-cli@0.49.1 '*.md' 'docs/*.md' 'bench/*.md' 'skills/route/*.md' --config .markdownlint.json
 node bench/summarize.mjs --check       # RESULTS.md still follows from results/runs.jsonl
 node bench/breakeven.mjs --check       # docs/breakeven.svg still follows from the saved runs and SKILL.md
@@ -61,7 +61,7 @@ node bench/summarize.mjs           # rebuild RESULTS.md
 node scripts/check-matrix.mjs      # the matrix still names exactly the published runs
 ```
 
-Runs cost real money on your own account. The published runs cost $28.47 at list price.
+Runs draw on your own Claude account. The published runs come to $48.08 at list price.
 
 ## Changing an instrument after seeing data
 
