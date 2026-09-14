@@ -56,7 +56,7 @@ Each subagent runs in its own context window; only its summary returns. Agent fi
 
 From the Claude Code skills docs: "When you or Claude invoke a skill, the rendered `SKILL.md` content enters the conversation as a single message and stays there across later turns." A second invocation with different arguments appends the full content again, and auto-compaction re-attaches invoked skills after its summary, up to a token budget. `context: fork` runs a skill in a subagent instead: "The skill content becomes the prompt that drives the subagent. It won't have access to your conversation history."
 
-This skill runs forked for that reason. Measured on Opus 5 at xhigh effort (`../../docs/findings.md`), a route that ran in the conversation left 9.6K tokens behind for every later call, most of it the answer and its thinking. Forked, it leaves 828, the answer alone. The cost is that the skill routes from the description it is given and cannot see the conversation or its context size.
+This skill runs forked for that reason. Measured on Opus 5 at xhigh effort (`../../docs/findings.md`), a route that ran in the conversation left 9.6K tokens behind for every later call, most of it the answer and its thinking. Forked, a 1.2.0 route left 838, the answer alone. The cost is that the skill routes from the description it is given and cannot see the conversation or its context size.
 
 ## Images
 
@@ -68,9 +68,27 @@ From the API effort docs: `high` is the default, and the advice for Opus 5 and F
 
 Anthropic's July 2026 post says effort "controls how much work Claude does on your request overall": how long the model thinks, and also how many files it reads, how much it verifies and how far it pushes through a multi-step task before checking in.
 
+The model configuration docs describe `ultrathink`: "Include `ultrathink` anywhere in your prompt to request deeper reasoning on that turn without changing your session effort setting. Claude Code recognizes the keyword and adds an in-context instruction. The effort level sent to the API is unchanged." They add that "think", "think hard" and "think more" pass through as ordinary prompt text. The prompt caching docs do not mention `ultrathink`. They do say that plan mode and skill loading "append their instructions as conversation messages, so the cached prefix stays intact". The skill reads `ultrathink`'s in-context instruction the same way and treats it as keeping the cache, an inference no page states. No bench run used it.
+
 On a six-file review diff, Opus at high effort took 13 turns to find the same five defects Opus at low effort found in 3, for 3.3 times the cost. On implementation from a written spec, raising effort on Sonnet cost less per completed task than upgrading to Opus at lower effort.
 
-No bench run used `max` or ultracode, so the effort ladder's entries for those two carry no measurement.
+No bench run used `max`, so its ladder entry carries no measurement. Ultracode's bench runs are under Ultracode below.
+
+## Ultracode
+
+Everything in this section is from Anthropic's Claude Code docs, fetched 14 September 2026, except where marked as this skill's reading of them.
+
+The model configuration docs: "Ultracode is a Claude Code setting rather than a model effort level: it sends `xhigh` to the model and additionally has Claude orchestrate dynamic workflows for substantive tasks." It turns on through `/effort ultracode`, `claude --effort ultracode` (v2.1.203 or later), the `"ultracode": true` setting, or the `/model` picker's effort slider. The `effortLevel` setting and `CLAUDE_CODE_EFFORT_LEVEL` do not accept it, and "When `CLAUDE_CODE_EFFORT_LEVEL` is set to a level other than `xhigh`, requests run at that level and ultracode's workflow orchestration stays inactive." It is unavailable when workflows are turned off, when the model does not support `xhigh`, or when an effort cap below `xhigh` applies. The same page lists `xhigh` for Fable 5.1 and 5, Opus 5, Sonnet 5, Opus 4.8 and Opus 4.7, and says models it does not list do not support effort. Haiku is not in that list.
+
+The workflows docs describe two ways in. The keyword `ultracode` in a prompt runs that single task as a workflow "without changing the session's effort level". `/effort ultracode` makes Claude decide for every task: "A single request can turn into several workflows in a row: one to understand the code, one to make the change, and one to verify it. This applies to every task in the session, so each request uses more tokens and takes longer than at lower effort levels." It "lasts for the current session", and the page suggests dropping back with `/effort high` for routine work. The keyword works only in a prompt a person types, so it does not start a workflow from `claude -p`.
+
+On cost, the same page: "A workflow spawns many agents, so a single run can use meaningfully more tokens than working through the same task in conversation." Sessions with ultracode on skip the large-workflow warning, "because turning ultracode on already opts you in to large runs". The `/config` size guideline is advice to Claude on how many agents to aim for; `medium`, under 15 agents, is the default from v2.1.219. A prompt that calls for a different scale overrides it. The runtime caps a run at 16 concurrent agents, fewer when Claude Code has fewer CPUs available, and 1,000 agents in total. The page also suggests asking Claude "to use a smaller model for stages that don't need the strongest one when you describe the task". No page gives a usage or price figure for ultracode, and the costs page does not mention it.
+
+Workflow agents pick their model "in the same order it uses for subagents", and "When nothing else assigns one, the agent runs on your session's model." The subagents page gives that order: the model named for the invocation, then the agent definition's `model` field, then `CLAUDE_CODE_SUBAGENT_MODEL`, then the session model. `CLAUDE_CODE_SUBAGENT_MODEL_FORCE=1` makes the variable apply over the first two. The model configuration page lists workflow agents among those `CLAUDE_CODE_SUBAGENT_MODEL` sets a default for. A workflow agent's cache "holds for five minutes by default, including on a Claude subscription", and agents in one run with the same model, effort, agent type, tools, output schema and working directory share a cached prefix.
+
+The prompt caching docs do not mention ultracode. Ultracode sends `xhigh`, so turning it on from `xhigh` might keep the cache. No page says so, and the skill treats the change as an effort change. That rule is the skill's own caution.
+
+The skill's advice to use ultracode only for work that splits into independent parts is also its own reading of these pages. The bench tested the other side of it on two small tasks, three runs each on Opus 5 (C9 in `../../bench/SCOPE.md`, figures in `../../docs/findings.md`). On the six-file review, ultracode started a workflow in every run and found the same five defects as `xhigh`, at a $4.75 median list price against $0.50. On the one-bug fix it started no workflow and cost 1.26 times the `xhigh` median. No bench case is large enough to test whether ultracode pays on work that splits into context-sized parts.
 
 ## Related tools
 
@@ -87,6 +105,8 @@ This skill covers what those do not: model and effort together per phase, the co
 - Manage costs effectively, Claude Code docs: <https://code.claude.com/docs/en/costs>
 - Prompt caching, Claude Code docs: <https://code.claude.com/docs/en/prompt-caching>
 - Model configuration, Claude Code docs: <https://code.claude.com/docs/en/model-config>
+- Orchestrate subagents at scale with dynamic workflows, Claude Code docs: <https://code.claude.com/docs/en/workflows>
+- All settings, Claude Code docs: <https://code.claude.com/docs/en/settings-reference>
 - Create custom subagents, Claude Code docs: <https://code.claude.com/docs/en/sub-agents>
 - Skills, Claude Code docs: <https://code.claude.com/docs/en/skills>
 - Choosing a Claude model and effort level in Claude Code, Anthropic blog, 7 July 2026: <https://claude.com/blog/claude-model-and-effort-level-in-claude-code>

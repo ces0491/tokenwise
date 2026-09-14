@@ -20,6 +20,12 @@ Five extra runs resume the finished `implement-opus-xhigh` session with one shor
 
 `split-plan-opus-xhigh` writes `docs/plan.md` without code; `split-impl-sonnet-medium` then implements from that plan in a fresh session. Their combined cost is compared with the opus one-shot.
 
+`review-opus-ultracode` and `debug-opus-ultracode` run those cases with ultracode on, beside `review-opus-xhigh` and `debug-opus-xhigh` on the same model (C9 in `SCOPE.md`). Ultracode runs stream their session and keep a reduced copy in `results/<id>.stream.jsonl`, with tool names and usage and no message text. A session that was not offered the Workflow tool had workflows unavailable, so it is marked invalid and re-run. Before those cells, one capped probe on Sonnet checks that ultracode applies under the runner's flags:
+
+```sh
+node bench/run.mjs --matrix bench/ultracode-probe.json --results bench/probe
+```
+
 None of these runs load the plugin, so none of their costs include the skill. `skill-cost.mjs` measures what the skill itself costs in sessions of its own, with transcripts in `results/skill-cost/`; `../docs/methodology.md` describes them.
 
 ## Run it
@@ -33,7 +39,7 @@ node bench/run.mjs --force                        # rerun into bench/results, re
 node bench/run.mjs --force --models sonnet        # rerun what a change to the sonnet alias affects
 node scripts/check-models.mjs --live              # whether each alias still resolves to the model it was measured on
 node bench/run.mjs --regrade                      # re-grade saved review and explore answers with the current graders
-node --test bench/graders.test.mjs bench/matrix.test.mjs   # graders against gaming cases; matrix expansion
+node --test bench/graders.test.mjs bench/matrix.test.mjs bench/stream.test.mjs   # graders against gaming cases; matrix expansion; stream reader
 node bench/summarize.mjs                          # rebuild RESULTS.md
 node scripts/check-matrix.mjs                     # matrix.json names exactly the published runs
 node bench/context-profile.mjs                    # the observational table in skills/route/reference.md
@@ -42,12 +48,12 @@ node bench/skill-cost.mjs --label <name> --sessions invoked,unprompted  # measur
 node bench/breakeven.mjs                                            # the breakeven chart in docs/, from the saved runs
 ```
 
-Each run in `matrix.json` sets its cell's size with `repeat`, so the matrix expands to exactly the published runs, and `run.mjs` skips any run whose result file already exists. Pointed at the committed `results/`, it runs nothing; `--results` with a fresh directory runs everything. Working copies go to `<tmp>/tokenwise-bench/<run id>` (`--runs-root` overrides). Sessions run on your own Claude account. The published runs cost $28.47 at list price, across 91 minutes of session time at the default `--concurrency 2`. A session limit will interrupt a re-run, and the runs it kills are retried on the next invocation.
+Each run in `matrix.json` sets its cell's size with `repeat`, so the matrix expands to exactly the published runs, and `run.mjs` skips any run whose result file already exists. Pointed at the committed `results/`, it runs nothing; `--results` with a fresh directory runs everything. Working copies go to `<tmp>/tokenwise-bench/<run id>` (`--runs-root` overrides). Sessions run on your own Claude account. The published runs come to $48.08 at list price, across 117 minutes of session time at the default `--concurrency 2`. A session limit will interrupt a re-run, and the runs it kills are retried on the next invocation.
 
 ## Limits
 
 - Cells whose verdict would flip if one run flipped ran three times; the rest ran once, including the cells behind C7 and C8. `SCOPE.md` treats cost differences under 30% between single runs as noise.
-- The fixture is small; no graded run averaged more than 52K tokens of context per turn, so the cache-read costs of long sessions are underrepresented here. The measurements in `../skills/route/reference.md` cover that regime.
+- The fixture is small; no graded run averaged more than 72K tokens of context per turn, so the cache-read costs of long sessions are underrepresented here. The measurements in `../skills/route/reference.md` cover that regime.
 - Review grading matches patterns, so it can be wrong on an answer unlike the saved ones; its patterns name the mechanism of each defect. The answers are saved in `results/*.answer.md`, `results/hand-grades.json` records a hand reading of five answers across the four review cells, and `graders.test.mjs` holds answers built to game the grader.
 - The tests, chore and plan graders read each run's working copy, which is not kept, so a change to one of them cannot be re-graded against published runs.
 - `turns` is Claude Code's `num_turns`, which tracks API calls closely without being the same count.

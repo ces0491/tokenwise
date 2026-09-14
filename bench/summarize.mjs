@@ -135,7 +135,7 @@ function verdicts() {
   if (need('chore-sonnet-low', 'chore-haiku', 'chore-opus-xhigh')) {
     const a = s('chore-sonnet-low'); const b = s('chore-haiku'); const top = s('chore-opus-xhigh');
     const ok = a.rate === 1 && b.rate === 1 && a.medianCost <= 0.5 * top.medianCost && b.medianCost <= 0.5 * top.medianCost;
-    out.push(['C1 chores on sonnet or haiku at low', ok ? 'holds' : 'falsified', `sonnet-low ${a.passes}/${a.n} at ${pct(a.medianCost / top.medianCost)} of opus-xhigh; haiku ${b.passes}/${b.n} at ${pct(b.medianCost / top.medianCost)}`]);
+    out.push(['C1 chores on sonnet at low, or haiku', ok ? 'holds' : 'falsified', `sonnet-low ${a.passes}/${a.n} at ${pct(a.medianCost / top.medianCost)} of opus-xhigh; haiku ${b.passes}/${b.n} at ${pct(b.medianCost / top.medianCost)}`]);
   } else out.push(['C1', 'not run', '']);
 
   // C2
@@ -213,6 +213,25 @@ function verdicts() {
     out.push(['C8 plan on opus, implement on sonnet', ok ? 'holds' : impl.rate === 1 ? 'falsified on cost (cache-boundary justification stands, cost claim dropped)' : 'falsified (split implementation failed)', `split ${usd(cost)} (${impl.passes}/${impl.n}) vs opus one-shot ${usd(top.medianCost)} (${top.passes}/${top.n})`]);
   } else out.push(['C8', 'not run', '']);
 
+  // C9: per case, ultracode against xhigh on opus. A case where fewer than two thirds of the ultracode runs called
+  // the Workflow tool is not testable: those runs measure xhigh with ultracode on and no workflow.
+  const c9 = ['review', 'debug'].filter((c) => need(`${c}-opus-ultracode`, `${c}-opus-xhigh`)).map((c) => {
+    const u = s(`${c}-opus-ultracode`); const x = s(`${c}-opus-xhigh`);
+    const orchestrated = u.runs.filter((r) => (r.metrics?.workflow?.calls || 0) > 0).length;
+    const ratio = u.medianCost / x.medianCost;
+    const v = 3 * orchestrated < 2 * u.n ? 'not testable' : u.passes <= x.passes && ratio >= 1.3 ? 'holds' : 'falsified';
+    return { c, v, n: Math.min(u.n, x.n), note: `${c}: ultracode ${u.passes}/${u.n} at ${ratio.toFixed(2)}x the median cost of xhigh (${x.passes}/${x.n}), workflow called in ${orchestrated} of ${u.n}` };
+  });
+  if (c9.length) {
+    const on = (v) => c9.filter((r) => r.v === v).map((r) => r.c);
+    const v = on('falsified').length ? `falsified on ${on('falsified').join(' and ')}`
+      : on('holds').length === 2 ? 'holds'
+        : on('not testable').length ? `not testable here on ${on('not testable').join(' and ')} (no workflow)${on('holds').length ? `; holds on ${on('holds').join(' and ')}` : ''}`
+          : `holds on ${on('holds').join(' and ')}; ${['review', 'debug'].filter((c) => !c9.some((r) => r.c === c)).join(' and ')} not run`;
+    const n = Math.min(...c9.map((r) => r.n));
+    out.push(['C9 ultracode on tasks this size', v + (n < 3 ? ` (provisional, n=${n})` : ''), c9.map((r) => r.note).join('; ')]);
+  } else out.push(['C9', 'not run', '']);
+
   return out;
 }
 
@@ -227,7 +246,7 @@ const window = days.length ? (days[0] === days[days.length - 1] ? days[0] : `${d
 const gradedCount = runs.filter((r) => r.grade && Object.keys(r.grade).length).length;
 const totalUsd = runs.reduce((t, r) => t + (r.metrics?.usd ?? 0), 0);
 const sessionMinutes = runs.reduce((t, r) => t + (r.metrics?.wall_ms ?? 0), 0) / 60000;
-parts.push(`Generated ${new Date().toISOString().slice(0, 16).replace('T', ' ')} UTC from ${runs.length} runs (${gradedCount} graded, the rest session resumes with no grader) recorded ${window} on Claude Code ${runs[0]?.claude_version ?? '?'}. Together they cost ${usd(totalUsd)} at list price, across ${Math.round(sessionMinutes)} minutes of session time.\n`);
+parts.push(`Generated ${new Date().toISOString().slice(0, 16).replace('T', ' ')} UTC from ${runs.length} runs (${gradedCount} graded, the rest session resumes with no grader) recorded ${window} on Claude Code ${[...new Set(runs.map((r) => (r.claude_version || '').replace(/ \(Claude Code\)$/, '')).filter(Boolean))].join(' and ') || '?'}. Together they cost ${usd(totalUsd)} at list price, across ${Math.round(sessionMinutes)} minutes of session time.\n`);
 // Computed from the data, so the sentence changes the day a run fails. The per-turn figure is each graded run's
 // total context divided by its turns; a single resume call is not a graded run.
 const graded = runs.filter((r) => r.grade && Object.keys(r.grade).length);
@@ -244,7 +263,7 @@ parts.push([
   '- **Cost per completed task** is mean cost divided by pass rate, so a setting that fails one run in three is charged for the retry.',
   '- **turns** is Claude Code\'s `num_turns` for the run, and **ctx/turn** divides the run\'s total context by it. A turn tracks an API call closely without being the same count, so read these columns as how much work the setting did, not as a request tally.',
   '- Differences under about 30% between single runs are noise.',
-  '- Review pass/fail uses the hand reading in results/hand-grades.json where one exists; the keyword grader\'s figure is shown beside it. Token columns cover the main session; cost includes subagents.',
+  '- Review pass/fail uses the hand reading in results/hand-grades.json where one exists; the keyword grader\'s figure is shown beside it. Token columns cover the main session; cost includes subagents and workflow agents.',
   `- The fixture is small (no graded run averaged more than ${K(peakCtx)} of context per turn) and ${outcomeNote}; the long-context regime, over 100K tokens per call, is not measured here either. See skills/route/reference.md for that.`,
 ].join('\n'));
 parts.push('');
@@ -263,7 +282,7 @@ parts.push('');
 
 parts.push('## Verdicts on the claims in SCOPE.md\n');
 parts.push(`| claim | verdict | evidence |\n${sep(3)}`);
-for (const [claim, verdict, evidence] of verdicts()) parts.push(`| ${claim} | ${verdict} | ${evidence} |`);
+for (const [claim, verdict, evidence] of verdicts()) parts.push(`| ${claim} | ${verdict} |${evidence ? ` ${evidence} ` : ' '}|`);
 parts.push('');
 
 parts.push('## Cells\n');
@@ -287,6 +306,18 @@ if (resumes.length) {
   for (const r of resumes) {
     const m = r.metrics || {};
     parts.push(`| ${r.id} | ${r.model} | ${K(m.input)} | ${K(m.cache_write)} | ${K(m.cache_read)} | ${usd(m.usd)} |`);
+  }
+  parts.push('');
+}
+
+const ultracode = runs.filter((r) => r.effort === 'ultracode').sort((a, b) => (a.id < b.id ? -1 : 1));
+if (ultracode.length) {
+  parts.push('## Ultracode: workflows and work outside the main loop\n');
+  parts.push('Read from each run\'s stream (`results/<id>.stream.jsonl`). **Outside main** is the run\'s per-model usage less the main loop\'s own usage: workflow agents, subagents and Claude Code\'s internal calls, which one model\'s usage cannot tell apart.\n');
+  parts.push(`| run | workflow calls | outside main: output | outside main: cache read | outside main: cache write | cost |\n${sep(6)}`);
+  for (const r of ultracode) {
+    const m = r.metrics || {};
+    parts.push(`| ${r.id} | ${m.workflow?.calls ?? '?'} | ${K(m.outside_main?.output)} | ${K(m.outside_main?.cache_read)} | ${K(m.outside_main?.cache_write)} | ${usd(m.usd)} |`);
   }
   parts.push('');
 }

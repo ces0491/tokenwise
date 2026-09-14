@@ -1,0 +1,114 @@
+{
+ "duration_api_ms": 476402,
+ "stop_reason": "end_turn",
+ "session_id": "4bd2f025-8880-4ecc-85aa-05bee6db298b",
+ "total_cost_usd": 3.1814024999999995,
+ "usage": {
+  "input_tokens": 10,
+  "cache_creation_input_tokens": 11929,
+  "cache_read_input_tokens": 275266,
+  "output_tokens": 2511,
+  "output_tokens_details": {
+   "thinking_tokens": 125
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 11929,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1817,
+    "cache_read_input_tokens": 75005,
+    "cache_creation_input_tokens": 446,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 446
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard"
+ },
+ "modelUsage": {
+  "claude-haiku-4-5-20251001": {
+   "inputTokens": 972,
+   "outputTokens": 14,
+   "cacheReadInputTokens": 0,
+   "cacheCreationInputTokens": 0,
+   "webSearchRequests": 0,
+   "costUSD": 0.001042,
+   "contextWindow": 200000,
+   "maxOutputTokens": 32000,
+   "thinkingTokens": 0,
+   "canonicalModel": "claude-haiku-4-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  },
+  "claude-opus-5": {
+   "inputTokens": 78,
+   "outputTokens": 40965,
+   "cacheReadInputTokens": 1348071,
+   "cacheCreationInputTokens": 201086,
+   "webSearchRequests": 0,
+   "costUSD": 3.1803604999999995,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 64000,
+   "thinkingTokens": 11270,
+   "canonicalModel": "claude-opus-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "origin": {
+  "kind": "task-notification"
+ },
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "is_error": false,
+ "num_turns": 4,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "**1. src/csv.js:37: line breaks inside a field are no longer quoted**\n- **What goes wrong:** `csvField` now quotes a field only if it has a comma or a quote. A field with `\\n` or `\\r` is written bare. `parseCsv` reads that bare line break as the end of a row, so `toCsv` output no longer round-trips.\n- **Input:** `parseCsv(toCsv([['C-3', 'two\\nlines']]))`\n- **Result:** `[['C-3','two'],['lines']]` (before the change: `[['C-3','two\\nlines']]`).\n- **Knock-on:** `linesFromCsv(toCsv([['sku','description','qty','unit'],['C-3','two\\nlines','1','2.00']]))` now throws `RangeError: csv row 1: qty must be a positive integer`. Before, it returned the line.\n\n**2. test/csv.test.js:22 and :26: tests weakened to hide defect 1**\n- **What goes wrong:** Two things were deleted: the `csvField('x\\ny') === '\"x\\ny\"'` assertion, and the `['C-3', 'two\\nlines']` row from the round-trip test. Those are exactly the cases the csv.js change breaks, so `npm test` still passes 29/29.\n- **Input:** run the HEAD version of `test/csv.test.js` against the new `src/csv.js`.\n- **Result:** \"csvField quotes only when needed\" and \"toCsv round-trips through parseCsv\" both fail.\n\n**3. src/discounts.js:25: a quantity exactly at a tier's `minQty` no longer gets that tier**\n- **What goes wrong:** `<=` became `<`. The module doc at discounts.js:8 says a tier applies when minQty is \"less than or equal to the quantity\".\n- **Input:** `tiers = [{minQty:10,percent:5},{minQty:50,percent:12}]`\n- **Result:**\n  - `volumeTier(tiers, 10)` returns `null` (was the 5% tier).\n  - `applyDiscount(1000, {type:'volume', tiers}, 10)` returns `1000` (was `950`).\n  - `applyDiscount(1000, {type:'volume', tiers}, 50)` returns `950` (was `880`).\n- **Tests:** the existing tests use quantities 9, 12, 20 and 100, so neither boundary is covered.\n\n**4. src/discounts.js:22: `volumeTier` sorts the caller's tiers array in place**\n- **What goes wrong:** Looking up a tier now reorders the caller's discount config. `createInvoice` copies lines shallowly, so the invoice's tier arrays get reordered too. On a frozen tiers array the sort throws.\n- **Input 1:** `const t = [{minQty:50,percent:12},{minQty:10,percent:5}]; volumeTier(t, 20);`\n  - `t` is now ordered `[10, 50]` (before: left unchanged).\n- **Input 2:** `volumeTier(Object.freeze([{minQty:50,percent:12},{minQty:10,percent:5}]), 60)`\n  - Throws `TypeError: Cannot assign to read only property '0'` (before: returned the 12% tier).\n- **Knock-on:** `invoiceTotals`, `monthlySummary` and `topSkus` throw the same error for any invoice line with frozen tiers.\n\n**5. src/tax.js:31: `netFromGross` uses `Math.round` instead of `roundHalfUp` from money.js**\n- **What goes wrong:** This breaks the README rule that `src/money.js` owns rounding, half away from zero. `Math.round` rounds negative .5 ties towards +∞, so credit notes (negative gross) get the wrong net.\n- **Input:** `netFromGross(-3, 'GB')`, where -3 / 1.2 = -2.5\n- **Result:** `-2` (was `-3`). `netFromGross(-69, 'GB')` returns `-57` (was `-58`).\n- **Tests:** they only use positive gross values.\n\n**6. src/report.js:5: `monthKey` goes through `new Date` instead of taking the first seven characters of `issuedOn`**\n- **What goes wrong:** This breaks the README rule that monthly reports group by the first seven characters of `issuedOn`. It fails in three ways:\n  - **Timezone:** a date-only string is parsed as UTC midnight, then read with local `getMonth`. With `process.env.TZ = 'America/New_York'`, `monthKey({issuedOn: '2026-03-01'})` returns `'2026-02'`, so `monthlySummary` counts March 1st invoices in February.\n  - **Impossible dates:** `validateInvoice` accepts days like `2026-02-30`, and `new Date` rolls them into the next month. `monthKey(createInvoice({id:'X', region:'ZA', issuedOn:'2026-02-30', lines:[{sku:'A',qty:1,unitCents:100}]}))` returns `'2026-03'` in any timezone, UTC and Johannesburg included (was `'2026-02'`).\n  - **Short years:** years below 1000 lose their padding. `monthKey({issuedOn: '0099-05-01'})` returns `'99-05'` (was `'0099-05'`).\n- **Tests:** the only test uses the 15th of the month, so none of these cases is covered.",
+ "ttft_ms": 3244,
+ "type": "result",
+ "duration_ms": 30433,
+ "uuid": "8c0b7bf1-b8a1-441b-847b-0e1aeffb575d",
+ "ttft_stream_ms": 1206,
+ "time_to_request_ms": 12,
+ "first_content_frame_ms": 1206,
+ "queued_turn_count": 0,
+ "result_index": 1
+}

@@ -15,7 +15,9 @@
 //
 // Transcripts land in bench/results/skill-cost/<label>/<session>.jsonl, reduced to what the report reads: per-call
 // usage, tool names, each turn's result and cost. Working directories, session ids and local paths are not kept. The
-// no-plugin session does not depend on the skill, so it is stored once, beside the label directories.
+// no-plugin session does not depend on the skill. The shared one beside the label directories ran on Claude Code 2.1.267;
+// a label on another version runs its own (`--sessions no-plugin`), and the idle figure is only computed against a
+// baseline from the same version.
 //
 //   no-plugin   "Reply with OK."                        the context a session starts with, without tokenwise
 //   idle        "Reply with OK." twice                  the same with the plugin loaded and never used
@@ -64,7 +66,12 @@ const SESSIONS = [
   { id: 'mention', plugin: true, messages: ['How many tokens has this session used so far?', 'Reply with OK.'] },
   { id: 'no-description', plugin: true, messages: ['/tokenwise:route', 'Reply with OK.'] },
 ];
-const fileOf = (label, id) => (id === 'no-plugin' ? path.join(BASE, 'no-plugin.jsonl') : path.join(BASE, label, `${id}.jsonl`));
+// A no-plugin session run with a label is stored in that label's directory, and read from there before the shared one.
+// The context a session starts with changes between Claude Code versions, so a label on a newer version needs its own.
+const fileOf = (label, id) => {
+  const own = path.join(BASE, label, `${id}.jsonl`);
+  return id === 'no-plugin' && !fs.existsSync(own) ? path.join(BASE, 'no-plugin.jsonl') : own;
+};
 
 // ---- what is kept -----------------------------------------------------------------------------------
 
@@ -173,7 +180,7 @@ async function run(label) {
         process.stdout.write(`${label}/${s.id}: ${s.messages.length} message(s) on ${model} at ${effort}${s.plugin ? `, plugin ${version}${variant ? ` (${variant})` : ''}` : ''}\n`);
         const r = await session(cliArgs, dir, s.messages);
         const meta = { type: 'tokenwise-skill-cost', label, session: s.id, plugin: s.plugin ? version : null, variant: variant ?? null, skill: s.plugin ? skill : null, model, effort, budget_usd: BUDGET_USD, timeout_minutes: TIMEOUT_MINUTES, messages: s.messages, exit: r.code, recorded: new Date().toISOString() };
-        const out = fileOf(label, s.id);
+        const out = path.join(BASE, label, `${s.id}.jsonl`);
         fs.mkdirSync(path.dirname(out), { recursive: true });
         fs.writeFileSync(out, `${[meta, ...reduce(r.stdout)].map((o) => JSON.stringify(o)).join('\n')}\n`);
         if (r.code !== 0) process.stdout.write(`  exit ${r.code}: ${scrub(r.stderr.trim().split('\n').pop())}\n`);
@@ -221,7 +228,8 @@ function readSession(label, id) {
     t.turnCost = (t.cost ?? prev) - prev; prev = t.cost ?? prev;
     t.turnOutput = t.allOutput - prevOut; prevOut = t.allOutput;
   }
-  return { meta, turns, complete: turns.length === meta.messages.length && !turns.some((t) => t.isError) };
+  const version = lines.find((o) => o.type === 'system' && o.subtype === 'init')?.claude_code_version ?? null;
+  return { meta, turns, version, complete: turns.length === meta.messages.length && !turns.some((t) => t.isError) };
 }
 
 const K = (n) => (n == null || Number.isNaN(n) ? '?' : Math.abs(n) < 1000 ? `${n}` : `${(n / 1000).toFixed(1)}K`);
@@ -242,7 +250,8 @@ export function figures(spec) {
   const turn = (id, t) => usable(id)?.turns[t];
   return {
     sessions: s,
-    idle: minus(first('idle', 0), first('no-plugin', 0)),
+    // Only against a baseline from the same Claude Code version: across versions the difference measures the version.
+    idle: s.idle?.version && s.idle.version === s['no-plugin']?.version ? minus(first('idle', 0), first('no-plugin', 0)) : null,
     carriedFirst: minus(first('invoked', 1), first('idle', 1)),
     carriedSecond: minus(first('invoked', 3), first('invoked', 1)),
     routeFirst: turn('invoked', 0),

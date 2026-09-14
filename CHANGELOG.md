@@ -2,6 +2,25 @@
 
 Versions follow the bar in `SCOPE.md`: a changed recommendation is a minor bump, a changed answer format or a removed section is a major one.
 
+## 1.2.0 — 2026-09-14
+
+No row of the routing table changed.
+
+- **The skill routes ultracode.** Its ladder had one line saying to use ultracode only when the work splits into independent parts, and nothing on how to turn it on or what it costs. A new section, built on Claude Code's model configuration, workflows and subagents docs, covers:
+  - Ultracode is a setting that sends `xhigh` and runs a workflow for each substantive task.
+  - Recommend it for high-judgment work that splits into independent parts. Use the `ultracode` prompt keyword for one such task and `/effort ultracode` for a run of them.
+  - It needs a model that supports `xhigh`, so not Haiku.
+  - Workflow agents take their model in the subagent order. With `CLAUDE_CODE_SUBAGENT_MODEL=haiku` and `CLAUDE_CODE_SUBAGENT_MODEL_FORCE=1`, which this plugin recommends, a whole workflow runs on Haiku.
+  - An answer that recommends ultracode says its cost grows with the number of agents, gives the one measurement (a small review at 9.5 times `xhigh`), and points to `/usage`.
+
+  The skill's description now covers questions about turning ultracode on. The phase-boundary protocol turns ultracode off when the next phase does not split. The guide has a matching section.
+- **The skill knows `ultrathink`.** Claude Code's model configuration docs describe it as a prompt keyword for deeper reasoning on one turn that leaves the effort level unchanged. Moving up a tier now tries it before an effort change for a single turn that needs more thought, the effort ladder lists it as unmeasured, and the description covers questions about it. `reference.md` quotes the docs and marks as an inference that it keeps the cache.
+- **Haiku no longer gets an effort level.** Two routing rows and the classify grid said "sonnet or haiku, `low`". Claude Code's model configuration docs list the models that support effort, and Haiku is not among them, so `/effort low` does nothing on it. The rows now read "sonnet, `low`, or haiku", which matches the bench: its Haiku runs set no effort.
+- **The bench can run ultracode.** `bench/SCOPE.md` adds C9, written before any ultracode run: on tasks this size, ultracode costs at least 1.3 times as much as `xhigh` on Opus for no better result, tested on `review` and on `debug`. `bench/matrix.json` adds `review-opus-xhigh`, `review-opus-ultracode` and `debug-opus-ultracode`, three runs each, and raises `debug-opus-xhigh` to three. An ultracode run streams its session through `bench/stream.mjs` and records whether it was offered and called the Workflow tool, plus the tokens spent outside the main loop. A run not offered the tool had workflows unavailable, so it is marked invalid. `bench/ultracode-probe.json` is one capped Sonnet run that checks the runner's flags before the Opus runs, and `bench/stream.test.mjs` runs in CI. The RESULTS header now lists every Claude Code version the runs used.
+- **C9 holds on the review and is not testable on the bug fix.** On the six-file review, Opus with ultracode started a workflow in all three runs and found the same five defects as Opus at `xhigh`, at a $4.75 median list price against $0.50. On the bug fix no run started a workflow, and the median came to 1.26 times `xhigh`'s. The skill's ultracode section, its answer rule, the guide, the README and `docs/findings.md` quote these results. `debug-opus-xhigh` now has three runs, at a $0.35 median. The published runs number 68, 63 of them graded, and come to $48.08 at list price.
+- **Figures.** The skill's cost is measured on the shipped `SKILL.md`, on Claude Code 2.1.270. A route in a session already under way costs $0.04 from Sonnet 5 at medium, $0.10 from Opus 5 at high and $0.10 from Opus 5 at xhigh, and leaves 638 to 838 tokens behind. Loaded and never used, the plugin adds 157 tokens of context, against 131 before the description mentioned ultracode and `ultrathink`. `docs/breakeven.svg` is redrawn from those routes and from every task cell whose runs all passed, including Opus ultracode on the review and the bug fix. `skill-cost.mjs` computes the idle figure only against a no-plugin session on the same Claude Code version, and a label can store its own no-plugin session.
+- **Unmeasured at the top of the ladder.** The `max` entry in the effort ladder says no bench run measured it, and the ultracode entry says it was measured on small tasks only. `reference.md` quotes the docs behind the ultracode section and marks where the skill goes beyond them.
+
 ## 1.1.2 — 2026-09-11
 
 No row of the routing table changed.

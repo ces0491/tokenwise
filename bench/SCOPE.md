@@ -26,17 +26,25 @@ Each claim gets a recorded verdict of **holds**, **falsified**, or **not testabl
 - [ ] **C6 Force subagents onto haiku.** Holds if `explore-opus-haiku-sub` passes, its per-model usage shows the subagent ran on haiku, and its total cost is at most 60% of `explore-opus-inherit`.
 - [ ] **C7 The prompt cache is per model.** Holds if resuming on the switched model (`cache-resume-switch-model`) reads under 10% of the cached tokens that the same-model resume (`cache-resume-same-model`) reads, and writes at least 80% of that amount back to cache. Deterministic; one run each.
 - [ ] **C8 Plan on the top model, implement on sonnet.** Holds if `split-impl-sonnet-medium` passes and the two split runs together cost at most `implement-opus-xhigh`. If the split costs more, the protocol keeps its cache-boundary justification (C7) and the skill drops any implied cost saving for small tasks.
+- [ ] **C9 On tasks this size, ultracode costs more than xhigh for no better result.** Written 2026-09-14, before any ultracode run. The skill recommends ultracode only for high-judgment work that splits into independent parts, each large enough to fill a context. The fixture's tasks are small, so the bench tests the other half of that advice: on small tasks ultracode spends more than `xhigh` on the same model. `review` puts five defects in separate files, the nearest this fixture has to independent parts; `debug` has one root cause and does not split. Per case, with n = 3 in each cell:
+  - **Holds** if `<case>-opus-ultracode` passes no more runs than `<case>-opus-xhigh` and its median cost is at least 1.3 times as high.
+  - **Falsified** if its median cost is under 1.3 times, or it passes more runs.
+  - **Not testable here** if the Workflow tool was called in fewer than 2 of its 3 runs. Those runs measure `xhigh` with ultracode switched on and no workflow, and the report gives their cost ratio all the same.
+  - C9 holds if it holds on both cases. If it holds, the skill's ultracode section quotes the measured ratio for tasks this size. If it is falsified on a case, the section says what was measured on that case in place of the docs' general statement that each request uses more tokens.
+  - A run whose session was not offered the Workflow tool had workflows unavailable, which the docs say turns ultracode off. The runner marks it invalid and it is re-run. Being offered the tool does not show ultracode was on, since sessions without ultracode are offered it too. The runs rely on the docs' statement that `--effort ultracode` on a model that supports `xhigh` starts the session with ultracode on.
+  - One probe run on Sonnet, `bench/ultracode-probe.json`, ran after this criterion was written and before any Opus cell. It was offered the Workflow tool, never called it, and found all five review defects. No threshold changed.
 - [ ] **Grader check.** Four review answers read by hand against the grader's verdicts. If the grader disagrees with the hand read on more than one defect across the four, every review run is re-graded by hand and the keyword grader is marked unreliable in `RESULTS.md`.
 - [ ] `RESULTS.md` published with n per cell, the verdict per claim, and the raw JSON for every run in `results/`.
 
 ## Out of scope
 
 - Judging prose, plan quality or code style. Only the graders count.
-- The long-context regime (over 100K tokens per call). No graded run on this fixture averaged more than 52K tokens of context per turn; the observational measurements in `skills/route/reference.md` cover the rest.
+- The long-context regime (over 100K tokens per call). No graded run on this fixture averaged more than 72K tokens of context per turn; the observational measurements in `skills/route/reference.md` cover the rest.
 - Latency as a criterion. Wall time is recorded, not judged.
 - Statistical tests beyond the replication rule.
 - Languages, repositories or task sizes other than this fixture.
 - Fable on every cell. It runs on `implement` and `review` only, to bound spend.
+- Whether ultracode pays on work that splits into parts large enough to fill a context each. Testing that needs a case much larger than this fixture.
 
 ## Bar
 

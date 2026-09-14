@@ -1,6 +1,6 @@
 # Bench results
 
-Generated 2026-09-11 10:56 UTC from 57 runs (52 graded, the rest session resumes with no grader) recorded 2026-09-08 on Claude Code 2.1.263 (Claude Code). Together they cost $28.47 at list price, across 91 minutes of session time.
+Generated 2026-09-14 18:05 UTC from 68 runs (63 graded, the rest session resumes with no grader) recorded 2026-09-08 to 2026-09-14 on Claude Code 2.1.263 and 2.1.270. Together they cost $48.08 at list price, across 117 minutes of session time.
 
 ## How to read this
 
@@ -10,8 +10,8 @@ Generated 2026-09-11 10:56 UTC from 57 runs (52 graded, the rest session resumes
 - **Cost per completed task** is mean cost divided by pass rate, so a setting that fails one run in three is charged for the retry.
 - **turns** is Claude Code's `num_turns` for the run, and **ctx/turn** divides the run's total context by it. A turn tracks an API call closely without being the same count, so read these columns as how much work the setting did, not as a request tally.
 - Differences under about 30% between single runs are noise.
-- Review pass/fail uses the hand reading in results/hand-grades.json where one exists; the keyword grader's figure is shown beside it. Token columns cover the main session; cost includes subagents.
-- The fixture is small (no graded run averaged more than 52K of context per turn) and every graded run passed, so these runs measure cost at equal outcomes. They cannot show where the top model earns its price; the long-context regime, over 100K tokens per call, is not measured here either. See skills/route/reference.md for that.
+- Review pass/fail uses the hand reading in results/hand-grades.json where one exists; the keyword grader's figure is shown beside it. Token columns cover the main session; cost includes subagents and workflow agents.
+- The fixture is small (no graded run averaged more than 72K of context per turn) and every graded run passed, so these runs measure cost at equal outcomes. They cannot show where the top model earns its price; the long-context regime, over 100K tokens per call, is not measured here either. See skills/route/reference.md for that.
 
 ## Runs excluded
 
@@ -21,14 +21,15 @@ None. A run that hits a usage limit or an API error never attempted its task, so
 
 | claim | verdict | evidence |
 | --- | --- | --- |
-| C1 chores on sonnet or haiku at low | holds | sonnet-low 3/3 at 33% of opus-xhigh; haiku 3/3 at 23% |
+| C1 chores on sonnet at low, or haiku | holds | sonnet-low 3/3 at 33% of opus-xhigh; haiku 3/3 at 23% |
 | C2 implement from a spec on sonnet medium | holds | sonnet-medium 3/3 at 17% of opus-xhigh (3/3) |
 | C3 effort before model | criterion as written: falsified; claim as named: supported | cost per completed task, both cells passing every run: raise effort (sonnet xhigh) $0.59 vs upgrade the model (opus medium) $0.82 |
-| C4 debug on the top model | falsified (row becomes "sonnet first, escalate on failure") | sonnet-medium 3/3; opus-high 3/3; opus-xhigh 1/1 |
+| C4 debug on the top model | falsified (row becomes "sonnet first, escalate on failure") | sonnet-medium 3/3; opus-high 3/3; opus-xhigh 3/3 |
 | C5 review: keep effort high | falsified (low effort allowed for reviews of this size) | opus-high recall 100% (FP 0) vs opus-low 100% (FP 0); sonnet-high 80% (FP 0) |
 | C6 force subagents onto haiku | falsified | haiku-forced 3/3, subagent on haiku: true (haiku output plus cache traffic, median 247K per run against 16 on inherit), cost 70% of inherit (3/3) |
 | C7 the prompt cache is per model | not testable here (documented behaviour, unmeasurable through --resume) | the first resume on the same model already rewrote the prefix: read 15K, wrote 65K, versus switched read 15K, wrote 54K; a later opus resume read 89K and a sonnet resume after it read 70K, but sonnet had already cached this conversation in the earlier switch run |
 | C8 plan on opus, implement on sonnet | falsified on cost (cache-boundary justification stands, cost claim dropped) | split $2.50 (1/1) vs opus one-shot $1.65 (3/3) |
+| C9 ultracode on tasks this size | not testable here on debug (no workflow); holds on review | review: ultracode 3/3 at 9.47x the median cost of xhigh (3/3), workflow called in 3 of 3; debug: ultracode 3/3 at 1.26x the median cost of xhigh (3/3), workflow called in 0 of 3 |
 
 ## Cells
 
@@ -44,12 +45,15 @@ None. A run that hits a usage limit or an API error never attempted its task, so
 | implement-sonnet-xhigh | 3 | 3/3 | $0.62 | $0.59 | 25 |
 | debug-haiku | 1 | 1/1 | $0.06 | $0.06 | 8 |
 | debug-opus-high | 3 | 3/3 | $0.41 | $0.40 | 9 |
-| debug-opus-xhigh | 1 | 1/1 | $0.44 | $0.44 | 9 |
+| debug-opus-ultracode | 3 | 3/3 | $0.45 | $0.51 | 8 |
+| debug-opus-xhigh | 3 | 3/3 | $0.35 | $0.36 | 9 |
 | debug-sonnet-medium | 3 | 3/3 | $0.12 | $0.12 | 7 |
 | debug-sonnet-xhigh | 1 | 1/1 | $0.16 | $0.16 | 11 |
 | review-fable-high | 1 | 1/1 | $0.79 | $0.79 | 5 |
 | review-opus-high | 3 | 3/3 | $0.82 | $0.83 | 13 |
 | review-opus-low | 3 | 3/3 | $0.25 | $0.25 | 3 |
+| review-opus-ultracode | 3 | 3/3 | $4.75 | $5.28 | 7 |
+| review-opus-xhigh | 3 | 3/3 | $0.50 | $0.53 | 6 |
 | review-sonnet-high | 3 | 3/3 | $0.24 | $0.22 | 11 |
 | chore-haiku | 3 | 3/3 | $0.06 | $0.06 | 16 |
 | chore-opus-xhigh | 3 | 3/3 | $0.25 | $0.25 | 5 |
@@ -90,7 +94,12 @@ None. A run that hits a usage limit or an API error never attempted its task, so
 | debug-opus-high | opus | high | 8 | 34K | 24K | 245K | 2K | 510 | $0.41 | 0.6 | pass (34/34) |
 | debug-opus-high#2 | opus | high | 9 | 32K | 22K | 267K | 2K | 761 | $0.41 | 0.7 | pass (34/34) |
 | debug-opus-high#3 | opus | high | 9 | 25K | 22K | 205K | 2K | 587 | $0.38 | 0.6 | pass (34/34) |
+| debug-opus-ultracode | opus | ultracode | 8 | 32K | 51K | 205K | 3K | 924 | $0.69 | 0.7 | pass (34/34) |
+| debug-opus-ultracode#2 | opus | ultracode | 8 | 34K | 28K | 245K | 2K | 454 | $0.45 | 0.6 | pass (34/34) |
+| debug-opus-ultracode#3 | opus | ultracode | 6 | 32K | 28K | 164K | 2K | 390 | $0.40 | 0.5 | pass (34/34) |
 | debug-opus-xhigh | opus | xhigh | 9 | 33K | 23K | 270K | 3K | 1K | $0.44 | 0.8 | pass (34/34) |
+| debug-opus-xhigh#2 | opus | xhigh | 10 | 20K | 22K | 176K | 2K | 349 | $0.35 | 0.5 | pass (34/34) |
+| debug-opus-xhigh#3 | opus | xhigh | 9 | 17K | 19K | 136K | 2K | 259 | $0.30 | 0.5 | pass (34/34) |
 | debug-sonnet-medium | sonnet | medium | 7 | 30K | 17K | 192K | 1K | 218 | $0.12 | 0.4 | pass (34/34) |
 | debug-sonnet-medium#2 | sonnet | medium | 8 | 30K | 18K | 220K | 2K | 404 | $0.13 | 0.6 | pass (34/34) |
 | debug-sonnet-medium#3 | sonnet | medium | 7 | 30K | 17K | 193K | 1K | 279 | $0.12 | 0.4 | pass (34/34) |
@@ -107,6 +116,12 @@ None. A run that hits a usage limit or an API error never attempted its task, so
 | review-opus-low | opus | low | 3 | 30K | 16K | 72K | 2K | 612 | $0.25 | 0.5 | grader: recall 5/5, FP 0; hand: recall 5/5, FP 0 |
 | review-opus-low#2 | opus | low | 3 | 29K | 16K | 73K | 2K | 535 | $0.25 | 0.5 | grader: recall 5/5, FP 0 |
 | review-opus-low#3 | opus | low | 3 | 30K | 17K | 72K | 2K | 687 | $0.25 | 0.5 | grader: recall 5/5, FP 0 |
+| review-opus-ultracode | opus | ultracode | 7 | 71K | 24K | 473K | 6K | 1K | $7.92 | 8.6 | grader: recall 5/5, FP 0 |
+| review-opus-ultracode#2 | opus | ultracode | 4 | 72K | 12K | 275K | 3K | 125 | $3.18 | 5.6 | grader: recall 5/5, FP 0 |
+| review-opus-ultracode#3 | opus | ultracode | 7 | 71K | 24K | 476K | 5K | 520 | $4.75 | 4.6 | grader: recall 5/5, FP 0 |
+| review-opus-xhigh | opus | xhigh | 6 | 30K | 40K | 141K | 6K | 3K | $0.62 | 1.2 | grader: recall 5/5, FP 0 |
+| review-opus-xhigh#2 | opus | xhigh | 5 | 35K | 25K | 148K | 5K | 2K | $0.46 | 1.2 | grader: recall 5/5, FP 0 |
+| review-opus-xhigh#3 | opus | xhigh | 6 | 36K | 26K | 191K | 6K | 3K | $0.50 | 1.3 | grader: recall 5/5, FP 0 |
 | review-sonnet-high | sonnet | high | 7 | 18K | 22K | 105K | 6K | 4K | $0.17 | 1.1 | grader: recall 4/5, FP 0; hand: recall 4/5, FP 0 |
 | review-sonnet-high#2 | sonnet | high | 11 | 23K | 29K | 224K | 8K | 6K | $0.24 | 1.5 | grader: recall 4/5, FP 0; hand: recall 4/5, FP 0 |
 | review-sonnet-high#3 | sonnet | high | 11 | 23K | 29K | 221K | 8K | 5K | $0.24 | 1.4 | grader: recall 5/5, FP 0 |
@@ -147,6 +162,19 @@ One extra one-line question on the finished implement-opus-xhigh session.
 | cache-resume-same-model-2 | opus | 2 | 9K | 80K | $0.13 |
 | cache-resume-same-model-3 | opus | 2 | 4K | 89K | $0.09 |
 | cache-resume-switch-model-2 | sonnet | 2 | 13K | 70K | $0.07 |
+
+## Ultracode: workflows and work outside the main loop
+
+Read from each run's stream (`results/<id>.stream.jsonl`). **Outside main** is the run's per-model usage less the main loop's own usage: workflow agents, subagents and Claude Code's internal calls, which one model's usage cannot tell apart.
+
+| run | workflow calls | outside main: output | outside main: cache read | outside main: cache write | cost |
+| --- | --- | --- | --- | --- | --- |
+| debug-opus-ultracode | 0 | 13 | 0 | 0 | $0.69 |
+| debug-opus-ultracode#2 | 0 | 11 | 0 | 0 | $0.45 |
+| debug-opus-ultracode#3 | 0 | 11 | 0 | 0 | $0.40 |
+| review-opus-ultracode | 1 | 94K | 2.9M | 536K | $7.92 |
+| review-opus-ultracode#2 | 1 | 38K | 1.1M | 189K | $3.18 |
+| review-opus-ultracode#3 | 1 | 55K | 1.7M | 282K | $4.75 |
 
 ## Explore: per-model usage including subagents
 

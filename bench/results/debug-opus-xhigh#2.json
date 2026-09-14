@@ -1,0 +1,111 @@
+{
+ "duration_api_ms": 27273,
+ "stop_reason": "end_turn",
+ "session_id": "f44098aa-e710-4807-b7fe-4ab397d219fa",
+ "total_cost_usd": 0.3543435,
+ "usage": {
+  "input_tokens": 12,
+  "cache_creation_input_tokens": 21828,
+  "cache_read_input_tokens": 176087,
+  "output_tokens": 1879,
+  "output_tokens_details": {
+   "thinking_tokens": 349
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 21828,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 213,
+    "cache_read_input_tokens": 36386,
+    "cache_creation_input_tokens": 887,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 887
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard"
+ },
+ "modelUsage": {
+  "claude-haiku-4-5-20251001": {
+   "inputTokens": 930,
+   "outputTokens": 11,
+   "cacheReadInputTokens": 0,
+   "cacheCreationInputTokens": 0,
+   "webSearchRequests": 0,
+   "costUSD": 0.000985,
+   "contextWindow": 200000,
+   "maxOutputTokens": 32000,
+   "thinkingTokens": 0,
+   "canonicalModel": "claude-haiku-4-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  },
+  "claude-opus-5": {
+   "inputTokens": 12,
+   "outputTokens": 1879,
+   "cacheReadInputTokens": 176087,
+   "cacheCreationInputTokens": 21828,
+   "webSearchRequests": 0,
+   "costUSD": 0.35335849999999996,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 64000,
+   "thinkingTokens": 349,
+   "canonicalModel": "claude-opus-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "is_error": false,
+ "num_turns": 10,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "`invoiceTotals` in `src/invoice.js` worked out and rounded VAT for each line and then added those up, but the README says VAT is calculated once on the invoice net total. With three 3-cent GB lines, each line's 0.6c rounded up to 1c, giving 3c of VAT where 20% of the 9c total rounds to 2c. I changed it to `vatOn(net, region)` and removed the unused `lineVat` helper, which only did per-line VAT and wasn't exported from `index.js`, and `npm test` now passes 29 of 29.\n\nThe README needs no change, since it already describes this behaviour. Nothing is committed.",
+ "ttft_ms": 2894,
+ "type": "result",
+ "duration_ms": 30056,
+ "uuid": "6ad19c7d-4df4-459a-8c7b-10b698e7a07d",
+ "ttft_stream_ms": 1279,
+ "time_to_request_ms": 72,
+ "first_content_frame_ms": 1279,
+ "queued_turn_count": 0,
+ "result_index": 0
+}
