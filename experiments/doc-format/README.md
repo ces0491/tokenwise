@@ -1,6 +1,6 @@
 # What a document costs Claude Code to read, by format
 
-The same paper, *Attention Is All You Need* (arXiv 1706.03762v7), handed to Claude Code in four forms. Claude read each one in full with the Read tool, and the tokens it added to the context were measured from the session's own usage.
+The same paper, *Attention Is All You Need* (arXiv 1706.03762v7), handed to Claude Code in four forms. Claude read each one in full with the Read tool, and the tokens it added to the context were measured from the session's own usage. The PDF and HTML figures each include one failed Read call, which the saved run records.
 
 | Form | File size | Read calls | Returned as | Tokens added |
 | --- | --- | --- | --- | --- |
@@ -13,17 +13,17 @@ Recorded 14 September 2026 on Claude Sonnet 5 at low effort, Claude Code 2.1.270
 
 ## What it shows
 
-- The HTML page cost 5.3 times the PDF. The page carries layout tags, class names and MathML for the equations alongside the prose, and the Read tool returns all of it.
-- Claude Code sent the PDF as page images, with almost no extracted text, and the 15 pages cost about as much as the text pdftotext pulled out of them.
-- Converting the HTML to Markdown before reading cut it to a third. Pandoc's `gfm` target keeps any HTML it cannot express as Markdown, which on this page left a 131 KB file still full of markup, so the conversion drops raw HTML (`-t gfm-raw_html`). The tables and the equations, as LaTeX, survive.
-- Whatever enters the context is sent again on every later call in the session, so the difference repeats on each message after the read.
+- The HTML page added 5.3 times the tokens the PDF did. The page carries layout tags, class names and MathML for the equations alongside the prose, and the Read tool returns all of it.
+- The 15 page images cost about as much as the text pdftotext extracted from them, 19.3K tokens against 18.5K.
+- Converting the HTML to Markdown before reading cut it to a third. Pandoc's `gfm` target keeps any HTML it cannot express as Markdown, which on this page left much of the markup in place, so the conversion drops raw HTML (`-t gfm-raw_html`). The tables and the equations, as LaTeX, survive.
+- Whatever enters the context is sent again on every later call in the session.
 
 ## What it does not show
 
-- **Other documents.** One paper, heavy on equations, whose HTML carries a lot of markup. The gap depends on how much markup a page carries. `measure.mjs` takes any files, so run it on your own.
-- **Review quality.** Nothing here checks how well Claude understood each form. The PDF reached it as images of pages, the others as text.
+- **Other documents.** One equation-heavy paper. The gap between formats depends on how much markup a page carries. `measure.mjs` takes any files, so run it on your own.
+- **Review quality.** Nothing here checks how well Claude understood each form.
 - **Fetching a URL.** WebFetch converts a page to Markdown and has a smaller model answer a prompt about it, and Claude receives that answer. Only local files are measured.
-- **Variation between runs.** One session per form. Tokens added depend on what the Read tool returns, and the saved run records the page ranges and offsets each read asked for, so a re-run can be compared call by call.
+- **Variation between runs.** Tokens added depend on what the Read tool returns, and the saved run records the page ranges and offsets each read asked for, so a re-run can be compared call by call.
 
 ## Check it
 
@@ -48,4 +48,4 @@ Or measure your own files, with `--convert` for the text versions:
 node experiments/doc-format/measure.mjs report.pdf report.html --convert
 ```
 
-It was run on Node 24 and needs Claude Code, with pandoc and pdftotext on PATH for the conversions. Each session is offered only the Read tool, so no permissions are bypassed. `--model` and `--effort` change the setting. Sonnet 5 and Opus 5 share a tokenizer; Haiku 4.5 uses an older one, so its counts for the same file differ.
+It was run on Node 24 and needs Claude Code, with pandoc and pdftotext on PATH for the conversions. If Claude Code is installed as an npm `.cmd` shim on Windows, set `CLAUDE_BIN` to the full path of the executable, since Node cannot start a `.cmd` file without a shell. Each session is offered only the Read tool, so no permissions are bypassed. `--model` and `--effort` change the setting. Anthropic's pricing page says models from Claude 4.7 on use a newer tokenizer than earlier ones, which puts Sonnet 5 and Opus 5 on one tokenizer and Haiku 4.5 on the older one, so Haiku's counts for the same file differ.

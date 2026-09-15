@@ -36,7 +36,7 @@ Five of the nine rows carry no measurement. Evidence for one of them needs a new
 What a route costs depends on `SKILL.md`: how much the model thinks, what it reads, and what the answer leaves in the user's context. Any change to `SKILL.md` fails `bench/breakeven.mjs --check` until the skill is measured again, since each transcript records a hash of the text it ran against. Label the runs with the new version from `plugin.json`:
 
 ```sh
-node bench/skill-cost.mjs --label <version> --sessions idle,invoked,unprompted
+node bench/skill-cost.mjs --label <version> --sessions idle,invoked,unprompted   # add no-plugin when claude --version differs from the last label's
 node bench/skill-cost.mjs --label <version>-opus-high --sessions invoked --model opus --effort high
 node bench/skill-cost.mjs --label <version>-sonnet-medium --sessions invoked --model sonnet --effort medium
 node bench/breakeven.mjs

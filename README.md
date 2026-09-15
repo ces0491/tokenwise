@@ -27,11 +27,11 @@ Claude also runs the skill when you ask which model or effort level to use. It r
 
 Four of the routing table's nine rows were run against a small test project where a grader decides whether a run worked: hidden tests for implementing and debugging, with the original tests restored first so a model that edits tests to pass gets no credit; recall of five planted defects for reviewing; tests plus a grep for a rename. The table's last column says which rows those are, and marks the rest untested or not separated.
 
-Across 63 graded runs, four of the nine claims tested were wrong. Debugging and reviewing named a more expensive setting than the work needed. Forcing subagents onto Haiku saved 30%, short of the bench's 40% pass mark. And splitting a small task into a planning session and an implementation session cost more than doing it in one. Each row starts at the cheap end and names the failure that justifies moving up. Implementing a feature from a spec cost $0.17 on Haiku and $2.63 on Fable at xhigh, and both passed the same 37 tests. Reviewing a diff on Opus at low effort found all five planted defects in 3 turns; the same model at high effort found the same five in 13 turns for 3.3 times the cost. With ultracode on, Opus ran a workflow on that review and again found the same five, for 9.5 times the cost of Opus at xhigh.
+Across 63 graded runs, four of the nine claims in `bench/SCOPE.md` were falsified. Debugging and reviewing named a more expensive setting than the work needed. Forcing subagents onto Haiku saved 30%, short of the bench's 40% pass mark. And splitting a small task into a planning session and an implementation session cost more than doing it in one. Each row starts at the cheap end and names the failure that justifies moving up. Implementing a feature from a spec cost $0.17 on Haiku and $2.63 on Fable at xhigh, and both passed the same 37 tests. Reviewing a diff on Opus at low effort found all five planted defects in 3 turns; the same model at high effort found the same five in 13 turns for 3.3 times the cost. With ultracode on, Opus ran a workflow on that review and again found the same five, for 9.5 times the cost of Opus at xhigh.
 
 Pass/fail thresholds were fixed before the results were read (`bench/SCOPE.md`) and the verdicts are computed from them. Full numbers in [docs/findings.md](docs/findings.md), method in [docs/methodology.md](docs/methodology.md), raw runs in `bench/results/`.
 
-Those task costs leave out the skill itself, so its cost is measured separately. Loaded and unused, it adds 157 tokens of context. It runs on your session's model and effort: a route in a session already under way cost $0.04 asked from Sonnet 5 at medium, $0.10 from Opus 5 at high and $0.10 from Opus 5 at xhigh. The first route left 638 to 838 tokens behind, carried on every later call, and routing just before a `/clear` carries nothing. For a single small chore, asking can cost about what the cheaper model saves.
+Those task costs leave out the skill itself, so its cost is measured separately. Loaded and unused, it adds 156 tokens of context. It runs on your session's model and effort: a route in a session already under way cost $0.04 asked from Sonnet 5 at medium, $0.10 from Opus 5 at high and $0.11 from Opus 5 at xhigh. The first route left 655 to 780 tokens behind, carried on every later call, and routing just before a `/clear` carries nothing. For a single small chore, asking can cost about what the cheaper model saves.
 
 ![What each setting cost on the bench's tasks, what a route costs from three settings, and the task sizes where a route pays for itself](docs/breakeven.svg)
 
@@ -43,7 +43,7 @@ Every number above comes from a file in this repository or from a script in it. 
 git clone https://github.com/ces0491/tokenwise && cd tokenwise
 
 node bench/summarize.mjs --check     # do the published tables follow from the published runs?
-node bench/skill-cost.mjs --compare 1.0.1,1.1.2@1.0.1   # the skill's own cost, from the saved sessions
+node bench/skill-cost.mjs --compare 1.2.0,1.2.0-opus-high@1.2.0,1.2.0-sonnet-medium@1.2.0   # the skill's own cost, from the saved sessions
 node bench/breakeven.mjs --check     # does the breakeven chart follow from the saved runs?
 node bench/context-profile.mjs       # the token figures above, against your own transcripts
 node bench/run.mjs --results bench/rerun   # re-run all 68 runs on your account, into a fresh directory
@@ -83,7 +83,7 @@ CLAUDE_CODE_SUBAGENT_MODEL=haiku
 CLAUDE_CODE_SUBAGENT_MODEL_FORCE=1
 ```
 
-With both set, the agents in a dynamic workflow run on Haiku too, which matters if you use ultracode for work that needs judgment.
+With both set, the agents in a dynamic workflow run on Haiku too, so unset them before running ultracode on work that needs a stronger model.
 
 ## What it does not do
 

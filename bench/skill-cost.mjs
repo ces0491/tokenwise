@@ -68,10 +68,8 @@ const SESSIONS = [
 ];
 // A no-plugin session run with a label is stored in that label's directory, and read from there before the shared one.
 // The context a session starts with changes between Claude Code versions, so a label on a newer version needs its own.
-const fileOf = (label, id) => {
-  const own = path.join(BASE, label, `${id}.jsonl`);
-  return id === 'no-plugin' && !fs.existsSync(own) ? path.join(BASE, 'no-plugin.jsonl') : own;
-};
+const fileOf = (label, id) => path.join(BASE, label, `${id}.jsonl`);
+const SHARED_NO_PLUGIN = path.join(BASE, 'no-plugin.jsonl');
 
 // ---- what is kept -----------------------------------------------------------------------------------
 
@@ -198,8 +196,7 @@ async function run(label) {
 // One API call spans several stream lines sharing a message id; its context is set when it starts, so the first line
 // gives it. A turn's output, thinking and running cost come from the `result` line that closes it. Calls made inside a
 // subagent (parent_tool_use_id set) are not counted as main-session context, though their cost is in the result.
-function readSession(label, id) {
-  const file = fileOf(label, id);
+function readSession(label, id, file = fileOf(label, id)) {
   if (!fs.existsSync(file)) return null;
   const lines = fs.readFileSync(file, 'utf8').split('\n').filter(Boolean).map((l) => JSON.parse(l));
   const meta = lines.find((o) => o.type === 'tokenwise-skill-cost');
@@ -242,7 +239,8 @@ export function figures(spec) {
   const s = Object.fromEntries(SESSIONS.map((x) => {
     const own = readSession(label, x.id);
     const borrowed = !own && base ? readSession(base, x.id) : null;
-    return [x.id, own ?? (borrowed && { ...borrowed, from: base })];
+    const shared = !own && !borrowed && x.id === 'no-plugin' ? readSession(label, x.id, SHARED_NO_PLUGIN) : null;
+    return [x.id, own ?? (borrowed && { ...borrowed, from: base }) ?? shared];
   }));
   const usable = (id) => (s[id]?.complete ? s[id] : null);
   const first = (id, t) => usable(id)?.turns[t]?.calls[0]?.context;

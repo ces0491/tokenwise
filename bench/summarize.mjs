@@ -214,20 +214,26 @@ function verdicts() {
   } else out.push(['C8', 'not run', '']);
 
   // C9: per case, ultracode against xhigh on opus. A case where fewer than two thirds of the ultracode runs called
-  // the Workflow tool is not testable: those runs measure xhigh with ultracode on and no workflow.
+  // the Workflow tool is not testable: those runs measure xhigh with ultracode on and no workflow. So is a case with no
+  // recorded cost in either cell. Pass counts compare as rates, so cells of different size compare fairly.
   const c9 = ['review', 'debug'].filter((c) => need(`${c}-opus-ultracode`, `${c}-opus-xhigh`)).map((c) => {
     const u = s(`${c}-opus-ultracode`); const x = s(`${c}-opus-xhigh`);
     const orchestrated = u.runs.filter((r) => (r.metrics?.workflow?.calls || 0) > 0).length;
-    const ratio = u.medianCost / x.medianCost;
-    const v = 3 * orchestrated < 2 * u.n ? 'not testable' : u.passes <= x.passes && ratio >= 1.3 ? 'holds' : 'falsified';
-    return { c, v, n: Math.min(u.n, x.n), note: `${c}: ultracode ${u.passes}/${u.n} at ${ratio.toFixed(2)}x the median cost of xhigh (${x.passes}/${x.n}), workflow called in ${orchestrated} of ${u.n}` };
+    const ratio = u.medianCost != null && x.medianCost ? u.medianCost / x.medianCost : null;
+    const why = ratio == null ? 'no cost recorded' : 3 * orchestrated < 2 * u.n ? 'no workflow' : null;
+    const v = why ? 'not testable' : u.passes * x.n <= x.passes * u.n && ratio >= 1.3 ? 'holds' : 'falsified';
+    const cost = ratio == null ? 'no recorded cost' : `${ratio.toFixed(2)}x the median cost of xhigh`;
+    return { c, v, why, n: Math.min(u.n, x.n), note: `${c}: ultracode ${u.passes}/${u.n} at ${cost} (${x.passes}/${x.n}), workflow called in ${orchestrated} of ${u.n}` };
   });
   if (c9.length) {
-    const on = (v) => c9.filter((r) => r.v === v).map((r) => r.c);
-    const v = on('falsified').length ? `falsified on ${on('falsified').join(' and ')}`
-      : on('holds').length === 2 ? 'holds'
-        : on('not testable').length ? `not testable here on ${on('not testable').join(' and ')} (no workflow)${on('holds').length ? `; holds on ${on('holds').join(' and ')}` : ''}`
-          : `holds on ${on('holds').join(' and ')}; ${['review', 'debug'].filter((c) => !c9.some((r) => r.c === c)).join(' and ')} not run`;
+    const on = (v) => c9.filter((r) => r.v === v);
+    const names = (rs) => rs.map((r) => r.c).join(' and ');
+    const notRun = ['review', 'debug'].filter((c) => !c9.some((r) => r.c === c));
+    const said = on('falsified').length ? [`falsified on ${names(on('falsified'))}`]
+      : on('holds').length === 2 ? ['holds']
+        : [on('not testable').length ? `not testable here on ${on('not testable').map((r) => `${r.c} (${r.why})`).join(' and ')}` : '', on('holds').length ? `holds on ${names(on('holds'))}` : ''].filter(Boolean);
+    if (notRun.length) said.push(`${notRun.join(' and ')} not run`);
+    const v = said.join('; ');
     const n = Math.min(...c9.map((r) => r.n));
     out.push(['C9 ultracode on tasks this size', v + (n < 3 ? ` (provisional, n=${n})` : ''), c9.map((r) => r.note).join('; ')]);
   } else out.push(['C9', 'not run', '']);

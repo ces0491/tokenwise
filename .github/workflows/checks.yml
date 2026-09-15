@@ -58,5 +58,5 @@ jobs:
       - name: claude plugin validate
         timeout-minutes: 3
         run: |
-          npm install -g @anthropic-ai/claude-code@2.1.268
+          npm install -g @anthropic-ai/claude-code@2.1.272
           claude plugin validate .
