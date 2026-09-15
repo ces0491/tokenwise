@@ -10,7 +10,8 @@ export const WORKFLOW_TOOL = 'Workflow';
 const lines = (text) => String(text).split('\n').map((l) => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean);
 
 // What a run keeps of its stream: the init event's model, version and tool names, and for each assistant message
-// its model, usage and the names of the tools it called. No message text, so a stream carries no file contents.
+// its model, usage and the names of the tools it called, plus the agent type and model of each subagent it started. No
+// message text, so a stream carries no file contents.
 function keep(o) {
   if (o.type === 'system' && o.subtype === 'init') {
     return { type: 'system', subtype: 'init', model: o.model, claude_code_version: o.claude_code_version, tools: o.tools ?? null };
@@ -22,7 +23,7 @@ function keep(o) {
       message: {
         id: o.message.id, model: o.message.model,
         usage: { input_tokens: u.input_tokens, cache_creation_input_tokens: u.cache_creation_input_tokens, cache_read_input_tokens: u.cache_read_input_tokens, output_tokens: u.output_tokens },
-        content: (o.message.content || []).filter((c) => c.type === 'tool_use').map((c) => ({ type: 'tool_use', name: c.name })),
+        content: (o.message.content || []).filter((c) => c.type === 'tool_use').map((c) => ({ type: 'tool_use', name: c.name, ...agentInput(c) })),
       },
     };
   }
@@ -30,20 +31,30 @@ function keep(o) {
   return null;
 }
 
+// The tool Claude Code starts subagents with, under its current and earlier name.
+const AGENT_TOOLS = new Set(['Agent', 'Task']);
+const agentInput = (c) => (AGENT_TOOLS.has(c.name) ? { input: { subagent_type: c.input?.subagent_type ?? null, model: c.input?.model ?? null } } : {});
+
 export const reduceStream = (text) => lines(text).map(keep).filter(Boolean);
 
 // The session's result event, as `--output-format json` would have printed it, and what the stream shows about
-// workflows. `offered` is null when the stream has no init event, so a missing event is not read as "not offered".
+// workflows and subagents. `offered` is null when the stream has no init event, so a missing event is not read as "not
+// offered". `agents` lists the subagents the main loop started, with the type and model each call asked for.
 export function parseStream(text) {
   const events = lines(text);
   const result = events.findLast((e) => e.type === 'result') ?? null;
   const init = events.find((e) => e.type === 'system' && e.subtype === 'init');
   const calls = {};
+  const agents = [];
   const nested = new Set();
   for (const e of events) {
     if (e.type !== 'assistant' || !e.message) continue;
     if (e.parent_tool_use_id != null) { nested.add(e.message.id); continue; }
-    for (const c of e.message.content || []) if (c.type === 'tool_use') calls[c.name] = (calls[c.name] || 0) + 1;
+    for (const c of e.message.content || []) {
+      if (c.type !== 'tool_use') continue;
+      calls[c.name] = (calls[c.name] || 0) + 1;
+      if (AGENT_TOOLS.has(c.name)) agents.push({ type: c.input?.subagent_type ?? null, model: c.input?.model ?? null });
+    }
   }
   return {
     result,
@@ -53,6 +64,7 @@ export function parseStream(text) {
       toolCalls: calls,
       nestedMessages: nested.size,
     },
+    agents,
   };
 }
 

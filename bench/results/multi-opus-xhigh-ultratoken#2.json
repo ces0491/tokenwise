@@ -1,0 +1,131 @@
+{
+ "duration_api_ms": 124741,
+ "stop_reason": "end_turn",
+ "session_id": "ac98aaac-0aac-439e-9226-fe333a4cc193",
+ "total_cost_usd": 0.7744454499999998,
+ "usage": {
+  "input_tokens": 6,
+  "cache_creation_input_tokens": 8182,
+  "cache_read_input_tokens": 97627,
+  "output_tokens": 3752,
+  "output_tokens_details": {
+   "thinking_tokens": 1417
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 8182,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2606,
+    "cache_read_input_tokens": 35405,
+    "cache_creation_input_tokens": 3029,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 3029
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard"
+ },
+ "modelUsage": {
+  "claude-haiku-4-5-20251001": {
+   "inputTokens": 1115,
+   "outputTokens": 17,
+   "cacheReadInputTokens": 0,
+   "cacheCreationInputTokens": 0,
+   "webSearchRequests": 0,
+   "costUSD": 0.0012000000000000001,
+   "contextWindow": 200000,
+   "maxOutputTokens": 32000,
+   "thinkingTokens": 0,
+   "canonicalModel": "claude-haiku-4-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  },
+  "claude-sonnet-5": {
+   "inputTokens": 16,
+   "outputTokens": 1823,
+   "cacheReadInputTokens": 221141,
+   "cacheCreationInputTokens": 17036,
+   "webSearchRequests": 0,
+   "costUSD": 0.1050802,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 64000,
+   "thinkingTokens": 256,
+   "canonicalModel": "claude-sonnet-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  },
+  "claude-opus-5": {
+   "inputTokens": 18,
+   "outputTokens": 7208,
+   "cacheReadInputTokens": 208083,
+   "cacheCreationInputTokens": 47620,
+   "webSearchRequests": 0,
+   "costUSD": 0.66816525,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 64000,
+   "thinkingTokens": 2496,
+   "canonicalModel": "claude-opus-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "origin": {
+  "kind": "task-notification"
+ },
+ "subagent_stats": {
+  "spawned": 2,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 2
+  },
+  "started_in_background": 2,
+  "max_depth": 1,
+  "spawned_by_subagents": 0,
+  "completed": 2,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {
+   "tokenwise:work-medium": 1,
+   "tokenwise:work-low": 1
+  }
+ },
+ "is_error": false,
+ "num_turns": 6,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "## Fix\n`invoiceTotals` worked out VAT for each line with `lineVat`/`vatOn`, which rounds every time, then added up the rounded amounts instead of rounding once on the invoice's total net. So rounding stacked up across lines: three 3-cent lines at 20% GB VAT give 0.6→1 three times = 3, where rounding the combined net gives 1.8→2 (fixed at `src/invoice.js:52` with `vatOn(net, invoice.region)`).\n\n## Review\n**`src/tax.js:31`**: `netFromGross` uses `Math.round`, which rounds negative halves toward positive infinity. README says rounding is half away from zero and belongs to `src/money.js`.\nInput: `netFromGross(-3, 'GB')` (-3/1.2 = -2.5) → actual `-2`, expected `-3`.\n\n**`src/discounts.js:25`**: the comparison changed from `<=` to `<`, so a tier no longer applies when the quantity equals its `minQty`.\nInput: `volumeTier([{minQty: 10}], 10)` → actual `null`, expected `{minQty: 10}`.\n\n**`src/discounts.js:22`**: `tiers.sort(...)` sorts the caller's array in place, so the input is changed and a frozen array throws.\nInput: `const t=[{minQty:5},{minQty:1}]; volumeTier(t, 3)` → actual `t` becomes `[{minQty:1},{minQty:5}]`, expected `t` left unchanged. `volumeTier(Object.freeze([{minQty:5},{minQty:1}]), 3)` → actual TypeError, expected `{minQty:1}`.\n\n**`src/report.js:5-6`**: `monthKey` parses the date with `new Date` (as UTC) and reads it back with local-time getters. In time zones west of UTC the key lands in the previous month. README says reports group by the first seven characters of `issuedOn`.\nInput: `monthKey({issuedOn: '2026-03-01'})` with `TZ=America/New_York` → actual `\"2026-02\"`, expected `\"2026-03\"`.\n\n**`src/csv.js:37`**: `csvField` no longer quotes fields that contain CR or LF, so a multi-line field breaks the CSV and doesn't round-trip.\nInput: `parseCsv(toCsv([['C-3','two\\nlines']]))` → actual `[['C-3','two'],['lines']]`, expected `[['C-3','two\\nlines']]`. `csvField('x\\ny')` → actual `x\\ny`, expected `\"x\\ny\"`.\n\n**`test/csv.test.js:19-26`**: the tests were weakened to match the csv.js change. The `csvField('x\\ny')` assertion and the `['C-3','two\\nlines']` round-trip row were removed.\nInput: `csvField('x\\ny')` → actual `x\\ny` (no test catches it), expected `\"x\\ny\"`.\n\n## Rounding\nThe rule is set in `src/money.js:10-13`: `roundHalfUp` rounds half away from zero. `multiply` (`src/money.js:16-19`) is the standard way to call it, and `README.md:11` says money.js owns rounding. `allocate` (`src/money.js:56-65`) doesn't use it; it floors and hands out the leftover cents by largest remainder.\n\nModules that depend on it:\n- `src/tax.js`: `vatOn` at :21 goes through `multiply`, gross at :26 goes through `vatOn`, and `netFromGross` at :31 calls `roundHalfUp` directly.\n- `src/discounts.js:16`: `percentOff` goes through `multiply`, and :34 and :41 use it.\n- `src/invoice.js`: indirectly, through `applyDiscounts` at :41 and `vatOn` at :46 and :52.\n- `src/report.js:1`: indirectly, through `invoiceTotals` and `lineNet`.\n- `src/index.js:1`: re-exports it.\n\n`src/csv.js` only uses `fromDecimal`, which doesn't round.\n\n---\n- Fix: ran on a Sonnet worker at medium effort, no escalation. `npm test` gives 29 passed, 0 failed, and only `src/invoice.js` changed. The change is not committed and main is checked out.\n- Review: ran on an Opus worker at low effort, no escalation. All 6 findings have a file:line and a failing input, and the review-me branch was left untouched.\n- Rounding: answered in this session, no escalation. The references were read from the source after the fix.",
+ "ttft_ms": 1551,
+ "type": "result",
+ "duration_ms": 44845,
+ "uuid": "25da742d-394e-4614-bd11-1748783700db",
+ "ttft_stream_ms": 1302,
+ "time_to_request_ms": 88,
+ "first_content_frame_ms": 1551,
+ "queued_turn_count": 0,
+ "result_index": 1
+}

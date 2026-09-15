@@ -34,6 +34,9 @@
 // <results>/<id>.answer.md, and one summary line per run is appended to <results>/runs.jsonl.
 // Runs whose result file already exists are skipped unless --force is given.
 //
+// A run with `plugin: true` loads the plugin plus experiments/ultratoken with --plugin-dir (stagePlugin), and `keyword` puts a word such as ultratoken at the
+// start of its prompt. Such a run streams its session too, and records the type and model of each subagent it started.
+//
 // An ultracode run (effort "ultracode") streams its session (bench/stream.mjs) and keeps a reduced copy in
 // <results>/<id>.stream.jsonl: tool names and usage, no message text. The stream shows whether the session was offered
 // the Workflow tool and how often it called it. Claude Code offers that tool whenever workflows are available, with
@@ -47,7 +50,7 @@ import { spawn, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from './args.mjs';
 import { MATRIX, cellOf, expandRuns, loadMatrix, selectForModels, usesModel } from './matrix.mjs';
-import { CASES, DIR_GRADERS, FIXTURE, git, grade } from './graders.mjs';
+import { CASES, DIR_GRADERS, FIXTURE, git, grade, prepareBranches } from './graders.mjs';
 import { isInvalid, loadRuns } from './records.mjs';
 import { outsideMain, parseStream, reduceStream } from './stream.mjs';
 
@@ -85,6 +88,11 @@ function prepareDir(run) {
   }
   fs.cpSync(FIXTURE, dir, { recursive: true });
   const conf = matrix.cases[run.case] || {};
+  // A case with `branch` applies its overlays on main and commits a second branch for review (the multi cases).
+  if (conf.branch) {
+    prepareBranches(dir, conf);
+    return dir;
+  }
   if (conf.overlayUncommitted) {
     git(dir, 'init', '-q', '-b', 'main');
     git(dir, 'add', '-A');
@@ -99,12 +107,33 @@ function prepareDir(run) {
   return dir;
 }
 
+// A run with `keyword` starts its prompt with that word, as a user would type it.
 function promptFor(run) {
-  if (run.promptText) return run.promptText;
-  return fs.readFileSync(path.join(CASES, run.case, run.prompt || 'prompt.md'), 'utf8');
+  const text = run.promptText ?? fs.readFileSync(path.join(CASES, run.case, run.prompt || 'prompt.md'), 'utf8');
+  return run.keyword ? `${run.keyword} ${text}` : text;
 }
 
-const streamed = (run) => run.effort === 'ultracode';
+// Ultracode runs and plugin runs stream their session: the stream shows Workflow calls and which subagents started.
+const streamed = (run) => run.effort === 'ultracode' || !!run.plugin;
+const REPO = path.resolve(HERE, '..');
+
+// The plugin a `plugin` run loads: tokenwise as shipped plus the ultratoken experiment's hook and worker agents, which
+// the shipped plugin does not carry. They are staged together as one plugin named tokenwise, under the runs root, so the
+// agent types (tokenwise:work-<effort>) and the hook's paths are the ones the published multi runs used. Staged once per
+// invocation.
+let stagedPlugin = null;
+function stagePlugin() {
+  if (stagedPlugin) return stagedPlugin;
+  const dir = path.join(RUNS_ROOT, '_plugin');
+  fs.rmSync(dir, { recursive: true, force: true });
+  for (const p of ['.claude-plugin', 'skills', 'scripts/routing-table.mjs', 'experiments/ultratoken']) {
+    fs.cpSync(path.join(REPO, p), path.join(dir, p), { recursive: true });
+  }
+  fs.cpSync(path.join(REPO, 'experiments/ultratoken/agents'), path.join(dir, 'agents'), { recursive: true });
+  fs.cpSync(path.join(REPO, 'experiments/ultratoken/hooks.json'), path.join(dir, 'hooks', 'hooks.json'));
+  stagedPlugin = dir;
+  return dir;
+}
 
 function claudeArgs(run) {
   const d = matrix.defaults;
@@ -114,6 +143,7 @@ function claudeArgs(run) {
   const a = ['-p', '--model', run.model, ...format, '--setting-sources', 'project', '--strict-mcp-config',
     '--dangerously-skip-permissions', '--max-budget-usd', String(run.maxBudgetUsd ?? d.maxBudgetUsd)];
   if (run.effort) a.push('--effort', run.effort);
+  if (run.plugin) a.push('--plugin-dir', stagePlugin());
   if (run.resumeFrom) {
     const prevFile = path.join(RESULTS, `${run.resumeFrom}.json`);
     // A dry run prints the plan before anything has run, so the session to resume may not exist yet.
@@ -199,8 +229,9 @@ async function execute(run) {
   if (result?.result) fs.writeFileSync(path.join(RESULTS, `${run.id}.answer.md`), String(result.result));
   // A run killed by a usage limit or other API error never attempted the task. records.mjs decides that for the
   // report too; an invalid run is excluded from results and re-run next time, rather than scored as a failure.
-  const m = metrics(result, Date.now() - started, stream?.workflow);
-  const notApplied = stream?.workflow.offered === false;
+  const m = metrics(result, Date.now() - started, run.effort === 'ultracode' ? stream?.workflow : undefined);
+  if (run.plugin && stream) m.agents = stream.agents;
+  const notApplied = run.effort === 'ultracode' && stream?.workflow.offered === false;
   const invalid = isInvalid({ timedOut, metrics: m }) || notApplied;
   let g = {};
   if (timedOut) g = { pass_all: false, timedOut: true };
@@ -209,7 +240,7 @@ async function execute(run) {
     invalid: invalid || undefined,
     invalidReason: notApplied ? 'ultracode could not apply: the session was not offered the Workflow tool, so workflows were unavailable'
       : invalid ? (result ? `${result.api_error_status ?? result.terminal_reason}: ${String(result.result || '').slice(0, 120)}` : `no result JSON (exit ${code})`) : undefined,
-    id: run.id, case: run.case ?? null, model: run.model, effort: run.effort ?? null, env: run.env ?? null,
+    id: run.id, case: run.case ?? null, model: run.model, effort: run.effort ?? null, env: run.env ?? null, plugin: run.plugin ?? undefined, keyword: run.keyword ?? undefined,
     prompt: run.prompt ?? (run.promptText ? 'inline' : 'prompt.md'), resumeFrom: run.resumeFrom ?? null, dirFrom: run.dirFrom ?? null,
     started: new Date(started).toISOString(), finished: new Date().toISOString(), claude_version: VERSION,
     exit: code, timedOut, metrics: m, grade: g,

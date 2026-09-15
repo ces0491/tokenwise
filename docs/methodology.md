@@ -38,13 +38,13 @@ The review grader is the only one that reads prose. It splits an answer into fin
 
 ## Run conditions
 
-Every run is a fresh non-interactive session (`claude -p`) in a throwaway copy of the fixture, with `--setting-sources project --strict-mcp-config` so no user settings, plugins, MCP servers or CLAUDE.md load. That leaves the base system prompt and tool schemas as the fixed overhead on every call: 19K to 28K tokens across the bench's own sessions, median 27K, measured with `node bench/context-profile.mjs --match tokenwise-bench`.
+Every run is a fresh non-interactive session (`claude -p`) in a throwaway copy of the fixture, with `--setting-sources project --strict-mcp-config` so no user settings, plugins, MCP servers or CLAUDE.md load. The `multi` and `multi-large` runs are the exception: each loads the plugin with the `ultratoken` hook and worker agents staged in (`experiments/ultratoken/`), whether or not its prompt uses the keyword, so the two arms of C10 and C11 carry the same context. That leaves the base system prompt and tool schemas as the fixed overhead on every call: 19K to 28K tokens across the bench's own sessions, median 27K, measured with `node bench/context-profile.mjs --match tokenwise-bench`.
 
 Permissions are bypassed. In an early pilot the permission prompts turned a 16-call run into 28 calls with 20 denials, which would have measured the permission system rather than the model. The directories are disposable copies under the temp directory.
 
 Tokens, cost, turn count and per-model usage come from Claude Code's own JSON result. Cost is its list-price figure, which on a subscription is a weighting for comparison rather than a bill.
 
-A run that hits the account's session limit returns HTTP 429 without attempting its task. The runner marks those invalid and deletes the result file so the next invocation retries them, and `bench/RESULTS.md` lists any still excluded when it is generated. A re-run on a subscription can hit the same limit. A run killed at the 25-minute timeout, or stopped by its $6 budget cap, did attempt its task, so it counts as a failure instead. None of the published runs hit either.
+A run that hits the account's session limit returns HTTP 429 without attempting its task. The runner marks those invalid and deletes the result file so the next invocation retries them, and `bench/RESULTS.md` lists any still excluded when it is generated. A re-run on a subscription can hit the same limit. A run killed at its timeout or stopped by its budget cap (25 minutes and $6 by default, higher for the ultracode and multi cells in `bench/matrix.json`) did attempt its task, so it counts as a failure instead. None of the published runs hit either.
 
 ## What "done" means, fixed in advance
 
@@ -64,7 +64,7 @@ Several graders and criteria changed after runs had been seen, some of them afte
 
 ## What the skill itself costs
 
-The task runs load no plugins, so their costs leave out the skill. `bench/skill-cost.mjs` measures it in sessions of its own. Each is a `claude -p` process in a fresh copy of the fixture, on Opus 5 at xhigh effort unless noted, with the plugin loaded from the repository, and feeds its messages over stream-json one turn at a time, so later turns read the prompt cache the way an interactive session does.
+The single-job task runs load no plugins, so their costs leave out the skill. `bench/skill-cost.mjs` measures it in sessions of its own. Each is a `claude -p` process in a fresh copy of the fixture, on Opus 5 at xhigh effort unless noted, with the plugin loaded from the repository, and feeds its messages over stream-json one turn at a time, so later turns read the prompt cache the way an interactive session does.
 
 | Session | Messages | What it shows |
 | --- | --- | --- |
@@ -80,7 +80,7 @@ Context per call comes from each API call's usage, and each turn's output, think
 ## Reproducing it
 
 ```sh
-node bench/run.mjs --results bench/rerun                                   # the 68 published runs, into a fresh directory
+node bench/run.mjs --results bench/rerun                                   # the 92 published runs, into a fresh directory
 node bench/summarize.mjs --results bench/rerun --out bench/rerun/RESULTS.md  # the report and verdicts from your runs
 node bench/run.mjs --only <ids>                                            # a subset
 node bench/run.mjs --regrade                                               # re-grade saved review and explore answers

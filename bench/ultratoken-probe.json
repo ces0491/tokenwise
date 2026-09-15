@@ -1,0 +1,7 @@
+{
+  "defaults": { "maxBudgetUsd": 6, "timeoutMinutes": 30 },
+  "cases": { "multi": { "overlays": ["debug"], "branch": { "name": "review-me", "overlay": "review" }, "grader": "multi" } },
+  "runs": [
+    { "id": "probe-multi-sonnet-medium-ultratoken", "case": "multi", "model": "sonnet", "effort": "medium", "plugin": true, "keyword": "ultratoken" }
+  ]
+}

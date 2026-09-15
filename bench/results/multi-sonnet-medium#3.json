@@ -1,0 +1,111 @@
+{
+ "duration_api_ms": 99322,
+ "stop_reason": "end_turn",
+ "session_id": "4fb2b5ed-b7bf-41d5-a1be-caba4add73de",
+ "total_cost_usd": 0.3639176,
+ "usage": {
+  "input_tokens": 24,
+  "cache_creation_input_tokens": 38407,
+  "cache_read_input_tokens": 571843,
+  "output_tokens": 9470,
+  "output_tokens_details": {
+   "thinking_tokens": 5513
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 38407,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1438,
+    "cache_read_input_tokens": 62126,
+    "cache_creation_input_tokens": 275,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 275
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard"
+ },
+ "modelUsage": {
+  "claude-haiku-4-5-20251001": {
+   "inputTokens": 1113,
+   "outputTokens": 12,
+   "cacheReadInputTokens": 0,
+   "cacheCreationInputTokens": 0,
+   "webSearchRequests": 0,
+   "costUSD": 0.001173,
+   "contextWindow": 200000,
+   "maxOutputTokens": 32000,
+   "thinkingTokens": 0,
+   "canonicalModel": "claude-haiku-4-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  },
+  "claude-sonnet-5": {
+   "inputTokens": 24,
+   "outputTokens": 9470,
+   "cacheReadInputTokens": 571843,
+   "cacheCreationInputTokens": 38407,
+   "webSearchRequests": 0,
+   "costUSD": 0.36274460000000003,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 64000,
+   "thinkingTokens": 5513,
+   "canonicalModel": "claude-sonnet-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "is_error": false,
+ "num_turns": 19,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "## Fix\n\n`invoiceTotals` in `src/invoice.js` computed VAT per line (rounding each line's VAT separately) and summed the results, which contradicts the README rule that VAT is calculated once on the invoice net total. Fixed by computing VAT once on the summed net (`vatOn(net, invoice.region)`) and removed the now-unused `lineVat` helper; `npm test` passes (29/29).\n\n## Review\n\n**`src/report.js:5`** — `monthKey` now does `new Date(invoice.issuedOn)` then reads `getFullYear()`/`getMonth()` instead of slicing the first 7 characters. `new Date('YYYY-MM-DD')` parses as UTC midnight, but `getFullYear`/`getMonth` read local time, so the result depends on the runner's timezone. In any timezone behind UTC (e.g. UTC-5), `monthKey({ issuedOn: '2026-01-01', ... })` returns `'2025-12'` instead of `'2026-01'`. Directly violates README.md: \"Monthly reports group by the first seven characters of `issuedOn`.\"\n\n**`src/discounts.js:22,25`** — `volumeTier` was rewritten to sort tiers ascending and pick the last one with `tier.minQty < qty` (strict). A tier whose `minQty` exactly equals `qty` no longer applies. `volumeTier([{ minQty: 10, percent: 5 }], 10)` now returns `null` instead of the tier — contradicts the function's own docstring at `src/discounts.js:8` (\"the highest tier whose minQty is **less than or equal to** the quantity\"). Concretely, `applyDiscount(1000, { type: 'volume', tiers: [{ minQty: 10, percent: 5 }] }, 10)` now returns `1000` (no discount) instead of `950`. Also mutates the caller's `tiers` array in place via `.sort`.\n\n**`src/tax.js:31`** — `netFromGross` now rounds with `Math.round` directly instead of `roundHalfUp` from `money.js`. `Math.round` rounds half toward +Infinity, not half away from zero, so it diverges for negative amounts (credit notes/refunds). `netFromGross(-3, 'GB')`: `-3 / 1.2 = -2.5` → `Math.round` gives `-2`, but `roundHalfUp` gives `-3`. Violates README.md: \"`src/money.js` owns rounding: half away from zero, applied once at the end of a calculation\" — this bypasses `money.js` entirely.\n\n**`src/csv.js:37`** and **`test/csv.test.js`** — `csvField` no longer quotes fields containing `\\r` or `\\n` (regex narrowed from `/[\",\\r\\n]/` to `/[\",]/`), so `csvField('x\\ny')` returns the unquoted `'x\\ny'` instead of `'\"x\\ny\"'`. Combined with `toCsv` joining rows on `'\\n'` (`src/csv.js:42`), a multiline field corrupts row boundaries: `toCsv([['sku','description'],['C-3','two\\nlines']])` produces `two` and `lines` as separate rows when re-parsed by `parseCsv`, breaking the round-trip. The corresponding assertions (`csvField('x\\ny')` and the `'two\\nlines'` row in the round-trip test) were deleted from `test/csv.test.js` rather than fixed, hiding the regression.\n\n## Rounding\n\nRounding is decided in `src/money.js:10` (`roundHalfUp`, half away from zero) and `src/money.js:16` (`multiply`, which calls `roundHalfUp` once). `src/tax.js:1,21` (`vatOn`) and `src/discounts.js:1,16` (`percentOff`) depend on `multiply`; `src/tax.js:1,31` (`netFromGross`) calls `roundHalfUp` directly. `src/invoice.js` depends transitively via `vatOn` in `invoiceTotals`. `src/money.js:56` (`allocate`) reimplements the away-from-zero floor/sign logic inline rather than calling `roundHalfUp`. `src/index.js:1` re-exports `roundHalfUp` and `multiply` as public API.",
+ "ttft_ms": 1674,
+ "type": "result",
+ "duration_ms": 99753,
+ "uuid": "727f2351-e498-4b3c-9323-d443e3e6df13",
+ "ttft_stream_ms": 1158,
+ "time_to_request_ms": 121,
+ "first_content_frame_ms": 1354,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

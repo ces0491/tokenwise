@@ -1,0 +1,131 @@
+{
+ "duration_api_ms": 217224,
+ "stop_reason": "end_turn",
+ "session_id": "74d48dfa-be88-41ed-8e9f-29019a004338",
+ "total_cost_usd": 0.7463420999999999,
+ "usage": {
+  "input_tokens": 6,
+  "cache_creation_input_tokens": 3533,
+  "cache_read_input_tokens": 148846,
+  "output_tokens": 2167,
+  "output_tokens_details": {
+   "thinking_tokens": 47
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 3533,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1846,
+    "cache_read_input_tokens": 51077,
+    "cache_creation_input_tokens": 349,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 349
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard"
+ },
+ "modelUsage": {
+  "claude-haiku-4-5-20251001": {
+   "inputTokens": 1140,
+   "outputTokens": 13,
+   "cacheReadInputTokens": 0,
+   "cacheCreationInputTokens": 0,
+   "webSearchRequests": 0,
+   "costUSD": 0.001205,
+   "contextWindow": 200000,
+   "maxOutputTokens": 32000,
+   "thinkingTokens": 0,
+   "canonicalModel": "claude-haiku-4-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  },
+  "claude-sonnet-5": {
+   "inputTokens": 48,
+   "outputTokens": 16141,
+   "cacheReadInputTokens": 946598,
+   "cacheCreationInputTokens": 59501,
+   "webSearchRequests": 0,
+   "costUSD": 0.5407261,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 64000,
+   "thinkingTokens": 4658,
+   "canonicalModel": "claude-sonnet-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  },
+  "claude-opus-5[1m]": {
+   "inputTokens": 10,
+   "outputTokens": 2464,
+   "cacheReadInputTokens": 99922,
+   "cacheCreationInputTokens": 14848,
+   "webSearchRequests": 0,
+   "costUSD": 0.204411,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 64000,
+   "thinkingTokens": 616,
+   "canonicalModel": "claude-opus-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "origin": {
+  "kind": "task-notification"
+ },
+ "subagent_stats": {
+  "spawned": 2,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 2
+  },
+  "started_in_background": 2,
+  "max_depth": 1,
+  "spawned_by_subagents": 0,
+  "completed": 2,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {
+   "tokenwise:work-medium": 1,
+   "tokenwise:work-low": 1
+  }
+ },
+ "is_error": false,
+ "num_turns": 3,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "Good — no test/ files modified, only new ones added. Main is checked out with these changes in the working tree (uncommitted, since no commit was requested).\n\n## Implement\n\nAdded `src/creditnote.js` with `createCreditNote({ id, invoice, issuedOn, lines, reason })`, which builds a frozen credit note (full or partial, line quantities scaled with `roundHalfUp`, no re-discounting) as a negative-valued document. Extended `invoiceTotals` (`src/invoice.js`), `monthlySummary` and `topSkus` (`src/report.js`) to handle credit notes by their own `issuedOn` and sign, exported `createCreditNote` from `src/index.js`, and added `test/creditnote.test.js` (9 new tests) — all 38 tests pass and no existing test file was modified.\n\n## Review\n\n**1. `src/discounts.js` line 24 (`if (tier.minQty < qty) best = tier;`)**\nOff-by-one: the original used `tier.minQty <= qty`. A tier now fails to apply when quantity exactly equals its threshold.\nScenario: `applyDiscount(10000, { type: 'volume', tiers: [{ minQty: 10, percent: 10 }] }, 10)`. On main, the tier applies and returns `9000`. On the branch, `10 < 10` is false, `best` stays `null`, and it returns `10000` — no discount at the exact tier boundary.\n\n**2. `src/discounts.js` line 22 (`tiers.sort(...)`)**\n`sort` mutates the caller's array in place. `applyDiscount` passes `discount.tiers` directly, so calling `applyDiscount` on a discount object reorders the tier array stored on that object. A caller holding `const d = { type:'volume', tiers:[{minQty:50,percent:20},{minQty:10,percent:10}] }` finds `d.tiers` permanently reordered after the call.\n\n**3. `src/tax.js` line 31 (`Math.round(cents(grossCents) / (1 + vatRate(region)))`)**\n`Math.round` rounds half toward `+Infinity`, not half away from zero, violating the README rule that `src/money.js` owns rounding half away from zero. The `roundHalfUp` import was dropped.\nScenario: `netFromGross(-3, 'GB')` → `-3 / 1.2 === -2.5` exactly; `Math.round(-2.5) === -2`, whereas `roundHalfUp(-2.5) === -3`. Off by one cent on any negative gross (credit note / refund) landing on a half cent.\n\n**4. `src/report.js` lines 5-6 (`new Date(invoice.issuedOn)` + `getFullYear`/`getMonth`)**\n`new Date('YYYY-MM-DD')` parses as UTC midnight, but `getFullYear`/`getMonth` read local time. In any timezone west of UTC the date shifts back a day, moving month-boundary invoices into the previous month. This also contradicts the README rule that monthly reports group by the first seven characters of `issuedOn`.\nScenario: with `TZ=America/New_York`, `monthKey({ issuedOn: '2024-03-01' })` returns `\"2024-02\"` instead of `\"2024-03\"`; every invoice issued on the 1st is grouped into the wrong month.\n\n**5. `src/csv.js` lines 34-37 (`/[\",]/` instead of `/[\",\\r\\n]/`)**\nFields containing `\\r` or `\\n` are no longer quoted, so the embedded newline is emitted raw and breaks the record into two rows — `toCsv` no longer round-trips through `parseCsv`.\nScenario: `parseCsv(toCsv([['sku','description'],['C-3','two\\nlines']]))` returns three rows (`['sku','description']`, `['C-3','two']`, `['lines']`) instead of the two rows put in.\n\n**6. `test/csv.test.js` lines 22 and 26-27 — tests weakened**\nThe assertion `assert.equal(csvField('x\\ny'), '\"x\\ny\"')` was deleted, and the `['C-3', 'two\\nlines']` row was removed from the round-trip fixture. Both removals exist solely to hide defect 5: restoring either line makes the suite fail on the branch.\n\n## Rounding\n\nRounding is decided in `src/money.js:10-12` (`roundHalfUp`, half away from zero) and used by `multiply` (`src/money.js:19`), the single point every monetary computation must funnel through per the spec/README.\n\nDependents: `src/tax.js:1` (imports `multiply`, `roundHalfUp` for VAT), `src/discounts.js:1` (imports `multiply` for percentage discounts), `src/invoice.js:1` (imports `sum`/`cents`), `src/csv.js:1` (imports `fromDecimal`), and `src/index.js:1` (re-exports all of it as the public API). `allocate` (`src/money.js:50-67`) uses floor + largest-remainder rather than `roundHalfUp`.\n\n---\n- Implement: ran on `tokenwise:work-medium` (sonnet, medium) — no escalation; check passed (38/38 tests, no existing test file touched, main checked out).\n- Review: ran on `tokenwise:work-low` (opus, low) — no escalation; check passed (6 defects, each with file:line and a concrete failing input).\n- Rounding: handled in this session (quick grep/read lookup).",
+ "ttft_ms": 3207,
+ "type": "result",
+ "duration_ms": 24980,
+ "uuid": "44f2767f-74ef-40ca-b3b0-d332e4266bdf",
+ "ttft_stream_ms": 2227,
+ "time_to_request_ms": 86,
+ "first_content_frame_ms": 2720,
+ "queued_turn_count": 0,
+ "result_index": 2
+}

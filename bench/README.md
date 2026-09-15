@@ -15,6 +15,8 @@ Tokens, cost, turn count and per-model usage come from Claude Code's own JSON re
 | `review` | An uncommitted diff with five planted defects and benign refactors, all visible tests passing | Recall of the five: the answer is split into findings, each led by a code file:line reference, and a defect counts as found when a finding on its file names its mechanism. Findings that match no planted defect count as false positives |
 | `explore` | Where is rounding decided and who depends on it, delegated to a subagent | Must name `roundHalfUp` and `money.js` and two of three dependent modules; per-model usage shows what the subagent cost |
 | `chore` | Rename `vatOn` to `vatAmount` across code, tests and README | The original tests with the rename applied pass against the model's code, no original test file is deleted, and no old name remains |
+| `multi` | Three independent jobs in one prompt: the `debug` bug on main, the `review` diff on a `review-me` branch, and the `explore` question without delegation | Each job by its own grader, on its own `Fix`, `Review` or `Rounding` section of the answer, with main left checked out. The run passes when all three do. Graded for C10 |
+| `multi-large` | The same three jobs with the `implement` case's credit-note feature in place of the bug fix | The feature by its hidden tests on an `Implement` section, the other two jobs as in `multi`. Graded for C11 |
 
 Five extra runs resume the finished `implement-opus-xhigh` session with one short question each, three on the same model and two on Sonnet, to probe what a model switch on a warm context costs. They do not isolate it — see C7 in `SCOPE.md`.
 
@@ -48,7 +50,7 @@ node bench/skill-cost.mjs --label <name> --sessions invoked,unprompted  # measur
 node bench/breakeven.mjs                                            # the breakeven chart in docs/, from the saved runs
 ```
 
-Each run in `matrix.json` sets its cell's size with `repeat`, so the matrix expands to exactly the published runs, and `run.mjs` skips any run whose result file already exists. Pointed at the committed `results/`, it runs nothing; `--results` with a fresh directory runs everything. Working copies go to `<tmp>/tokenwise-bench/<run id>` (`--runs-root` overrides). Sessions run on your own Claude account. The published runs come to $48.08 at list price, across 117 minutes of session time at the default `--concurrency 2`. A session limit will interrupt a re-run, and the runs it kills are retried on the next invocation.
+Each run in `matrix.json` sets its cell's size with `repeat`, so the matrix expands to exactly the published runs, and `run.mjs` skips any run whose result file already exists. Pointed at the committed `results/`, it runs nothing; `--results` with a fresh directory runs everything. Working copies go to `<tmp>/tokenwise-bench/<run id>` (`--runs-root` overrides). Sessions run on your own Claude account. The published runs come to $68.52 at list price, across 178 minutes of session time at the default `--concurrency 2`. A session limit will interrupt a re-run, and the runs it kills are retried on the next invocation.
 
 ## Limits
 

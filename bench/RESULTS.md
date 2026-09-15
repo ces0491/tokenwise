@@ -1,6 +1,6 @@
 # Bench results
 
-Generated 2026-09-14 18:05 UTC from 68 runs (63 graded, the rest session resumes with no grader) recorded 2026-09-08 to 2026-09-14 on Claude Code 2.1.263 and 2.1.270. Together they cost $48.08 at list price, across 117 minutes of session time.
+Generated 2026-09-15 11:05 UTC from 92 runs (87 graded, the rest session resumes with no grader) recorded 2026-09-08 to 2026-09-15 on Claude Code 2.1.263 and 2.1.270. Together they cost $68.52 at list price, across 178 minutes of session time.
 
 ## How to read this
 
@@ -30,6 +30,9 @@ None. A run that hits a usage limit or an API error never attempted its task, so
 | C7 the prompt cache is per model | not testable here (documented behaviour, unmeasurable through --resume) | the first resume on the same model already rewrote the prefix: read 15K, wrote 65K, versus switched read 15K, wrote 54K; a later opus resume read 89K and a sonnet resume after it read 70K, but sonnet had already cached this conversation in the earlier switch run |
 | C8 plan on opus, implement on sonnet | falsified on cost (cache-boundary justification stands, cost claim dropped) | split $2.50 (1/1) vs opus one-shot $1.65 (3/3) |
 | C9 ultracode on tasks this size | not testable here on debug (no workflow); holds on review | review: ultracode 3/3 at 9.47x the median cost of xhigh (3/3), workflow called in 3 of 3; debug: ultracode 3/3 at 1.26x the median cost of xhigh (3/3), workflow called in 0 of 3 |
+| C10 ultratoken on small jobs | falsified from opus at xhigh; falsified from sonnet at medium | from opus at xhigh: ultratoken 3/3 at $0.89 per completed task, plain 3/3 at $0.71, routed in 3 of 3; from sonnet at medium: ultratoken 3/3 at $0.77 per completed task, plain 3/3 at $0.42, routed in 3 of 3 |
+| C11 ultratoken with a large job | falsified from opus at xhigh; falsified from sonnet at medium | from opus at xhigh: ultratoken 3/3 at $1.29 per completed task, plain 3/3 at $1.30, routed in 3 of 3; from sonnet at medium: ultratoken 3/3 at $0.76 per completed task, plain 3/3 at $0.65, routed in 3 of 3 |
+| C10 and C11 by job size | pays at neither size from opus at xhigh; pays at neither size from sonnet at medium | from opus at xhigh: ultratoken at 1.25x of the plain cost per completed task on small jobs, 0.99x with a large job; from sonnet at medium: ultratoken at 1.85x of the plain cost per completed task on small jobs, 1.17x with a large job |
 
 ## Cells
 
@@ -60,6 +63,14 @@ None. A run that hits a usage limit or an API error never attempted its task, so
 | chore-sonnet-low | 3 | 3/3 | $0.08 | $0.08 | 5 |
 | explore-opus-haiku-sub | 3 | 3/3 | $0.44 | $0.43 | 2 |
 | explore-opus-inherit | 3 | 3/3 | $0.63 | $0.65 | 2 |
+| multi-large-opus-xhigh | 3 | 3/3 | $1.25 | $1.30 | 19 |
+| multi-large-opus-xhigh-ultratoken | 3 | 3/3 | $1.32 | $1.29 | 4 |
+| multi-large-sonnet-medium | 3 | 3/3 | $0.64 | $0.65 | 23 |
+| multi-large-sonnet-medium-ultratoken | 3 | 3/3 | $0.75 | $0.76 | 3 |
+| multi-opus-xhigh | 3 | 3/3 | $0.70 | $0.71 | 9 |
+| multi-opus-xhigh-ultratoken | 3 | 3/3 | $0.89 | $0.89 | 4 |
+| multi-sonnet-medium | 3 | 3/3 | $0.43 | $0.42 | 23 |
+| multi-sonnet-medium-ultratoken | 3 | 3/3 | $0.60 | $0.77 | 2 |
 | split-impl-sonnet-medium | 1 | 1/1 | $0.51 | $0.51 | 31 |
 | split-plan-opus-xhigh | 1 | 1/1 | $1.99 | $1.99 | 13 |
 
@@ -151,6 +162,40 @@ None. A run that hits a usage limit or an API error never attempted its task, so
 | explore-opus-inherit#2 | opus | xhigh | 2 | 29K | 16K | 42K | 1K | 0 | $0.86 | 3.0 | pass |
 | explore-opus-inherit#3 | opus | xhigh | 2 | 28K | 14K | 42K | 1K | 0 | $0.47 | 1.4 | pass |
 
+## multi: every run
+
+| run | model | effort | turns | ctx/turn | cache_w | cache_r | out | think | cost | min | result |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| multi-opus-xhigh | opus | xhigh | 9 | 36K | 34K | 288K | 8K | 4K | $0.70 | 1.8 | fix pass, review pass, rounding pass |
+| multi-opus-xhigh#2 | opus | xhigh | 12 | 40K | 36K | 442K | 8K | 3K | $0.78 | 1.8 | fix pass, review pass, rounding pass |
+| multi-opus-xhigh#3 | opus | xhigh | 9 | 35K | 33K | 285K | 8K | 3K | $0.66 | 1.7 | fix pass, review pass, rounding pass |
+| multi-opus-xhigh-ultratoken | opus | xhigh | 3 | 42K | 5K | 121K | 2K | 374 | $1.02 | 1.5 | fix pass, review pass, rounding pass |
+| multi-opus-xhigh-ultratoken#2 | opus | xhigh | 6 | 18K | 8K | 98K | 4K | 1K | $0.77 | 1.6 | fix pass, review pass, rounding pass |
+| multi-opus-xhigh-ultratoken#3 | opus | xhigh | 4 | 30K | 6K | 114K | 4K | 2K | $0.89 | 1.8 | fix pass, review pass, rounding pass |
+| multi-sonnet-medium | sonnet | medium | 23 | 32K | 44K | 702K | 11K | 6K | $0.43 | 2.0 | fix pass, review pass, rounding pass |
+| multi-sonnet-medium#2 | sonnet | medium | 25 | 32K | 43K | 762K | 13K | 8K | $0.46 | 2.5 | fix pass, review pass, rounding pass |
+| multi-sonnet-medium#3 | sonnet | medium | 19 | 32K | 38K | 572K | 9K | 6K | $0.36 | 1.7 | fix pass, review pass, rounding pass |
+| multi-sonnet-medium-ultratoken | sonnet | medium | 2 | 51K | 3K | 99K | 2K | 79 | $0.59 | 1.3 | fix pass, review pass, rounding pass |
+| multi-sonnet-medium-ultratoken#2 | sonnet | medium | 2 | 54K | 4K | 103K | 2K | 51 | $1.13 | 3.0 | fix pass, review pass, rounding pass |
+| multi-sonnet-medium-ultratoken#3 | sonnet | medium | 2 | 54K | 3K | 104K | 2K | 51 | $0.60 | 1.3 | fix pass, review pass, rounding pass |
+
+## multi-large: every run
+
+| run | model | effort | turns | ctx/turn | cache_w | cache_r | out | think | cost | min | result |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| multi-large-opus-xhigh | opus | xhigh | 19 | 28K | 47K | 490K | 21K | 9K | $1.25 | 4.2 | implement pass, review pass, rounding pass |
+| multi-large-opus-xhigh#2 | opus | xhigh | 19 | 25K | 49K | 430K | 19K | 7K | $1.19 | 3.7 | implement pass, review pass, rounding pass |
+| multi-large-opus-xhigh#3 | opus | xhigh | 25 | 28K | 57K | 639K | 23K | 10K | $1.47 | 4.3 | implement pass, review pass, rounding pass |
+| multi-large-opus-xhigh-ultratoken | opus | xhigh | 8 | 38K | 7K | 300K | 4K | 1K | $1.34 | 3.8 | implement pass, review pass, rounding pass |
+| multi-large-opus-xhigh-ultratoken#2 | opus | xhigh | 4 | 44K | 7K | 168K | 4K | 2K | $1.32 | 3.5 | implement pass, review pass, rounding pass |
+| multi-large-opus-xhigh-ultratoken#3 | opus | xhigh | 3 | 45K | 5K | 130K | 3K | 2K | $1.23 | 3.1 | implement pass, review pass, rounding pass |
+| multi-large-sonnet-medium | sonnet | medium | 23 | 38K | 43K | 833K | 13K | 3K | $0.64 | 2.5 | implement pass, review pass, rounding pass |
+| multi-large-sonnet-medium#2 | sonnet | medium | 23 | 43K | 50K | 928K | 19K | 9K | $0.57 | 2.9 | implement pass, review pass, rounding pass |
+| multi-large-sonnet-medium#3 | sonnet | medium | 3 | 71K | 5K | 207K | 2K | 105 | $0.75 | 3.7 | implement pass, review pass, rounding pass |
+| multi-large-sonnet-medium-ultratoken | sonnet | medium | 3 | 51K | 4K | 149K | 2K | 47 | $0.75 | 2.7 | implement pass, review pass (grader: recall 0/5, FP 0; hand: recall 5/5, FP 0), rounding pass |
+| multi-large-sonnet-medium-ultratoken#2 | sonnet | medium | 2 | 50K | 3K | 97K | 2K | 74 | $0.71 | 2.3 | implement pass, review pass, rounding pass |
+| multi-large-sonnet-medium-ultratoken#3 | sonnet | medium | 3 | 54K | 3K | 160K | 2K | 329 | $0.84 | 2.2 | implement pass, review pass, rounding pass |
+
 ## Resuming a session: same model versus switched model
 
 One extra one-line question on the finished implement-opus-xhigh session.
@@ -175,6 +220,25 @@ Read from each run's stream (`results/<id>.stream.jsonl`). **Outside main** is t
 | review-opus-ultracode | 1 | 94K | 2.9M | 536K | $7.92 |
 | review-opus-ultracode#2 | 1 | 38K | 1.1M | 189K | $3.18 |
 | review-opus-ultracode#3 | 1 | 55K | 1.7M | 282K | $4.75 |
+
+## ultratoken: where each run sent its jobs
+
+Each subagent the main loop started, with the model the call asked for, read from `results/<id>.stream.jsonl`. A worker with no model runs on the session model.
+
+| run | subagents started | cost | result |
+| --- | --- | --- | --- |
+| multi-large-opus-xhigh-ultratoken | tokenwise:work-medium on sonnet, tokenwise:work-low on opus | $1.34 | implement pass, review pass, rounding pass |
+| multi-large-opus-xhigh-ultratoken#2 | tokenwise:work-medium on sonnet, tokenwise:work-low on opus | $1.32 | implement pass, review pass, rounding pass |
+| multi-large-opus-xhigh-ultratoken#3 | tokenwise:work-medium on sonnet, tokenwise:work-low on opus | $1.23 | implement pass, review pass, rounding pass |
+| multi-large-sonnet-medium-ultratoken | tokenwise:work-medium on sonnet, tokenwise:work-low on opus | $0.75 | implement pass, review pass (grader: recall 0/5, FP 0; hand: recall 5/5, FP 0), rounding pass |
+| multi-large-sonnet-medium-ultratoken#2 | tokenwise:work-medium on sonnet, tokenwise:work-low on opus | $0.71 | implement pass, review pass, rounding pass |
+| multi-large-sonnet-medium-ultratoken#3 | tokenwise:work-medium on sonnet, tokenwise:work-low on opus | $0.84 | implement pass, review pass, rounding pass |
+| multi-opus-xhigh-ultratoken | tokenwise:work-medium on sonnet, tokenwise:work-low on opus | $1.02 | fix pass, review pass, rounding pass |
+| multi-opus-xhigh-ultratoken#2 | tokenwise:work-medium on sonnet, tokenwise:work-low on opus | $0.77 | fix pass, review pass, rounding pass |
+| multi-opus-xhigh-ultratoken#3 | tokenwise:work-medium on sonnet, tokenwise:work-low on opus, tokenwise:work-low on haiku | $0.89 | fix pass, review pass, rounding pass |
+| multi-sonnet-medium-ultratoken | tokenwise:work-medium on sonnet, tokenwise:work-low on opus | $0.59 | fix pass, review pass, rounding pass |
+| multi-sonnet-medium-ultratoken#2 | tokenwise:work-medium on sonnet, tokenwise:work-low on opus | $1.13 | fix pass, review pass, rounding pass |
+| multi-sonnet-medium-ultratoken#3 | tokenwise:work-medium on sonnet, tokenwise:work-low on opus | $0.60 | fix pass, review pass, rounding pass |
 
 ## Explore: per-model usage including subagents
 

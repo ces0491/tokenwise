@@ -1,0 +1,111 @@
+{
+ "duration_api_ms": 100642,
+ "stop_reason": "end_turn",
+ "session_id": "d06f8403-30fd-48bb-b71b-da386fe6f3a7",
+ "total_cost_usd": 0.7795224999999999,
+ "usage": {
+  "input_tokens": 22,
+  "cache_creation_input_tokens": 35655,
+  "cache_read_input_tokens": 442449,
+  "output_tokens": 8018,
+  "output_tokens_details": {
+   "thinking_tokens": 3415
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 35655,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2038,
+    "cache_read_input_tokens": 50235,
+    "cache_creation_input_tokens": 865,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 865
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard"
+ },
+ "modelUsage": {
+  "claude-haiku-4-5-20251001": {
+   "inputTokens": 1113,
+   "outputTokens": 15,
+   "cacheReadInputTokens": 0,
+   "cacheCreationInputTokens": 0,
+   "webSearchRequests": 0,
+   "costUSD": 0.001188,
+   "contextWindow": 200000,
+   "maxOutputTokens": 32000,
+   "thinkingTokens": 0,
+   "canonicalModel": "claude-haiku-4-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  },
+  "claude-opus-5": {
+   "inputTokens": 22,
+   "outputTokens": 8018,
+   "cacheReadInputTokens": 442449,
+   "cacheCreationInputTokens": 35655,
+   "webSearchRequests": 0,
+   "costUSD": 0.7783344999999999,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 64000,
+   "thinkingTokens": 3415,
+   "canonicalModel": "claude-opus-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "is_error": false,
+ "num_turns": 12,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "## Fix\n\n`invoiceTotals` in `src/invoice.js` worked out VAT on each line with a helper called `lineVat` and then added the rounded amounts together. The README says VAT is calculated once on the invoice net total, so three 3-cent GB lines came out at 3 cents VAT instead of 2; it now calls `vatOn(net, region)` once, `lineVat` is removed (nothing else used it and `index.js` didn't export it), and `npm test` passes 29 of 29.\n\nThe change is uncommitted on `main`, and the README needs no update since it already states this rule.\n\n## Review\n\n**`src/csv.js:37`**: `csvField` no longer quotes fields that contain `\\r` or `\\n`, so a multi-line field gets split into two rows when read back. Input: `parseCsv(toCsv([['C-3', 'two\\nlines']]))` gives `[[\"C-3\",\"two\"],[\"lines\"]]`.\n\n**`test/csv.test.js:18-29`**: Two tests were weakened to match the csv bug. The assertion `csvField('x\\ny') === '\"x\\ny\"'` was deleted, and the `['C-3', 'two\\nlines']` row was dropped from the round-trip test, so nothing catches the regression above. Input: the same `two\\nlines` row, which passes on `main` and would fail on `review-me` if the test were still there.\n\n**`src/discounts.js:25`**: `tier.minQty < qty` leaves out a quantity that exactly matches a tier's `minQty`. The rule at `discounts.js:8` says \"less than or equal to\". Input: `applyDiscount(1000, { type: 'volume', tiers: [{ minQty: 10, percent: 5 }] }, 10)` returns `1000` instead of `950`, and `volumeTier` returns `null`.\n\n**`src/discounts.js:22`**: `tiers.sort(...)` sorts the caller's array in place. The copy in `createInvoice` is shallow, so this reorders discount data inside invoices, and a frozen tier list throws. Input: `volumeTier(Object.freeze([{ minQty: 50, percent: 12 }, { minQty: 10, percent: 5 }]), 60)` throws `TypeError: Cannot assign to read only property '0'`. An unfrozen list passed in the same order comes back reordered.\n\n**`src/report.js:5-6`**: `new Date('YYYY-MM-DD')` parses as UTC midnight, but `getFullYear`/`getMonth` read local time. West of UTC, an invoice dated the 1st lands in the previous month. The README says to group by the first seven characters of `issuedOn`. Input: with `TZ=America/New_York`, `monthKey({ issuedOn: '2026-03-01' })` returns `'2026-02'`, and an invoice dated `2026-01-01` is summarised under `'2025-12'`.\n\n**`src/tax.js:31`**: `netFromGross` now uses `Math.round`, which rounds halves towards +∞ rather than away from zero. It also skips `money.js`, which the README says owns rounding (half away from zero). Input: `netFromGross(-3, 'GB')` works out -2.5 and returns `-2`; on `main` it returns `-3`.\n\n## Rounding\n\nThe rule lives in `src/money.js:10-13`: `roundHalfUp` rounds half away from zero. `multiply` (`money.js:16-20`) is the only code that calls it internally, and `index.js:1` re-exports both.\n\nModules that use it directly:\n- `src/tax.js:21`: `vatOn` goes through `multiply`\n- `src/tax.js:31`: `netFromGross` calls `roundHalfUp`\n- `src/discounts.js:16`: `percentOff` goes through `multiply`\n\nModules that use it indirectly:\n- `src/invoice.js:41`: `lineNet` → `applyDiscounts`\n- `src/invoice.js:47`: `invoiceTotals` → `vatOn`\n- `src/report.js:16` and `report.js:34`: `monthlySummary` and `topSkus`, through `invoiceTotals` and `lineNet`\n\n`allocate` (`money.js:56-65`) doesn't use it; it floors and hands out the remainder by largest-remainder instead. `csv.js` doesn't round either: `fromDecimal` (`money.js:31`) rejects amounts with more than two decimal places.\n\n`main` is checked out and `review-me` is unchanged.",
+ "ttft_ms": 2269,
+ "type": "result",
+ "duration_ms": 105435,
+ "uuid": "5d7b6e36-c90a-41f5-812a-4ff6cf557506",
+ "ttft_stream_ms": 1245,
+ "time_to_request_ms": 132,
+ "first_content_frame_ms": 1659,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

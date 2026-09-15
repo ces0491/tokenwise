@@ -1,0 +1,19 @@
+Good, still on `main` with only the credit-notes work staged as untracked/modified files. Now for task 3, let me confirm the rounding architecture quickly.
+
+Rounding lives in `src/money.js:10-13` (`roundHalfUp`), used by `multiply` (money.js:16-20) and `allocate` (money.js:50-67). `src/tax.js` (`vatOn` via `multiply`, `netFromGross` via `roundHalfUp`), `src/discounts.js` (`percentOff` via `multiply`), and `src/creditnote.js` (`creditLineFor` via `roundHalfUp`) all depend on it, plus transitively `src/invoice.js` and `src/report.js`.
+
+## Implement
+Added `src/creditnote.js` with `createCreditNote`, exported from `src/index.js`, and updated `invoiceTotals` (`src/invoice.js`) and `topSkus` (`src/report.js`) to handle `kind === 'credit'` documents. All 45 tests pass (`npm test`), including 16 new tests in `test/creditnote.test.js` covering validation order, rounding, non-mutation of the original invoice, and report integration.
+
+## Review
+
+**`src/csv.js:37`** — `csvField` no longer quotes newlines (regex changed from `/[",\r\n]/` to `/[",]/`), so a field containing `\n` is written unquoted. `toCsv` joins rows with `\n`, so the unescaped newline is indistinguishable from a row separator. Input: `toCsv([['x', 'a\nb']])` produces `"x,a\nb\n"`, which `parseCsv` reads back as two rows (`['x','a']`, `['b']`) instead of one — the round-trip is broken. The matching test in `test/csv.test.js` was deleted (the `csvField('x\ny')` assertion and the `'two\nlines'` row in the round-trip test), hiding the regression.
+
+**`src/report.js:5-6`** — `monthKey` now parses `issuedOn` with `new Date(...)` and reads `getFullYear()`/`getMonth()`, which use the local time zone, while the date string is parsed as UTC midnight. In any timezone west of UTC, dates on the 1st of a month shift back a day in local time. Input: `monthKey({ issuedOn: '2026-03-01' })` run under `America/New_York` (UTC-5) returns `'2026-02'` instead of `'2026-03'`. README.md states "Monthly reports group by the first seven characters of `issuedOn`" — this replaces that deterministic string slice with a timezone-dependent conversion.
+
+**`src/tax.js:31`** — `netFromGross` now rounds with plain `Math.round` instead of `roundHalfUp`, and the now-unused `roundHalfUp` import was dropped. `Math.round` rounds half-values toward `+Infinity`, not away from zero. Input: `netFromGross(-3, 'GB')` (rate 0.2, so `-3/1.2 = -2.5`) returns `-2` instead of `-3`. README.md states "`src/money.js` owns rounding: half away from zero, applied once at the end of a calculation" — this bypasses that rule.
+
+**`src/discounts.js:22,25`** — `volumeTier` changed the tier-selection condition from `tier.minQty <= qty` to `tier.minQty < qty`, so a quantity exactly equal to a tier's `minQty` no longer qualifies for that tier. Input: `volumeTier([{ minQty: 10, percent: 5 }], 10)` returns `null` instead of the tier. This contradicts the file's own docstring two lines above the function: "A volume discount applies the highest tier whose minQty is less than or equal to the quantity." The added `tiers.sort(...)` also mutates the caller's `tiers` array in place as an undocumented side effect.
+
+## Rounding
+Rounding is centralized in `roundHalfUp` at `src/money.js:10-13` (half away from zero), used by `multiply` (`src/money.js:16-20`) and `allocate` (`src/money.js:50-67`). Dependents: `src/tax.js` (`vatOn` via `multiply`, `netFromGross` directly), `src/discounts.js` (`percentOff` via `multiply`), `src/creditnote.js` (`creditLineFor` via `roundHalfUp`, new), and transitively `src/invoice.js` and `src/report.js`, which consume those totals. README.md:11 documents this as the single source of truth for rounding.
