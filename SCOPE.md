@@ -2,13 +2,29 @@
 
 ## Purpose
 
-A Claude Code plugin that recommends the model and effort level for the phase of work at hand, says what the cheaper choice gives up, and shows the evidence behind each recommendation.
+A Claude Code plugin that gets more work out of a Claude subscription for the least effort from its user. It sets efficient defaults once, warns before an action re-sends a large conversation, and recommends the model and effort for the work at hand, each with the evidence behind it.
 
 `bench/SCOPE.md` scopes the experiment that tests the recommendations. This file scopes the repository.
 
-## Done
+## Done: 1.3.0, defaults and guards
 
-Version 1.0, released 9 September 2026 as `tokenwise--v1.0.0`: the documentation matches the data, and a reader can check every claim.
+The pieces ask the user for as little as possible, in this order: a default set once, a warning only when something material is about to happen, and advice on request.
+
+- [ ] **Setup.** `/tokenwise:setup` shows the `model` and `effortLevel` in the user's `~/.claude/settings.json` and recommends Sonnet 5 at medium, with the bench evidence behind it. It writes only after an explicit yes, says how to restore the previous values, and changes nothing when run a second time.
+- [ ] **Resume guard.** A SessionStart hook shows the re-send size and estimated cost from its input (`context_tokens`, `estimated_cache_write_usd`) and suggests starting fresh. It fires only on a resumed or forked session whose `prompt_cache_likely_expired` is true, and only above the materiality threshold. It returns only `systemMessage`, and a `bench/skill-cost.mjs` session shows it adds no tokens to the conversation.
+- [ ] **Switch figure.** An interactive `/model` on a warm cache is checked first. If Claude Code's own confirmation already shows the re-send size, this item closes without code. Otherwise a PreModelSwitch hook adds the figure to that confirmation above the threshold. The hooks reference lists no event for effort changes, so those rely on Claude Code's confirmation.
+- [ ] **Cost and tests.** Each new piece's idle and per-trigger cost is measured on the shipped version and published beside the route's. Each hook is tested against the input schema in Claude Code's hooks reference and verified once in a live session.
+- [ ] The standing criteria below still hold, and `claude plugin tag` tags 1.3.0.
+
+**Later, only if its claim holds: escalation on a failed check.** Before any run, `bench/SCOPE.md` pre-registers a case where Sonnet 5 at medium fails at least one run in three and a check shows the failure. The claim is that escalating on that failure costs less per completed task than starting on Opus 5. The skill advises it only if the claim holds.
+
+## Materiality
+
+A guard fires only when the estimated re-send cost exceeds what a route costs from the session's model, as measured on the shipped skill ($0.04 from Sonnet 5 at medium, $0.10 to $0.11 from Opus 5 on 1.2.0). Below that, an interruption costs the user more attention than the tokens are worth. A cost difference under 30%, the noise band C10 and C11 used, does not change a recommendation.
+
+## Standing criteria
+
+Met at 1.0.0, released 9 September 2026 as `tokenwise--v1.0.0`, and kept on every release since: the documentation matches the data, and a reader can check every claim.
 
 - [x] Every figure quoted in `README.md`, `SCOPE.md`, `docs/` and `skills/route/` traces to a run in `bench/results/` or to a committed script (`bench/summarize.mjs`, `bench/skill-cost.mjs`, `bench/breakeven.mjs`, `bench/context-profile.mjs`).
 - [x] What the skill itself costs a session is measured on the shipped `SKILL.md` and published beside the task costs, since those runs load no plugins.
@@ -25,7 +41,12 @@ Version 1.0, released 9 September 2026 as `tokenwise--v1.0.0`: the documentation
 ## Out of scope
 
 - **Measuring spend.** `/usage`, `session-report` and ccusage report usage over time; this plugin does not.
-- **Switching anything.** Nothing can change a running session's model or effort. The skill recommends; the user runs `/model` and `/effort`.
+- **Switching anything.** Inside Claude Code, only the user changes a running session's model or effort, with `/model` and `/effort`. The plugin recommends and warns.
+- **An SDK host.** An Agent SDK program can switch a session's model itself, but a tokenwise host would take users out of Claude Code's terminal and editor.
+- **Silent defaults.** A plugin's own `settings.json` accepts only `agent` and `subagentStatusLine`. Defaults reach user settings through setup, with the user's yes, never on install.
+- **Shipping a status line.** A plugin cannot provide one. The guide points to `/statusline` for showing context size.
+- **Rebuilding what Claude Code already does.** It confirms a model or effort change while the prompt cache is warm, so a guard adds a figure to that confirmation or nothing.
+- **Resource and availability claims.** Anthropic doesn't publish energy or water per model, and list price is not a measure of compute. The docs describe work per subscription, and nothing here claims savings in data-centre resources or model availability.
 - **Subscription accounting.** Costs quoted anywhere here are API list prices, useful as weights for comparison. How usage draws down against a Pro or Max plan is not published and is not modelled.
 - **Filling the untested rows.** Planning, no-spec implementation, no-reproduction debugging, commits and bulk extraction stay marked untested until someone builds graders for them. They are not presented as measured in the meantime.
 - **A second fixture, another language, or the long-context regime.** `bench/SCOPE.md`'s own exclusions still govern the experiment.
@@ -41,9 +62,17 @@ Anthropic moves aliases to new models and retires old ones. A routing row measur
 
 ## Decision
 
-Ces. A routing row changes only when a graded run says so. A falsified claim changes `SKILL.md`.
+Ces. A routing row changes only when a graded run says so. A falsified claim changes `SKILL.md`. A guard ships only once its trigger and its cost are measured.
 
 ## Revision history
+
+- 2026-09-15: the purpose widens from routing to defaults and guards. C10 and C11 in `bench/SCOPE.md` showed that sending each job in a prompt to its own setting cost more than doing all of it in one session, and both multi-job cases were cheapest on Sonnet 5 at medium without the keyword. The step that saves a user most is a better starting default. Claude Code's docs set the form of each piece:
+  - a plugin cannot write settings, so defaults go through a setup skill
+  - SessionStart and PreModelSwitch hooks receive the re-send size and estimated cost, so a guard needs no transcript parsing
+  - Claude Code already confirms warm-cache switches, so the switch figure is conditional
+  - only the user or an SDK host can switch a model, and an SDK host was ruled out to keep users in Claude Code
+
+  Ces chose the materiality threshold, the Sonnet 5 at medium default, and one release. The 1.0 criteria move under Standing criteria unchanged.
 
 - 2026-09-11: the skill's own cost measured and cut. The bench's task runs load no plugins, so their savings never counted what asking for a route costs. `bench/skill-cost.mjs` measures it: in 1.0.1 a route on Opus 5 at xhigh left 9.6K tokens behind for every later call, mostly its answer and thinking, and a route could cost about what a small chore saves. 1.1.0 runs the skill forked, routes without reading files or running commands, and routes just before `/clear` in the phase-boundary protocol; a route now leaves 876 tokens behind. A new Done criterion requires the skill's cost to be measured on the shipped `SKILL.md`.
 - 2026-09-11: evidence tied to the models it was measured on. The routing table advises in aliases, and nothing recorded which models its evidence came from or noticed an alias moving. The skill, guide and findings now name `claude-haiku-4-5-20251001`, `claude-sonnet-5`, `claude-opus-5` and `claude-fable-5-1`, and `scripts/check-models.mjs` checks that in CI. Its `--live` mode compares what each alias resolves to today, and all four still resolved to their measured models on 11 September 2026. `CONTRIBUTING.md` gains the procedure for a model release or retirement, and `bench/run.mjs --models` re-runs what an alias change affects. The reproduction criterion now holds only while the measured models are served.
