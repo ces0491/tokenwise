@@ -68,8 +68,9 @@ test('hooks.json runs the script on UserPromptSubmit from the plugin root', () =
   assert.match(hooks.command, /\$\{CLAUDE_PLUGIN_ROOT\}\/experiments\/ultratoken\/ultratoken\.mjs/);
 });
 
-test('the shipped plugin carries no hook or agent', () => {
+test('the shipped plugin carries neither the ultratoken hook nor its agents', () => {
   const root = path.resolve(HERE, '..', '..');
-  assert.equal(fs.existsSync(path.join(root, 'hooks')), false);
   assert.equal(fs.existsSync(path.join(root, 'agents')), false);
+  const shipped = path.join(root, 'hooks', 'hooks.json');
+  if (fs.existsSync(shipped)) assert.doesNotMatch(fs.readFileSync(shipped, 'utf8'), /ultratoken|UserPromptSubmit/);
 });
