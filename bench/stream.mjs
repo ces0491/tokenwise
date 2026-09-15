@@ -39,10 +39,10 @@ export function parseStream(text) {
   const result = events.findLast((e) => e.type === 'result') ?? null;
   const init = events.find((e) => e.type === 'system' && e.subtype === 'init');
   const calls = {};
-  let nested = 0;
+  const nested = new Set();
   for (const e of events) {
     if (e.type !== 'assistant' || !e.message) continue;
-    if (e.parent_tool_use_id != null) { nested++; continue; }
+    if (e.parent_tool_use_id != null) { nested.add(e.message.id); continue; }
     for (const c of e.message.content || []) if (c.type === 'tool_use') calls[c.name] = (calls[c.name] || 0) + 1;
   }
   return {
@@ -51,7 +51,7 @@ export function parseStream(text) {
       offered: Array.isArray(init?.tools) ? init.tools.includes(WORKFLOW_TOOL) : null,
       calls: calls[WORKFLOW_TOOL] || 0,
       toolCalls: calls,
-      nestedMessages: nested,
+      nestedMessages: nested.size,
     },
   };
 }

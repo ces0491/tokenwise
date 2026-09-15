@@ -148,7 +148,7 @@ function parseResult(stdout) {
 // ---- metrics ------------------------------------------------------------------
 
 function metrics(result, elapsedMs, workflow) {
-  if (!result) return { error: 'no result JSON', wall_ms: elapsedMs };
+  if (!result) return { error: 'no result JSON', wall_ms: elapsedMs, ...(workflow ? { workflow } : {}) };
   const u = result.usage || {};
   const context = (u.input_tokens || 0) + (u.cache_creation_input_tokens || 0) + (u.cache_read_input_tokens || 0);
   const perModel = {};
@@ -200,7 +200,7 @@ async function execute(run) {
   // A run killed by a usage limit or other API error never attempted the task. records.mjs decides that for the
   // report too; an invalid run is excluded from results and re-run next time, rather than scored as a failure.
   const m = metrics(result, Date.now() - started, stream?.workflow);
-  const notApplied = !!result && stream?.workflow.offered === false;
+  const notApplied = stream?.workflow.offered === false;
   const invalid = isInvalid({ timedOut, metrics: m }) || notApplied;
   let g = {};
   if (timedOut) g = { pass_all: false, timedOut: true };

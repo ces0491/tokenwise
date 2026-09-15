@@ -11,7 +11,7 @@ The plugin adds one skill. This guide covers what it does, when to reach for it,
 
 In the VS Code extension the manager opens with `/plugins`. From the terminal, `claude plugin install tokenwise@ces0491-plugins` does the same thing and writes to the same settings.
 
-Idle, the skill costs only its name and description, which is all that loads until it fires: 157 tokens of context, measured on Opus 5. What a route costs is under "What routing costs" below.
+Idle, the skill costs only its name and description, which is all that loads until it fires: 156 tokens of context, measured on Opus 5. What a route costs is under "What routing costs" below.
 
 ## Ask it
 
@@ -25,10 +25,10 @@ Claude also runs it without being asked by name when you ask which model or effo
 
 ## What routing costs
 
-The skill runs in its own subagent context. Its text and its reasoning stay there, and only the answer comes back into your conversation, where it is carried on every later call like anything else in context. The skill runs on your session's model and effort. A route in a session already under way cost $0.04 asked from Sonnet 5 at medium, $0.10 from Opus 5 at high and $0.10 from Opus 5 at xhigh, and the first route left 638 to 838 tokens behind. `findings.md` has the numbers, and a chart of the task sizes where a route pays for itself.
+The skill runs in its own subagent context. Its text and its reasoning stay there, and only the answer comes back into your conversation, where it is carried on every later call like anything else in context. The skill runs on your session's model and effort. A route in a session already under way cost $0.04 asked from Sonnet 5 at medium, $0.10 from Opus 5 at high and $0.11 from Opus 5 at xhigh, and the first route left 655 to 780 tokens behind. `findings.md` has the numbers, and a chart of the task sizes where a route pays for itself.
 
 - Route just before a `/clear`, at a phase boundary, and nothing it returns is carried.
-- For a single small chore, pick Sonnet at low effort, or Haiku, yourself. On the bench, moving a rename from Opus at xhigh to Sonnet at low saved $0.17, against $0.10 for asking from Opus 5 at xhigh.
+- For a single small chore, pick Sonnet at low effort, or Haiku, yourself. On the bench, moving a rename from Opus at xhigh to Sonnet at low saved $0.17, against $0.11 for asking from Opus 5 at xhigh.
 - Describe the work after the command. The skill cannot see your conversation, so `/tokenwise:route` on its own only asks for a description.
 
 ## The one idea
@@ -41,7 +41,7 @@ Keep reading out of the main context, and match the model to the work rather tha
 
 Start at the cheap end and escalate on a failure you can point to. The Measured column says whether the bench covered that row; the skill's own table carries the evidence for each one.
 
-Measured means measured on `claude-haiku-4-5-20251001`, `claude-sonnet-5`, `claude-opus-5` and `claude-fable-5-1`, the models the aliases pointed to on 8 September 2026. When Anthropic moves an alias to a newer model, the advice follows the alias, but the evidence stays with the older model until the bench is re-run.
+Measured means measured on `claude-haiku-4-5-20251001`, `claude-sonnet-5`, `claude-opus-5` and `claude-fable-5-1`, the models the aliases pointed to on 8 and 14 September 2026. When Anthropic moves an alias to a newer model, the advice follows the alias, but the evidence stays with the older model until the bench is re-run.
 
 <!-- routing-table: generated from skills/route/SKILL.md by scripts/sync-routing-table.mjs -->
 | Work | Start | Escalate to | Measured |
@@ -63,7 +63,7 @@ On the four measured rows, the cheap setting finished the job in every run on a 
 
 Anthropic's rule: if Claude failed with the context it had, it did not know enough, so change the model. If it skipped files, did not run tests, or stopped early, it did not try hard enough, so raise the effort.
 
-For one turn that needs more thought, try `ultrathink` in the prompt first. It asks for deeper reasoning on that turn without changing the effort level, so it avoids the cache break an `/effort` change causes. The bench did not measure it.
+For one turn that needs more thought, try `ultrathink` in the prompt first. It asks for deeper reasoning on that turn without changing the effort level, which should keep the prompt cache that an `/effort` change breaks, though the caching docs do not say so. The bench did not measure it.
 
 Raise effort on the model you are on before upgrading the model. Higher effort is not uniformly better: on a code review it bought ten extra turns and 3.3 times the cost for the same findings.
 
@@ -71,9 +71,9 @@ Judge by cost per completed task, which counts the retries a cheaper setting nee
 
 ## Ultracode
 
-Ultracode is a Claude Code setting that sends `xhigh` and has Claude run a multi-agent workflow for each substantive task. Beyond `xhigh`, what it adds is agents, each with its own context, so it sits outside the effort ladder. Anthropic's docs say that with it on, each request uses more tokens and takes longer than at lower effort levels. On the bench's small review, Opus with ultracode ran a workflow each time and found the same five defects as Opus at `xhigh`, for 9.5 times the cost. On a one-bug fix it didn't start a workflow at all.
+Ultracode is a Claude Code setting that sends `xhigh` and has Claude plan a multi-agent workflow for the substantive tasks it judges need one. What it adds beyond `xhigh` is agents, each with its own context. Anthropic's docs say that with it on, each request uses more tokens and takes longer than at lower effort levels. On the bench's small review, Opus with ultracode ran a workflow each time and found the same five defects as Opus at `xhigh`, for 9.5 times the cost. On a one-bug fix it started no workflow.
 
-It fits judgment-heavy work that splits into independent parts, each big enough to fill a context, such as an audit across many files. A rename or migration over many files stays on its routing row. For one such task, type the keyword `ultracode` in the prompt, which runs that task as a workflow without changing the session's effort. `/effort ultracode` applies it to every task until the session ends, so turn it off with `/effort high` when the work stops splitting. It needs a model with `xhigh`, so it is not available on Haiku.
+It fits judgment-heavy work that splits into independent parts, each big enough to fill a context, such as an audit across many files. A rename or migration over many files stays on its routing row. For one such task, type the keyword `ultracode` in the prompt, which runs that task as a workflow without changing the session's effort. `/effort ultracode` lets Claude decide task by task whether to run a workflow for the rest of the session, so drop back with `/effort high` when the work stops splitting, as the workflows docs suggest. It needs a model with `xhigh`, so it is not available on Haiku.
 
 Workflow agents run on your session model unless the workflow, the agent type's `model` field or `CLAUDE_CODE_SUBAGENT_MODEL` gives them another, in that order. With the two variables below both set, every workflow agent runs on Haiku, so check `/model` and those variables before a large run. `/usage` shows what the run cost.
 
@@ -86,7 +86,7 @@ Switch at a phase boundary:
 1. Write what the next phase needs to a file: the plan, the findings, the task list.
 2. `/tokenwise:route <the next phase>`, so the next step clears its answer too.
 3. `/clear`.
-4. `/model sonnet` then `/effort medium`. This also turns ultracode off if it was on.
+4. `/model sonnet` then `/effort medium`.
 5. Start from the file.
 
 On a cleared context there is no conversation to re-process, so a switch usually costs what a new session's first request costs: the system prompt and project context.

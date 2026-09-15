@@ -20,7 +20,7 @@ Five extra runs resume the finished `implement-opus-xhigh` session with one shor
 
 `split-plan-opus-xhigh` writes `docs/plan.md` without code; `split-impl-sonnet-medium` then implements from that plan in a fresh session. Their combined cost is compared with the opus one-shot.
 
-`review-opus-ultracode` and `debug-opus-ultracode` run those cases with ultracode on, beside `review-opus-xhigh` and `debug-opus-xhigh` on the same model (C9 in `SCOPE.md`). Ultracode runs stream their session and keep a reduced copy in `results/<id>.stream.jsonl`, with tool names and usage and no message text. A session that was not offered the Workflow tool had workflows unavailable, so it is marked invalid and re-run. Before those cells, one capped probe on Sonnet checks that ultracode applies under the runner's flags:
+`review-opus-ultracode` and `debug-opus-ultracode` run those cases with ultracode on, beside `review-opus-xhigh` and `debug-opus-xhigh` on the same model (C9 in `SCOPE.md`). Ultracode runs stream their session and keep a reduced copy in `results/<id>.stream.jsonl`, with tool names and usage and no message text. A session that was not offered the Workflow tool had workflows unavailable, so it is marked invalid and re-run. Before those cells, one capped probe on Sonnet checks that the runner's sessions are offered the Workflow tool, so workflows are available:
 
 ```sh
 node bench/run.mjs --matrix bench/ultracode-probe.json --results bench/probe
@@ -43,7 +43,7 @@ node --test bench/graders.test.mjs bench/matrix.test.mjs bench/stream.test.mjs  
 node bench/summarize.mjs                          # rebuild RESULTS.md
 node scripts/check-matrix.mjs                     # matrix.json names exactly the published runs
 node bench/context-profile.mjs                    # the observational table in skills/route/reference.md
-node bench/skill-cost.mjs --compare 1.0.1,1.1.2@1.0.1               # what routing costs, from the saved sessions
+node bench/skill-cost.mjs --compare 1.2.0,1.2.0-opus-high@1.2.0,1.2.0-sonnet-medium@1.2.0   # what routing costs, from the saved sessions
 node bench/skill-cost.mjs --label <name> --sessions invoked,unprompted  # measure the current skill; about $1
 node bench/breakeven.mjs                                            # the breakeven chart in docs/, from the saved runs
 ```

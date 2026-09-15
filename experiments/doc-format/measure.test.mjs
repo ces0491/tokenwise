@@ -30,8 +30,13 @@ test('a session that never read, or replied with more than OK, is flagged', () =
   const s = parseSession(jl(call('a', 1000), result('Here is a summary of the paper.')));
   const { added, notes } = summarise(s);
   assert.equal(added, null);
-  assert.match(notes.join(), /not just OK/);
+  assert.match(notes.join(), /did not end with OK/);
   assert.match(notes.join(), /no Read call/);
+});
+
+test('a reply that reports the read and ends with OK is not flagged', () => {
+  const s = parseSession(jl(call('a', 1000, [read(null, 'r1')]), returned('r1', 'line 1'), call('b', 4000), result('I have read the entire file (all 1856 lines).\n\nOK')));
+  assert.deepEqual(summarise(s).notes, []);
 });
 
 test('a stream with no result counts as an error', () => {

@@ -76,7 +76,8 @@ export function summarise(s) {
   const added = s.calls.length >= 2 ? s.calls.at(-1) - s.calls[0] : null;
   const notes = [];
   if (s.isError) notes.push('ended in an error');
-  if (!/^\s*ok\W*\s*$/i.test(s.answer)) notes.push('reply was not just OK: check it read everything');
+  const lastLine = s.answer.trim().split('\n').filter((l) => l.trim()).pop() ?? '';
+  if (!/^\s*ok\W*\s*$/i.test(lastLine)) notes.push('reply did not end with OK: check it read everything');
   if (!s.reads.length) notes.push('no Read call');
   return { added, notes };
 }
@@ -118,25 +119,30 @@ function session(prompt, cwd, { model, effort, dry }) {
   const args = ['-p', '--model', model, '--effort', effort, '--output-format', 'stream-json', '--verbose',
     '--setting-sources', 'project', '--strict-mcp-config', '--tools', 'Read', '--allowedTools', 'Read', '--max-budget-usd', String(BUDGET_USD)];
   if (dry) { process.stdout.write(`  ${CLAUDE} ${args.join(' ')}\n`); return Promise.resolve(parseSession('')); }
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     const child = spawn(CLAUDE, args, { cwd, stdio: ['pipe', 'pipe', 'pipe'] });
     let stdout = '';
+    let stderr = '';
     const timer = setTimeout(() => child.kill(), TIMEOUT_MS);
     child.stdout.on('data', (d) => { stdout += d; });
-    child.stderr.on('data', () => {});
-    child.on('close', () => { clearTimeout(timer); resolve(parseSession(stdout)); });
+    child.stderr.on('data', (d) => { stderr += d; });
+    // A CLAUDE_BIN that cannot be started rejects, so the temporary directory is still removed.
+    child.on('error', (e) => { clearTimeout(timer); reject(new Error(`could not start ${CLAUDE}: ${e.message}`)); });
+    child.on('close', (code) => { clearTimeout(timer); resolve({ ...parseSession(stdout), exit: code, stderr: stderr.trim().split('\n').slice(-3).join('\n') }); });
     child.stdin.end(prompt);
   });
 }
 
-function convert(file, format, dir) {
+// Converted files are named after their position in the target list, so two inputs with the same basename cannot
+// overwrite each other's conversion.
+function convert(file, format, dir, index) {
   const run = (cmd, args, out) => {
     const r = spawnSync(cmd, args, { encoding: 'utf8' });
     if (r.error) return { note: `${cmd} not found on PATH` };
     if (r.status !== 0) return { note: `${cmd} failed: ${(r.stderr || '').trim().split('\n').pop()}` };
     return { file: out };
   };
-  const base = path.join(dir, path.basename(file, path.extname(file)));
+  const base = path.join(dir, `${index}-${path.basename(file, path.extname(file))}`);
   if (format === 'html') return { format: 'html as Markdown (pandoc)', ...run('pandoc', [file, '-f', 'html', '-t', 'gfm-raw_html', '-o', `${base}.from-html.md`], `${base}.from-html.md`) };
   if (format === 'pdf') return { format: 'pdf as text (pdftotext)', ...run('pdftotext', ['-layout', file, `${base}.from-pdf.txt`], `${base}.from-pdf.txt`) };
   return null;
@@ -155,6 +161,11 @@ async function main(argv) {
   const opt = (name) => { const i = argv.indexOf(`--${name}`); return i >= 0 ? argv[i + 1] : undefined; };
   const flag = (name) => argv.includes(`--${name}`);
   const valued = new Set(['--model', '--effort', '--documents', '--out', '--report']);
+  const known = new Set([...valued, '--convert', '--dry']);
+  // Checked before anything runs, so a mistyped option cannot turn into a file name or a silently ignored setting.
+  const unknown = argv.filter((a) => a.startsWith('--') && !known.has(a));
+  if (unknown.length) throw new Error(`unknown option ${unknown.join(', ')} (options take a separate value: --model opus)`);
+  for (const v of valued) { const i = argv.indexOf(v); if (i >= 0 && (i + 1 >= argv.length || argv[i + 1].startsWith('--'))) throw new Error(`${v} needs a value`); }
   if (opt('report')) { process.stdout.write(`${report(JSON.parse(fs.readFileSync(opt('report'), 'utf8')))}\n`); return; }
 
   const settings = { model: opt('model') ?? 'sonnet', effort: opt('effort') ?? 'low', dry: flag('dry') };
@@ -174,11 +185,13 @@ async function main(argv) {
     } else {
       const files = argv.filter((a, i) => !a.startsWith('--') && !valued.has(argv[i - 1]));
       if (!files.length) throw new Error('give files, --documents <json> or --report <json>');
+      const missing = files.filter((f) => !fs.existsSync(f));
+      if (missing.length) throw new Error(`no such file: ${missing.join(', ')}`);
       for (const f of files) targets.push({ document: path.basename(f, path.extname(f)), format: formatOf(f), source: path.basename(f), file: path.resolve(f) });
     }
     if (opt('documents') || flag('convert')) {
-      for (const t of [...targets]) {
-        const c = convert(t.file, t.format, work);
+      for (const [i, t] of [...targets].entries()) {
+        const c = convert(t.file, t.format, work, i);
         if (c?.file) targets.push({ document: t.document, format: c.format, source: `${t.source}, converted`, file: c.file });
         else if (c?.note) process.stdout.write(`${t.document} ${t.format}: ${c.note}, conversion skipped\n`);
       }
@@ -188,6 +201,7 @@ async function main(argv) {
     const empty = path.join(work, 'baseline');
     fs.mkdirSync(empty);
     const baseline = await session('Reply with OK only.', empty, settings);
+    if (!settings.dry && !baseline.calls.length) throw new Error(`the baseline session made no API call (exit ${baseline.exit})${baseline.stderr ? `: ${baseline.stderr}` : ''}`);
     const rows = [];
     for (const [i, t] of targets.entries()) {
       const dir = path.join(work, `session-${i}`);
@@ -201,6 +215,11 @@ async function main(argv) {
     }
     if (settings.dry) return;
     const run = { recorded: new Date().toISOString(), effort: settings.effort, baseline, rows };
+    // A run in which every document session failed is reported but not saved, and exits non-zero.
+    if (rows.every((r) => r.session.isError)) {
+      process.stdout.write(`\n${report(run)}\n`);
+      throw new Error(`every document session ended in an error; nothing saved${rows[0]?.session.stderr ? `. Last: ${rows[0].session.stderr}` : ''}`);
+    }
     if (opt('out')) {
       fs.mkdirSync(path.dirname(path.resolve(opt('out'))), { recursive: true });
       fs.writeFileSync(opt('out'), `${JSON.stringify(run, null, 1)}\n`);

@@ -19,6 +19,11 @@ test('a session offered the Workflow tool that called it', () => {
   assert.equal(p.result.total_cost_usd, 1);
 });
 
+test('a subagent message spread over several stream lines counts once', () => {
+  const line = { ...say(['Read'], 'toolu_1'), message: { ...say(['Read'], 'toolu_1').message, id: 'sub-1' } };
+  assert.equal(parseStream(jl(init(['Workflow']), line, line, line, result())).workflow.nestedMessages, 1);
+});
+
 test('a session not offered the tool ran without ultracode', () => {
   assert.equal(parseStream(jl(init(['Bash']), result())).workflow.offered, false);
 });
