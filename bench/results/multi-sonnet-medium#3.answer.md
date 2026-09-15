@@ -1,0 +1,17 @@
+## Fix
+
+`invoiceTotals` in `src/invoice.js` computed VAT per line (rounding each line's VAT separately) and summed the results, which contradicts the README rule that VAT is calculated once on the invoice net total. Fixed by computing VAT once on the summed net (`vatOn(net, invoice.region)`) and removed the now-unused `lineVat` helper; `npm test` passes (29/29).
+
+## Review
+
+**`src/report.js:5`** — `monthKey` now does `new Date(invoice.issuedOn)` then reads `getFullYear()`/`getMonth()` instead of slicing the first 7 characters. `new Date('YYYY-MM-DD')` parses as UTC midnight, but `getFullYear`/`getMonth` read local time, so the result depends on the runner's timezone. In any timezone behind UTC (e.g. UTC-5), `monthKey({ issuedOn: '2026-01-01', ... })` returns `'2025-12'` instead of `'2026-01'`. Directly violates README.md: "Monthly reports group by the first seven characters of `issuedOn`."
+
+**`src/discounts.js:22,25`** — `volumeTier` was rewritten to sort tiers ascending and pick the last one with `tier.minQty < qty` (strict). A tier whose `minQty` exactly equals `qty` no longer applies. `volumeTier([{ minQty: 10, percent: 5 }], 10)` now returns `null` instead of the tier — contradicts the function's own docstring at `src/discounts.js:8` ("the highest tier whose minQty is **less than or equal to** the quantity"). Concretely, `applyDiscount(1000, { type: 'volume', tiers: [{ minQty: 10, percent: 5 }] }, 10)` now returns `1000` (no discount) instead of `950`. Also mutates the caller's `tiers` array in place via `.sort`.
+
+**`src/tax.js:31`** — `netFromGross` now rounds with `Math.round` directly instead of `roundHalfUp` from `money.js`. `Math.round` rounds half toward +Infinity, not half away from zero, so it diverges for negative amounts (credit notes/refunds). `netFromGross(-3, 'GB')`: `-3 / 1.2 = -2.5` → `Math.round` gives `-2`, but `roundHalfUp` gives `-3`. Violates README.md: "`src/money.js` owns rounding: half away from zero, applied once at the end of a calculation" — this bypasses `money.js` entirely.
+
+**`src/csv.js:37`** and **`test/csv.test.js`** — `csvField` no longer quotes fields containing `\r` or `\n` (regex narrowed from `/[",\r\n]/` to `/[",]/`), so `csvField('x\ny')` returns the unquoted `'x\ny'` instead of `'"x\ny"'`. Combined with `toCsv` joining rows on `'\n'` (`src/csv.js:42`), a multiline field corrupts row boundaries: `toCsv([['sku','description'],['C-3','two\nlines']])` produces `two` and `lines` as separate rows when re-parsed by `parseCsv`, breaking the round-trip. The corresponding assertions (`csvField('x\ny')` and the `'two\nlines'` row in the round-trip test) were deleted from `test/csv.test.js` rather than fixed, hiding the regression.
+
+## Rounding
+
+Rounding is decided in `src/money.js:10` (`roundHalfUp`, half away from zero) and `src/money.js:16` (`multiply`, which calls `roundHalfUp` once). `src/tax.js:1,21` (`vatOn`) and `src/discounts.js:1,16` (`percentOff`) depend on `multiply`; `src/tax.js:1,31` (`netFromGross`) calls `roundHalfUp` directly. `src/invoice.js` depends transitively via `vatOn` in `invoiceTotals`. `src/money.js:56` (`allocate`) reimplements the away-from-zero floor/sign logic inline rather than calling `roundHalfUp`. `src/index.js:1` re-exports `roundHalfUp` and `multiply` as public API.

@@ -1,0 +1,17 @@
+main is checked out, only `src/invoice.js` changed (the fix), review-me untouched.
+
+## Fix
+`invoiceTotals` in `src/invoice.js` computed VAT per line and summed the results, but the README requires VAT to be calculated once on the invoice net total. Removed the now-unused `lineVat` helper and changed `invoiceTotals` to call `vatOn(net, invoice.region)` directly on the summed net, which fixes the failing "multi-line invoice totals (GB)" test (3 lines of 3 cents each: per-line VAT rounds 20% of 3¢ → 1¢ three times = 3¢ total, vs. the correct 20% of 9¢ net = 2¢).
+
+## Review
+
+**src/tax.js:31** — `netFromGross` was changed from `roundHalfUp(...)` to `Math.round(...)`, bypassing `src/money.js`'s "half away from zero" rounding that the README (line 11) says money.js owns exclusively. `Math.round` rounds negative halves toward zero instead of away from it. Input: `netFromGross(-3, 'GB')` → `-3/1.2 = -2.5` → buggy code returns `-2`, correct code (and README rule) requires `-3`.
+
+**src/report.js:5** — `monthKey` was changed from `invoice.issuedOn.slice(0, 7)` to `new Date(invoice.issuedOn)` plus local `getFullYear()`/`getMonth()`. `new Date('YYYY-MM-DD')` parses as UTC midnight, but `getFullYear`/`getMonth` read local time, so on any host west of UTC the result can shift a day into the previous month. Input: `monthKey({ issuedOn: '2026-02-01' })` on a host in `America/New_York` (UTC-5) returns `'2026-01'` instead of `'2026-02'`, breaking the README rule that reports group by "the first seven characters of `issuedOn`" (README line 14) — the grouping becomes timezone-dependent instead of a fixed string slice.
+
+**src/discounts.js:20-25** — `volumeTier` changed the tier match from `tier.minQty <= qty` to `tier.minQty < qty`, so a tier no longer applies when `qty` exactly equals its `minQty`. Input: `volumeTier([{ minQty: 10, percent: 5 }], 10)` returns `null` instead of the tier — a customer buying exactly the threshold quantity silently loses their discount. This also contradicts the function's own doc comment on line 8 ("highest tier whose minQty is less than or equal to the quantity"). The added `tiers.sort(...)` also mutates the caller's array in place, a side effect the original was free of.
+
+**src/csv.js:34-37, test/csv.test.js:22,26** — `csvField` stopped quoting fields containing `\r`/`\n`, so a field with an embedded newline is written unquoted into the CSV. Since rows are joined with `\n` (csv.js `toCsv`), an unquoted embedded newline splits what should be one row into two on re-parse. Input: `toCsv([['c', 'two\nlines']])` followed by `parseCsv(...)` no longer round-trips (`two` and `lines` become separate rows/lines). The corresponding test coverage for this exact case was deleted rather than updated (`csvField('x\ny')` assertion and the `'two\nlines'` row removed from the round-trip test), so the suite no longer catches it.
+
+## Rounding
+Rounding is decided once, in `roundHalfUp` (`src/money.js:10-13`, half away from zero), used by `multiply` (`src/money.js:19`). Direct dependents: `src/tax.js:21` (`vatOn`, via `multiply`) and `src/tax.js:31` (`netFromGross`, calls `roundHalfUp` directly); `src/discounts.js:16` (`percentOff`, via `multiply`). Transitively: `src/invoice.js` (`lineNet`, `invoiceTotals`) and `src/report.js` (`monthlySummary`, `topSkus`) all depend on this rounding through those two modules.

@@ -8,7 +8,9 @@
     "debug": { "hidden": "debug", "restoreTests": true, "grader": "tests" },
     "review": { "overlayUncommitted": true, "grader": "review" },
     "explore": { "grader": "explore" },
-    "chore": { "grader": "chore" }
+    "chore": { "grader": "chore" },
+    "multi": { "overlays": ["debug"], "branch": { "name": "review-me", "overlay": "review" }, "testsJob": { "section": "fix", "hidden": "debug" }, "grader": "multi" },
+    "multi-large": { "overlays": ["implement"], "branch": { "name": "review-me", "overlay": "review" }, "testsJob": { "section": "implement", "hidden": "implement" }, "grader": "multi" }
   },
   "runs": [
     { "id": "chore-haiku", "repeat": 3, "case": "chore", "model": "haiku" },
@@ -44,6 +46,15 @@
 
     { "id": "split-plan-opus-xhigh", "case": "implement", "model": "opus", "effort": "xhigh", "prompt": "prompt-plan.md", "grader": "plan" },
     { "id": "split-impl-sonnet-medium", "case": "implement", "model": "sonnet", "effort": "medium", "prompt": "prompt-implement-plan.md", "dirFrom": "split-plan-opus-xhigh" },
+
+    { "id": "multi-opus-xhigh", "repeat": 3, "case": "multi", "model": "opus", "effort": "xhigh", "plugin": true, "maxBudgetUsd": 12, "timeoutMinutes": 40 },
+    { "id": "multi-opus-xhigh-ultratoken", "repeat": 3, "case": "multi", "model": "opus", "effort": "xhigh", "plugin": true, "keyword": "ultratoken", "maxBudgetUsd": 12, "timeoutMinutes": 40 },
+    { "id": "multi-sonnet-medium", "repeat": 3, "case": "multi", "model": "sonnet", "effort": "medium", "plugin": true, "maxBudgetUsd": 12, "timeoutMinutes": 40 },
+    { "id": "multi-sonnet-medium-ultratoken", "repeat": 3, "case": "multi", "model": "sonnet", "effort": "medium", "plugin": true, "keyword": "ultratoken", "maxBudgetUsd": 12, "timeoutMinutes": 40 },
+    { "id": "multi-large-opus-xhigh", "repeat": 3, "case": "multi-large", "model": "opus", "effort": "xhigh", "plugin": true, "maxBudgetUsd": 20, "timeoutMinutes": 60 },
+    { "id": "multi-large-opus-xhigh-ultratoken", "repeat": 3, "case": "multi-large", "model": "opus", "effort": "xhigh", "plugin": true, "keyword": "ultratoken", "maxBudgetUsd": 20, "timeoutMinutes": 60 },
+    { "id": "multi-large-sonnet-medium", "repeat": 3, "case": "multi-large", "model": "sonnet", "effort": "medium", "plugin": true, "maxBudgetUsd": 20, "timeoutMinutes": 60 },
+    { "id": "multi-large-sonnet-medium-ultratoken", "repeat": 3, "case": "multi-large", "model": "sonnet", "effort": "medium", "plugin": true, "keyword": "ultratoken", "maxBudgetUsd": 20, "timeoutMinutes": 60 },
 
     { "id": "cache-resume-same-model", "resumeFrom": "implement-opus-xhigh", "model": "opus", "effort": "xhigh", "promptText": "In one line, what did you change?", "grader": "none" },
     { "id": "cache-resume-switch-model", "resumeFrom": "implement-opus-xhigh", "model": "sonnet", "effort": "xhigh", "promptText": "In one line, what did you change?", "grader": "none", "after": "cache-resume-same-model" },

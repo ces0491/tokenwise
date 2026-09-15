@@ -51,9 +51,16 @@ function reviewScore(r) {
   return { found: g.found?.length, recall: g.recall, fp: g.falsePositives, source: 'grader' };
 }
 
+// A multi run's review job is graded on its Review section, so a hand grade for the run decides that job alone.
+function jobsOf(r) {
+  const h = handOf(r);
+  return h ? { ...r.grade.jobs, review: h.recall >= PASS_FOUND && h.fp <= 2 } : r.grade.jobs;
+}
+
 function passed(r) {
   const g = r.grade || {};
   if (g.gradeError || stoppedEarly(r)) return false;
+  if ('jobs' in g) return Object.values(jobsOf(r)).every(Boolean);
   if ('recall' in g) { const sc = reviewScore(r); return sc.found >= PASS_FOUND && sc.fp <= 2; }
   if ('pass_all' in g) return !!g.pass_all;
   return false;
@@ -91,6 +98,11 @@ const sep = (n) => `| ${Array(n).fill('---').join(' | ')} |`;
 function gradeText(r) {
   const g = r.grade || {};
   if (g.gradeError) return 'grade error';
+  if ('jobs' in g) {
+    const h = handOf(r);
+    const hand = h ? ` (grader: recall ${g.review?.found.length ?? '?'}/${DEFECTS}, FP ${g.review?.falsePositives ?? '?'}; hand: recall ${h.recall}/${DEFECTS}, FP ${h.fp})` : '';
+    return Object.entries(jobsOf(r)).map(([job, ok]) => `${job} ${ok ? 'pass' : 'fail'}${job === 'review' ? hand : ''}`).join(', ') + (g.missingSections?.length ? ` (missing ${g.missingSections.join(', ')})` : '');
+  }
   if ('recall' in g) {
     const h = handOf(r);
     return `grader: recall ${g.found.length}/${DEFECTS}, FP ${g.falsePositives}${h ? `; hand: recall ${h.recall}/${DEFECTS}, FP ${h.fp}` : ''}`;
@@ -238,12 +250,50 @@ function verdicts() {
     out.push(['C9 ultracode on tasks this size', v + (n < 3 ? ` (provisional, n=${n})` : ''), c9.map((r) => r.note).join('; ')]);
   } else out.push(['C9', 'not run', '']);
 
+  // C10 (small jobs, `multi`) and C11 (a large job, `multi-large`): from each starting setting, the ultratoken cell against
+  // the same setting without the keyword. A run routed when its main loop started at least one of the plugin's worker
+  // agents; with fewer than two thirds routed, the cell did not test routing. Pass counts compare as rates. A plain cell
+  // that never completed has no finite cost per completed task, so any completing ultratoken cell beats it on cost.
+  const worker = (a) => /^tokenwise:work-/.test(a.type ?? '');
+  const STARTS = [['opus-xhigh', 'opus at xhigh'], ['sonnet-medium', 'sonnet at medium']];
+  const routeClaim = (prefix) => STARTS.filter(([k]) => need(`${prefix}-${k}`, `${prefix}-${k}-ultratoken`)).map(([k, name]) => {
+    const p = s(`${prefix}-${k}`); const u = s(`${prefix}-${k}-ultratoken`);
+    const routed = u.runs.filter((r) => (r.metrics?.agents || []).some(worker)).length;
+    const cheaper = u.costPerCompleted != null && (p.costPerCompleted == null || u.costPerCompleted <= 0.7 * p.costPerCompleted);
+    const v = 3 * routed < 2 * u.n ? 'not testable' : u.passes * p.n >= p.passes * u.n && cheaper ? 'holds' : 'falsified';
+    const ratio = u.costPerCompleted != null && p.costPerCompleted != null ? u.costPerCompleted / p.costPerCompleted : null;
+    const cpc = (x) => (x.costPerCompleted == null ? 'never completed' : usd(x.costPerCompleted));
+    return { k, name, v, ratio, n: Math.min(p.n, u.n), note: `from ${name}: ultratoken ${u.passes}/${u.n} at ${cpc(u)} per completed task, plain ${p.passes}/${p.n} at ${cpc(p)}, routed in ${routed} of ${u.n}` };
+  });
+  const claimRow = (id, title, rows) => {
+    if (!rows.length) return [id, 'not run', ''];
+    const v = rows.length === 2 && rows.every((r) => r.v === 'holds') ? 'holds'
+      : rows.map((r) => `${r.v} from ${r.name}`).join('; ') + (rows.length < 2 ? '; other starting setting not run' : '');
+    const n = Math.min(...rows.map((r) => r.n));
+    return [`${id} ${title}`, v + (n < 3 ? ` (provisional, n=${n})` : ''), rows.map((r) => r.note).join('; ')];
+  };
+  const c10 = routeClaim('multi');
+  const c11 = routeClaim('multi-large');
+  out.push(claimRow('C10', 'ultratoken on small jobs', c10));
+  out.push(claimRow('C11', 'ultratoken with a large job', c11));
+  // Job size: from each starting setting run at both sizes, which of C10 and C11 held, read as SCOPE.md sets out.
+  const bySize = STARTS.map(([k, name]) => [name, c10.find((r) => r.k === k), c11.find((r) => r.k === k)]).filter(([, a, b]) => a && b);
+  if (bySize.length) {
+    const read = (a, b) => (a.v === 'not testable' || b.v === 'not testable' ? 'not testable'
+      : a.v === 'falsified' && b.v === 'holds' ? 'pays with a large job only'
+        : a.v === 'holds' && b.v === 'holds' ? 'pays at both sizes'
+          : a.v === 'falsified' && b.v === 'falsified' ? 'pays at neither size' : 'pays on small jobs only, which SCOPE.md does not expect');
+    const ratio = (r) => (r.ratio == null ? 'no ratio' : `${r.ratio.toFixed(2)}x`);
+    out.push(['C10 and C11 by job size', bySize.map(([name, a, b]) => `${read(a, b)} from ${name}`).join('; '),
+      bySize.map(([name, a, b]) => `from ${name}: ultratoken at ${ratio(a)} of the plain cost per completed task on small jobs, ${ratio(b)} with a large job`).join('; ')]);
+  } else out.push(['C10 and C11 by job size', 'not run', '']);
+
   return out;
 }
 
 // ---- document -----------------------------------------------------------------------------------
 
-const order = ['implement', 'debug', 'review', 'chore', 'explore'];
+const order = ['implement', 'debug', 'review', 'chore', 'explore', 'multi', 'multi-large'];
 const parts = [];
 parts.push('# Bench results\n');
 const day = (r) => (r.started || '').slice(0, 10);
@@ -324,6 +374,18 @@ if (ultracode.length) {
   for (const r of ultracode) {
     const m = r.metrics || {};
     parts.push(`| ${r.id} | ${m.workflow?.calls ?? '?'} | ${K(m.outside_main?.output)} | ${K(m.outside_main?.cache_read)} | ${K(m.outside_main?.cache_write)} | ${usd(m.usd)} |`);
+  }
+  parts.push('');
+}
+
+const routedRuns = runs.filter((r) => r.keyword === 'ultratoken').sort((a, b) => (a.id < b.id ? -1 : 1));
+if (routedRuns.length) {
+  parts.push('## ultratoken: where each run sent its jobs\n');
+  parts.push('Each subagent the main loop started, with the model the call asked for, read from `results/<id>.stream.jsonl`. A worker with no model runs on the session model.\n');
+  parts.push(`| run | subagents started | cost | result |\n${sep(4)}`);
+  for (const r of routedRuns) {
+    const agents = (r.metrics?.agents || []).map((a) => `${a.type ?? '?'}${a.model ? ` on ${a.model}` : ''}`).join(', ') || 'none';
+    parts.push(`| ${r.id} | ${agents} | ${usd(r.metrics?.usd)} | ${gradeText(r)} |`);
   }
   parts.push('');
 }

@@ -84,12 +84,12 @@ export function gradeChore(run, dir) {
 // ---- review -----------------------------------------------------------------------------------------
 
 // A finding starts on a line whose first content is a code file:line reference, after any list, heading or
-// bold markup and an optional label such as "1.", "Defect 2 —" or "File:". The prompt asks for the file
+// bold markup and an optional label such as "1.", "Defect 2 —", "File:" or "**File/Line:**". The prompt asks for the file
 // and line of each defect, and every saved answer puts that reference at the head of each finding. A
 // reference inside a sentence ("the doc comment at src/discounts.js:8") does not start a finding, and nor
 // does a line citing the README ("README.md:14 states ..."): the diff changes code and tests only, and
 // answers quote the README's rules inside their findings.
-const FINDING = /^[ \t]*(?:[-*+][ \t]+|\d+[.)][ \t]+|#{1,6}[ \t]+)?(?:\*\*|__)?[ \t]*(?:(?:\d+[.)]|(?:defect|finding|issue|file|location)(?:[ \t]*#?\d+)?)[ \t]*(?:\*\*|__)?[ \t]*[:.—–-]?[ \t]*)?`?((?:[\w.-]+\/)*[\w.-]+\.(?:js|mjs|cjs|ts)):\d+/gim;
+const FINDING = /^[ \t]*(?:[-*+][ \t]+|\d+[.)][ \t]+|#{1,6}[ \t]+)?(?:\*\*|__)?[ \t]*(?:(?:\d+[.)]|(?:defect|finding|issue|file|location)(?:[ \t]*#?\d+)?(?:[ \t]*[\/&][ \t]*(?:file|line|location))?)[ \t]*(?:\*\*|__)?[ \t]*[:.—–-]?[ \t]*(?:\*\*|__)?[ \t]*)?`?((?:[\w.-]+\/)*[\w.-]+\.(?:js|mjs|cjs|ts)):\d+/gim;
 
 export function findings(text) {
   const hay = String(text || '').toLowerCase();
@@ -111,6 +111,52 @@ export function gradeReview(run, dir, text, expected = JSON.parse(fs.readFileSyn
     falsePositives,
     findings: fs_.length,
   };
+}
+
+// ---- multi ------------------------------------------------------------------------------------------
+
+// A working copy for a case whose jobs live on different branches: the named overlays committed on main, then a
+// branch carrying one more overlay as a commit of its own, and main checked out again. The multi case puts the planted
+// bug on main and the review diff on review-me, so fixing the bug never shows in the diff under review.
+export function prepareBranches(dir, conf) {
+  const overlay = (name) => { const p = path.join(CASES, name, 'overlay'); if (fs.existsSync(p)) fs.cpSync(p, dir, { recursive: true, force: true }); };
+  for (const o of conf.overlays || []) overlay(o);
+  git(dir, 'init', '-q', '-b', 'main');
+  git(dir, 'add', '-A');
+  git(dir, 'commit', '-q', '-m', 'base');
+  git(dir, 'checkout', '-q', '-b', conf.branch.name);
+  overlay(conf.branch.overlay);
+  git(dir, 'add', '-A');
+  git(dir, 'commit', '-q', '-m', 'changes to review');
+  git(dir, 'checkout', '-q', 'main');
+}
+
+// The answer's sections, one `## <name>` heading per job. Each job is graded on its own section, so the rounding answer's
+// file:line references are never read as review findings.
+export function sections(text, names = ['fix', 'review', 'rounding']) {
+  const t = String(text || '');
+  const heads = [...t.matchAll(new RegExp(`^##[ \\t]+(${names.join('|')})[ \\t]*$`, 'gim'))];
+  const out = {};
+  heads.forEach((m, i) => { out[m[1].toLowerCase()] = t.slice(m.index + m[0].length, i + 1 < heads.length ? heads[i + 1].index : t.length); });
+  return out;
+}
+
+// Three jobs in one session: a code job graded by a case's hidden tests with main checked out (the debug fix in `multi`,
+// the credit-note feature in `multi-large`, named by the case's `testsJob`); the review case's defects, graded on the
+// Review section with the review pass mark; and the explore case's question, graded on the Rounding section. The run
+// passes when all three do.
+export function gradeMulti(run, dir, text, conf = {}) {
+  const job = conf.testsJob ?? { section: 'fix', hidden: 'debug' };
+  const names = [job.section, 'review', 'rounding'];
+  const s = sections(text, names);
+  const branch = git(dir, 'rev-parse', '--abbrev-ref', 'HEAD').trim();
+  const code = { ...gradeTests(run, dir, { hidden: job.hidden, restoreTests: true }), branch };
+  code.pass_all = code.pass_all && branch === 'main';
+  const review = 'review' in s ? gradeReview(run, dir, s.review) : null;
+  const reviewPass = !!review && review.found.length >= Math.ceil(0.8 * (review.found.length + review.missed.length)) && review.falsePositives <= 2;
+  const rounding = 'rounding' in s ? gradeExplore({ case: 'explore' }, dir, s.rounding) : null;
+  const jobs = { [job.section]: code.pass_all, review: reviewPass, rounding: !!rounding?.pass_all };
+  return { [job.section]: code, review, rounding, jobs, missingSections: names.filter((k) => !(k in s)), pass_all: Object.values(jobs).every(Boolean) };
 }
 
 // ---- explore and plan -------------------------------------------------------------------------------
@@ -145,10 +191,11 @@ export function grade(run, dir, result, matrix) {
     case 'review': return gradeReview(run, dir, text);
     case 'explore': return gradeExplore(run, dir, text);
     case 'plan': return gradePlan(run, dir);
+    case 'multi': return gradeMulti(run, dir, text, conf);
     default: return {};
   }
 }
 
 // Graders that read the working copy rather than the saved answer. The copy is not kept, so --regrade cannot
 // apply a change to one of these to a published run.
-export const DIR_GRADERS = new Set(['tests', 'chore', 'plan']);
+export const DIR_GRADERS = new Set(['tests', 'chore', 'plan', 'multi']);

@@ -52,3 +52,11 @@ test('tokens outside the main loop are model usage less main usage', () => {
     modelUsage: { 'claude-opus-5': { outputTokens: 400, cacheReadInputTokens: 5000, cacheCreationInputTokens: 250 }, 'claude-haiku-4-5': { outputTokens: 5 } } };
   assert.deepEqual(outsideMain(r), { output: 305, cache_read: 4000, cache_write: 200 });
 });
+
+test('subagents the main loop starts are listed with the type and model each call asked for', () => {
+  const start = (subagent_type, model) => ({ type: 'assistant', parent_tool_use_id: null, message: { id: subagent_type, usage: {}, content: [{ type: 'tool_use', name: 'Agent', input: { subagent_type, model, prompt: 'secret job text' } }] } });
+  const text = jl(init(['Agent']), start('tokenwise:work-low', 'opus'), start('tokenwise:work-medium', 'sonnet'), say(['Read'], 'toolu_9'), result());
+  assert.deepEqual(parseStream(text).agents, [{ type: 'tokenwise:work-low', model: 'opus' }, { type: 'tokenwise:work-medium', model: 'sonnet' }]);
+  const kept = reduceStream(text).filter((e) => e.type === 'assistant')[0].message.content[0];
+  assert.deepEqual(kept, { type: 'tool_use', name: 'Agent', input: { subagent_type: 'tokenwise:work-low', model: 'opus' } });
+});

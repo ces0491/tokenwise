@@ -2,6 +2,15 @@
 
 Versions follow the bar in `SCOPE.md`: a changed recommendation is a minor bump, a changed answer format or a removed section is a major one.
 
+## Unreleased
+
+No row of the routing table changed, and the plugin ships the same skill.
+
+- **Sending each job in a prompt to its own setting did not pay.** `experiments/ultratoken/` holds a prompt keyword whose hook told Claude to split a request into jobs and send each to a worker agent on the setting the routing table starts that work on. `bench/SCOPE.md` adds C10 (three small jobs in one prompt) and C11 (one of them large), written before any run. The `multi` and `multi-large` cases grade each job on its own section of one answer, three runs per cell from Opus 5 at xhigh and Sonnet 5 at medium. The keyword cost 1.25 and 1.85 times the plain prompt's cost per completed task with small jobs, and 0.99 and 1.17 times with the large one, against a 0.7 bar. Both claims are falsified from both settings, so the hook and its four agents stay out of the plugin. `bench/run.mjs` stages them in for the multi runs.
+- **The runner builds a working copy with a branch to review.** A case with `branch` commits its overlays on main and the review diff on a second branch.
+- **The review grader reads labelled findings.** It starts a finding on a line such as `- **File/Line:** \`src/tax.js:31\``. Every published review grade and hand grade is unchanged. One C11 review section, which gave its references as `` `file` line N ``, is hand-graded in `bench/results/hand-grades.json`, and the verdict is the same either way.
+- **Figures.** The published runs number 92, 87 of them graded, and come to $68.52 at list price. The 24 multi runs came to $20.44.
+
 ## 1.2.0 — 2026-09-14
 
 No row of the routing table changed.

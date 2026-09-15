@@ -1,0 +1,131 @@
+{
+ "duration_api_ms": 140620,
+ "stop_reason": "end_turn",
+ "session_id": "43d8517f-5051-4da3-b26f-144ccc96502a",
+ "total_cost_usd": 1.0172832500000002,
+ "usage": {
+  "input_tokens": 6,
+  "cache_creation_input_tokens": 4980,
+  "cache_read_input_tokens": 121066,
+  "output_tokens": 2453,
+  "output_tokens_details": {
+   "thinking_tokens": 374
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4980,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1695,
+    "cache_read_input_tokens": 42144,
+    "cache_creation_input_tokens": 1074,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 1074
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard"
+ },
+ "modelUsage": {
+  "claude-haiku-4-5-20251001": {
+   "inputTokens": 1115,
+   "outputTokens": 13,
+   "cacheReadInputTokens": 0,
+   "cacheCreationInputTokens": 0,
+   "webSearchRequests": 0,
+   "costUSD": 0.00118,
+   "contextWindow": 200000,
+   "maxOutputTokens": 32000,
+   "thinkingTokens": 0,
+   "canonicalModel": "claude-haiku-4-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  },
+  "claude-opus-5": {
+   "inputTokens": 32,
+   "outputTokens": 8123,
+   "cacheReadInputTokens": 457120,
+   "cacheCreationInputTokens": 53706,
+   "webSearchRequests": 0,
+   "costUSD": 0.87160625,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 64000,
+   "thinkingTokens": 1423,
+   "canonicalModel": "claude-opus-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  },
+  "claude-sonnet-5": {
+   "inputTokens": 16,
+   "outputTokens": 2026,
+   "cacheReadInputTokens": 208875,
+   "cacheCreationInputTokens": 32972,
+   "webSearchRequests": 0,
+   "costUSD": 0.144497,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 64000,
+   "thinkingTokens": 253,
+   "canonicalModel": "claude-sonnet-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "origin": {
+  "kind": "task-notification"
+ },
+ "subagent_stats": {
+  "spawned": 2,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 2
+  },
+  "started_in_background": 2,
+  "max_depth": 1,
+  "spawned_by_subagents": 0,
+  "completed": 2,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {
+   "tokenwise:work-medium": 1,
+   "tokenwise:work-low": 1
+  }
+ },
+ "is_error": false,
+ "num_turns": 3,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "## Fix\n`invoiceTotals` in `src/invoice.js` worked out VAT for each line, rounded it, and then added the lines up. README rule 12 says VAT is calculated once on the invoice's net total, so three 3-cent GB lines came to 3 cents of VAT instead of 2. It now calls `vatOn(net, invoice.region)` once (`src/invoice.js:47`), and the `lineVat` helper, which nothing else used, is gone. `npm test` passes 29 of 29 with nothing under `test/` touched.\n\n## Review\n**src/csv.js:37** — `csvField` no longer quotes fields that contain `\\r` or `\\n`. A multi-line description gets split into extra rows when parsed back. Input: `parseCsv(toCsv([['a','two\\nlines']]))` → actual `[[\"a\",\"two\"],[\"lines\"]]`, expected `[[\"a\",\"two\\nlines\"]]`. Confirmed by running.\n\n**test/csv.test.js:19-27** — Two test cases were deleted, which weakens the suite and hides the csv.js defect above: the `csvField('x\\ny')` assertion and the `['C-3','two\\nlines']` row in the round-trip test. Input: the deleted assertion `csvField('x\\ny')` → actual `x\\ny`, expected `\"x\\ny\"`.\n\n**src/discounts.js:25** — The comparison changed from `<=` to `<`, so a tier no longer applies when the quantity equals its `minQty`. Input: `volumeTier([{minQty:10,p:1},{minQty:1,p:0}], 10)` → actual `{minQty:1,p:0}`, expected `{minQty:10,p:1}`. Confirmed by running.\n\n**src/discounts.js:22** — `tiers.sort(...)` sorts the caller's array in place. Input: `t=[{minQty:10},{minQty:1}]`, then `volumeTier(t,10)` → afterwards `t` is actual `[{minQty:1},{minQty:10}]`, expected unchanged `[{minQty:10},{minQty:1}]`. It also throws on frozen tier arrays. Confirmed by running.\n\n**src/tax.js:31** — `netFromGross` now uses `Math.round` in place of `roundHalfUp`, and `Math.round` rounds negative halves toward +infinity. README rule: \"src/money.js owns rounding: half away from zero\". Input: `netFromGross(-4995,'GB')` (raw value -4162.5) → actual `-4162`, expected `-4163`. Confirmed by running.\n\n**src/report.js:5-6** — `monthKey` now parses `issuedOn` with `new Date()`, which reads `YYYY-MM-DD` as UTC midnight, then takes the month with local-time getters. In any timezone behind UTC, invoices dated on the 1st land in the previous month. README rule: \"Monthly reports group by the first seven characters of issuedOn\". Input: `monthKey({issuedOn:'2026-03-01'})` with TZ=America/New_York → actual `2026-02`, expected `2026-03`. Not confirmed by running: Node on this Windows machine ignores the `TZ` variable (offset stayed -120, and it returned `2026-03` locally). The failure follows from JS Date semantics.\n\n## Rounding\nThe decision is made in `src/money.js:10-13`: `roundHalfUp` rounds half away from zero, as README.md:11 requires. `multiply` (`src/money.js:16-20`) applies it once. `allocate` (`src/money.js:50-67`) sets its own rule: it truncates, then hands out the leftover cents by largest remainder.\n\nModules that depend on it:\n- `src/tax.js:21` (`vatOn` calls `multiply`) and `src/tax.js:31` (`netFromGross` calls `roundHalfUp`). `grossFromNet` (`src/tax.js:26`) inherits it.\n- `src/discounts.js:16` (`percentOff` calls `multiply`), used at lines 34 and 41.\n- `src/invoice.js:41` and `src/invoice.js:47`, through discounts and `vatOn`.\n- `src/report.js:16` and `src/report.js:34`, through `invoiceTotals` and `lineNet`.\n- `src/index.js:1-2` re-exports the helpers.\n\n`src/csv.js:64` only calls `fromDecimal`, which parses exactly and doesn't round.\n\n---\n- Fix: sent to a Sonnet worker at medium effort, no escalation. Check passed: `npm test` 29/29 green on main, and only `src/invoice.js` changed.\n- Review: sent to an Opus worker at low effort, no escalation. Check passed: every finding has a file:line and an input. The `src/report.js` finding couldn't be reproduced on this machine because Node here ignores `TZ`.\n- Rounding: done in this session, no escalation, line references checked against the working tree.\n\nmain is checked out and `src/invoice.js` has uncommitted changes. Nothing has been committed.",
+ "ttft_ms": 4118,
+ "type": "result",
+ "duration_ms": 29953,
+ "uuid": "3b152714-f343-422c-888e-c195bb06ba9d",
+ "ttft_stream_ms": 1166,
+ "time_to_request_ms": 87,
+ "first_content_frame_ms": 1868,
+ "queued_turn_count": 0,
+ "result_index": 2
+}

@@ -1,10 +1,16 @@
 # What the bench found
 
-Sixty-three graded runs across five task types, plus five ungraded session resumes, on Claude Code 2.1.263 on 8 September 2026 and 2.1.270 on 14 September 2026, against `claude-haiku-4-5-20251001`, `claude-sonnet-5`, `claude-opus-5` and `claude-fable-5-1`. `methodology.md` describes how the tasks and graders were built, `../bench/RESULTS.md` holds the generated tables, and `../bench/SCOPE.md` the criteria fixed before the results were read.
+Eighty-seven graded runs across five task types, alone and three at a time in one prompt, plus five ungraded session resumes, on Claude Code 2.1.263 on 8 September 2026 and 2.1.270 on 14 and 15 September 2026, against `claude-haiku-4-5-20251001`, `claude-sonnet-5`, `claude-opus-5` and `claude-fable-5-1`. `methodology.md` describes how the tasks and graders were built, `../bench/RESULTS.md` holds the generated tables, and `../bench/SCOPE.md` the criteria fixed before the results were read.
 
 ## The short version
 
-On a small, well-specified codebase, every model and effort level tested passed every graded run, and on the implement task the cost of doing so varied nearly sixteen-fold. Of the nine claims in `../bench/SCOPE.md`, four were falsified, in three different ways: two named a more expensive setting than the work required, one saved less than the bench's pass mark, and one recommended a split that cost more than not splitting. The ninth, on ultracode, held on the review, where a workflow found the same defects as `xhigh` for 9.5 times the cost, and could not be tested on the bug fix, where no workflow started.
+On a small, well-specified codebase, every model and effort level tested passed every graded run, and on the implement task the cost of doing so varied nearly sixteen-fold. Of the eleven claims in `../bench/SCOPE.md`, six were falsified:
+
+- two named a more expensive setting than the work required
+- one saved less than the bench's pass mark
+- three split work in ways that cost more than doing it in one session: planning and implementing separately, and sending each job in a prompt to its own worker, tested with small jobs and with a large one
+
+The claim on ultracode held on the review, where a workflow found the same defects as `xhigh` for 9.5 times the cost, and could not be tested on the bug fix, where no workflow started.
 
 ## Cost at equal outcomes
 
@@ -152,6 +158,30 @@ On the bug fix, no run started a workflow, so those runs measure `xhigh` with ul
 
 Every run passed, so nothing here shows a workflow finding something `xhigh` missed.
 
+## Three jobs in one prompt, with and without ultratoken
+
+Each prompt carried three independent jobs:
+
+- a bug fix, or in the large case the credit-note feature
+- the six-file review, on a branch
+- the rounding question
+
+The `ultratoken` keyword added instructions to send each job to a worker agent on the setting the routing table starts that work on (C10 and C11 in `../bench/SCOPE.md`). All 24 runs passed all three jobs, three per cell.
+
+| Jobs | Session setting | Without the keyword | With `ultratoken` | Ratio |
+| --- | --- | --- | --- | --- |
+| Bug fix, review, rounding | Opus 5, xhigh | $0.71 | $0.89 | 1.25x |
+| Bug fix, review, rounding | Sonnet 5, medium | $0.42 | $0.77 | 1.85x |
+| Feature, review, rounding | Opus 5, xhigh | $1.30 | $1.29 | 0.99x |
+| Feature, review, rounding | Sonnet 5, medium | $0.65 | $0.76 | 1.17x |
+
+Figures are cost per completed task. Every `ultratoken` run sent the bug fix or feature to Sonnet at medium and the review to Opus at low, and kept the rounding question in the session.
+
+- **From Opus.** The Opus spend fell only with the feature, and the Sonnet worker added most of the saving back.
+- **From Sonnet.** Sending the review up to Opus added cost, though Sonnet at medium passed the review in all six runs without the keyword.
+
+`../experiments/ultratoken/README.md` has the per-model spend and the reproduction.
+
 ## Claim by claim
 
 | Claim | Verdict |
@@ -165,6 +195,8 @@ Every run passed, so nothing here shows a workflow finding something `xhigh` mis
 | The prompt cache is per model | Not testable through this harness. Retained as documented behaviour. |
 | Planning on Opus then implementing on Sonnet is cheaper | Falsified on cost. The split cost $2.50 against $1.65 for one Opus session. |
 | On tasks this size, ultracode costs more than `xhigh` for no better result | Holds on the review, at 9.5 times the cost for the same five defects. Not testable on the bug fix, where no workflow started. |
+| Sending each job in a prompt to a worker on its own setting costs at most 0.7 times as much, for the same result | Falsified from Opus at xhigh and from Sonnet at medium, at 1.25 and 1.85 times the cost. |
+| The same, with one large job among the three | Falsified from both, at 0.99 and 1.17 times the cost. |
 
 ## Two verdicts that need a caveat
 
@@ -172,13 +204,13 @@ Every change made to a grader or a criterion after runs had been seen is dated i
 
 **C3's criterion was written backwards.** The claim "raise effort before upgrading the model" is tested by asking whether staying on Sonnet and raising effort beats moving to Opus and keeping effort low. The criterion asked the opposite, and would have counted Opus-at-medium winning as support for effort-first. Under the criterion as written the claim is falsified; under the claim as named the data supports it, with Sonnet at xhigh costing $0.59 per completed task against $0.82 for Opus at medium and both passing every run. Both readings are in the table. No threshold moved after seeing data.
 
-**The review recall figures come from a grader that was corrected four times.** It charged false positives for a defect explained across several paragraphs, and it scored a correct answer one of five because that answer put the file name and the keyword in different markdown blocks. After publication, the patterns for the CSV defect were narrowed to its mechanism, since words like "test" and "deleted" appear in any mention of that file. Later it turned out to pass a one-line answer that described no defect, and to miss invented findings. It now grades each finding, led by its file:line reference, against the mechanism of each defect. Every saved answer keeps the grade it was published with, it agrees with every hand grade on record, and `../bench/results/hand-grades.json` decides pass or fail for the runs it covers. The C5 verdict rests on those figures.
+**The review recall figures come from a grader that was corrected five times.** It charged false positives for a defect explained across several paragraphs, and it scored a correct answer one of five because that answer put the file name and the keyword in different markdown blocks. After publication, the patterns for the CSV defect were narrowed to its mechanism, since words like "test" and "deleted" appear in any mention of that file. Later it turned out to pass a one-line answer that described no defect, and to miss invented findings. It now grades each finding, led by its file:line reference, against the mechanism of each defect. Before any C10 or C11 run, a probe showed it starting no finding on a line led by a bold label such as `**File/Line:**`, and it now reads those. Every saved answer keeps the grade it was published with, and `../bench/results/hand-grades.json` decides pass or fail for the runs it covers. The grader agrees with every hand grade but one: a C11 review section that wrote its references as `` `src/discounts.js` line 24 ``, which the grader does not read. Read by hand, it found all five defects. Graded by the grader alone, that cell is 2 of 3 at 1.75 times the cost, and C11 is falsified either way. The C5 verdict rests on these figures.
 
 ## What this does not tell you
 
 - **Nothing about large contexts.** No graded run averaged more than 72K tokens of context per turn. Sessions over 100K tokens per call are covered by the observational measurements in `../skills/route/reference.md`.
-- **Nothing about where expensive settings pay off.** All 63 graded runs passed, so the ceiling was never reached.
+- **Nothing about where expensive settings pay off.** All 87 graded runs passed, so the ceiling was never reached.
 - **Nothing about `max` effort or `ultrathink`, and ultracode only on small tasks.** No run used `max` or `ultrathink`. Ultracode ran on a review and a bug fix, both small enough for one context, so whether it pays on work that splits into context-sized parts is untested.
 - **Little about how much a route's cost varies.** Each setting's route ran once on the shipped text, and Sonnet 5 at high, the default on Pro and Team Standard, did not run.
-- **Nothing about other codebases.** A single small JavaScript library, five tasks, run on one machine on 8 and 14 September 2026.
+- **Nothing about other codebases.** A single small JavaScript library, five tasks, run on one machine on 8, 14 and 15 September 2026.
 - **Nothing about subscription quota.** Costs are Claude Code's list-price figures. How usage draws down against a Pro or Max plan is not published.

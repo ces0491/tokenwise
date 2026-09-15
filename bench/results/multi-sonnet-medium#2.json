@@ -1,0 +1,111 @@
+{
+ "duration_api_ms": 145555,
+ "stop_reason": "end_turn",
+ "session_id": "e2e6df84-a3c7-456d-a3ff-696b10d63420",
+ "total_cost_usd": 0.4573068,
+ "usage": {
+  "input_tokens": 30,
+  "cache_creation_input_tokens": 43094,
+  "cache_read_input_tokens": 761689,
+  "output_tokens": 13136,
+  "output_tokens_details": {
+   "thinking_tokens": 8054
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 43094,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1546,
+    "cache_read_input_tokens": 66816,
+    "cache_creation_input_tokens": 272,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 272
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard"
+ },
+ "modelUsage": {
+  "claude-haiku-4-5-20251001": {
+   "inputTokens": 1113,
+   "outputTokens": 12,
+   "cacheReadInputTokens": 0,
+   "cacheCreationInputTokens": 0,
+   "webSearchRequests": 0,
+   "costUSD": 0.001173,
+   "contextWindow": 200000,
+   "maxOutputTokens": 32000,
+   "thinkingTokens": 0,
+   "canonicalModel": "claude-haiku-4-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  },
+  "claude-sonnet-5": {
+   "inputTokens": 30,
+   "outputTokens": 13136,
+   "cacheReadInputTokens": 761689,
+   "cacheCreationInputTokens": 43094,
+   "webSearchRequests": 0,
+   "costUSD": 0.45613380000000003,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 64000,
+   "thinkingTokens": 8054,
+   "canonicalModel": "claude-sonnet-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "is_error": false,
+ "num_turns": 25,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "## Fix\n\n`invoiceTotals` in `src/invoice.js` computed VAT per line and summed the results, but README.md line 12 requires VAT to be calculated once on the invoice net total. Rounding VAT separately per line (e.g. three lines of 3 cents each at 20% GB VAT) accumulates rounding error, giving 3 instead of 2; fixed by computing `vatOn(net, invoice.region)` once and removing the now-unused `lineVat` helper.\n\n## Review\n\n**src/tax.js:30-32 — `netFromGross`**\nRounding no longer goes through `money.js`. It was `roundHalfUp(cents(grossCents) / (1 + vatRate(region)))`; now it's raw `Math.round(...)`, dropping the `roundHalfUp` import. This breaks README's rule that `src/money.js` owns rounding, \"half away from zero\" (README line 11), because `Math.round` rounds half-values toward +Infinity, not away from zero. Concrete input: `netFromGross(-3, 'GB')` → `-3 / 1.2 = -2.5`. Old: `roundHalfUp(-2.5) = -3`. New: `Math.round(-2.5) = -2`.\n\n**src/discounts.js:20-26 — `volumeTier`**\nBoundary changed from `tier.minQty <= qty` to `tier.minQty < qty`, so a tier no longer applies when `qty` exactly equals its `minQty`. This contradicts the module's own doc comment on line 8, left unchanged: \"applies the highest tier whose minQty is less than or equal to the quantity.\" Concrete input: `volumeTier([{ minQty: 10, percent: 5 }], 10)` → old: `{ minQty: 10, percent: 5 }`; new: `null`. Correspondingly `applyDiscount(1000, { type: 'volume', tiers: [{ minQty: 10, percent: 5 }] }, 10)` goes from `950` to `1000`.\n\n**src/report.js:4-6 — `monthKey`**\nReplaced `invoice.issuedOn.slice(0, 7)` with `new Date(issuedOn)` plus local-timezone `getFullYear()`/`getMonth()`. This breaks README line 14 (\"Monthly reports group by the first seven characters of `issuedOn`\"), because date-only ISO strings parse as UTC midnight while `getFullYear`/`getMonth` read local time, so the result depends on the host timezone. Concrete input: `monthKey({ issuedOn: '2026-03-01' })` run on a host in a UTC-5 zone (e.g. `America/New_York`) evaluates local time as `2026-02-28 19:00`, returning `'2026-02'` instead of `'2026-03'`.\n\n**src/csv.js:34-37 and test/csv.test.js:19-27 — `csvField`**\nThe quoting regex was narrowed from `/[\",\\r\\n]/` to `/[\",]/`, so fields containing newlines are no longer quoted. `parseCsv` (unchanged) treats bare `\\n`/`\\r` as row separators, so this breaks CSV round-tripping — contradicting `parseCsv`'s own docstring on line 5 (\"commas and newlines inside quotes\"). The corresponding test assertions (`csvField('x\\ny')` and the `'two\\nlines'` round-trip case) were deleted rather than updated, hiding the regression. Concrete input: `toCsv([['sku', 'description'], ['A-1', 'two\\nlines']])` now emits `A-1,two\\nlines` unquoted; `parseCsv` of that output produces 3 rows instead of 2, splitting the field's content into a spurious extra row.\n\n## Rounding\n\nRounding is owned by `roundHalfUp` in `src/money.js:10-13` (half away from zero), used internally by `multiply` (`src/money.js:16-20`). Direct dependents:\n\n- `src/tax.js:21` — `vatOn` calls `multiply`\n- `src/tax.js:31` — `netFromGross` calls `roundHalfUp` directly\n- `src/discounts.js:16` — `percentOff` calls `multiply` (used by percent/volume discounts)\n- `src/invoice.js` — totals derive from these via `lineNet`/`vatOn`, without rounding independently\n- `src/index.js:1` — re-exports `roundHalfUp`/`multiply` publicly\n\n`allocate` (`src/money.js:50-67`) does its own floor/largest-remainder split, not `roundHalfUp`, by design (exact-sum requirement).",
+ "ttft_ms": 2249,
+ "type": "result",
+ "duration_ms": 146019,
+ "uuid": "c15b8326-00f5-4cb0-a7b0-988ff4d9af56",
+ "ttft_stream_ms": 1742,
+ "time_to_request_ms": 127,
+ "first_content_frame_ms": 1931,
+ "queued_turn_count": 0,
+ "result_index": 0
+}
