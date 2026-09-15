@@ -8,10 +8,10 @@ Everything below runs offline against committed files, needs only Node, and spen
 
 ```sh
 cd bench/fixture && node --test 'test/**/*.test.js' && cd ../..
-node --test bench/graders.test.mjs bench/matrix.test.mjs bench/breakeven.test.mjs bench/stream.test.mjs experiments/doc-format/measure.test.mjs experiments/ultratoken/ultratoken.test.mjs skills/setup/setup.test.mjs   # graders, matrix expansion, the chart's helpers, the stream reader, the document-format reader, the ultratoken experiment, the setup script
+node --test bench/graders.test.mjs bench/matrix.test.mjs bench/breakeven.test.mjs bench/stream.test.mjs experiments/doc-format/measure.test.mjs experiments/ultratoken/ultratoken.test.mjs skills/setup/setup.test.mjs hooks/resume-guard.test.mjs   # graders, matrix expansion, the chart's helpers, the stream reader, the document-format reader, the ultratoken experiment, the setup script, the resume guard
 npx markdownlint-cli@0.49.1 '*.md' 'docs/*.md' 'bench/*.md' 'skills/*/*.md' 'experiments/*/*.md' --config .markdownlint.json
 node bench/summarize.mjs --check       # RESULTS.md still follows from results/runs.jsonl
-node bench/breakeven.mjs --check       # docs/breakeven.svg still follows from the saved runs and SKILL.md
+node bench/breakeven.mjs --check       # docs/breakeven.svg and hooks/route-costs.json still follow from the saved runs and SKILL.md
 node scripts/check-matrix.mjs          # matrix.json expands to exactly the published runs
 node scripts/check-models.mjs          # the docs name exactly the models the published runs used
 node scripts/check-manifests.mjs       # manifests agree, changelog matches plugin.json
@@ -43,7 +43,7 @@ node bench/breakeven.mjs
 node bench/skill-cost.mjs --compare <previous>,<version>
 ```
 
-Add `mention` to the first command when the skill's name or description changes, since those are all that loads until the skill fires. The chart reads the xhigh route and the idle session from the bare version label and the other two routes from the suffixed ones. With `mention`, the six sessions cost $1.95 at list price on 11 September 2026. Then update the figures in `docs/findings.md`, `docs/guide.md` and the README.
+Add `mention` to the first command when the skill's name or description changes, since those are all that loads until the skill fires. The chart reads the xhigh route and the idle session from the bare version label and the other two routes from the suffixed ones. `bench/breakeven.mjs` also writes those route costs to `hooks/route-costs.json`, which sets the resume guard's threshold, so re-measuring moves the threshold with the chart. With `mention`, the six sessions cost $1.95 at list price on 11 September 2026. Then update the figures in `docs/findings.md`, `docs/guide.md` and the README.
 
 ## Adding a bench case
 
