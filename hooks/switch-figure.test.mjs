@@ -9,6 +9,7 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { lastResponseModel, message, respond } from './switch-figure.mjs';
+import { effortOf, tokens } from './route-cost.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROUTES = [
@@ -48,6 +49,47 @@ test('nothing when the target model already holds the cache', (t) => {
   assert.equal(lastResponseModel(file), 'claude-opus-5');
   assert.equal(lastResponseModel(path.join(dir, 'missing.jsonl')), null);
   assert.equal(message({ ...DOC_EXAMPLE, transcript_path: file }, ROUTES), null);
+});
+
+// Found in the 1.3.0 release review, both on transcripts from real sessions.
+test('the last response skips rows Claude Code writes itself, and is found behind a large later row', (t) => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'tokenwise-switch-'));
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  const row = (o) => JSON.stringify(o);
+  const synthetic = path.join(dir, 'synthetic.jsonl');
+  fs.writeFileSync(synthetic, [
+    row({ type: 'assistant', message: { model: 'claude-opus-5' } }),
+    row({ type: 'user', message: { content: 'go' } }),
+    row({ type: 'assistant', message: { model: '<synthetic>', content: "You've hit your session limit" } }),
+  ].join('\n'));
+  assert.equal(lastResponseModel(synthetic), 'claude-opus-5');
+  const big = path.join(dir, 'big.jsonl');
+  fs.writeFileSync(big, [
+    row({ type: 'assistant', message: { model: 'claude-opus-5' } }),
+    row({ type: 'user', message: { content: 'x'.repeat(600 * 1024) } }),
+  ].join('\n'));
+  assert.equal(lastResponseModel(big, { chunkBytes: 64 * 1024 }), 'claude-opus-5');
+  assert.equal(lastResponseModel(big, { chunkBytes: 64 * 1024, maxBytes: 100 * 1024 }), null, 'a model beyond the cap is not found');
+});
+
+test('the effort level comes from $CLAUDE_EFFORT, which these events get in place of an effort field', () => {
+  assert.equal(effortOf({}, { CLAUDE_EFFORT: 'xhigh' }), 'xhigh');
+  assert.equal(effortOf({ effort: { level: 'low' } }, { CLAUDE_EFFORT: 'xhigh' }), 'low');
+  assert.equal(effortOf({}, {}), undefined);
+  assert.equal(tokens(999600), '1.0M');
+  assert.equal(tokens(182340), '182K');
+});
+
+test('run through a directory link, the hook still answers', (t) => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'tokenwise-link-'));
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  const link = path.join(dir, 'hooks');
+  fs.symlinkSync(HERE, link, 'junction');
+  const r = spawnSync('node', [path.join(link, 'switch-figure.mjs')], { input: JSON.stringify(DOC_EXAMPLE), encoding: 'utf8' });
+  assert.equal(r.status, 0, r.stderr);
+  assert.deepEqual(Object.keys(JSON.parse(r.stdout)), ['systemMessage']);
+  const g = spawnSync('node', [path.join(link, 'resume-guard.mjs')], { input: JSON.stringify({ ...DOC_EXAMPLE, source: 'resume', prompt_cache_likely_expired: true }), encoding: 'utf8' });
+  assert.deepEqual(Object.keys(JSON.parse(g.stdout)), ['systemMessage']);
 });
 
 test('nothing when the cache is cold, before the first response, or when the price was assumed', () => {

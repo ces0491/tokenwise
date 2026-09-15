@@ -1,7 +1,7 @@
 {
   "name": "tokenwise",
-  "version": "1.2.0",
-  "description": "Pick the model and effort level for each phase of a Claude Code session, see what the cheaper choice gives up, and switch after /clear so the conversation is not re-processed.",
+  "version": "1.3.0",
+  "description": "Start new Claude Code sessions on a cheaper default, see what a resume or model switch is about to re-send, and pick the model and effort level for each phase of a session.",
   "author": { "name": "Cesaire Tobias", "url": "https://github.com/ces0491" },
   "homepage": "https://github.com/ces0491/tokenwise",
   "repository": "https://github.com/ces0491/tokenwise",

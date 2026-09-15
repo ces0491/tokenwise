@@ -17,7 +17,7 @@ Route from this file and that description. Do not read other files, run commands
 
 1. Every API call re-sends the whole conversation. A turn costs context size multiplied by calls, plus output, and thinking is output. The model sets the price per token; effort changes how many tokens are spent, through thinking and extra turns. Across 137 sessions on one machine, input outweighed output 428 to 1, and 99% of input was cached context re-read on every call.
 2. The prompt cache is per model and, on most models, per effort level. Changing either on a warm context re-processes all of it, and Claude Code asks you to confirm while the cache is warm. On Fable 5.1 with an API key or a Claude subscription, an effort change keeps the cache. (Documented behaviour; not measured by the bench.) After `/clear` the conversation is gone, so a change then usually re-processes only what a new session's first request would: the system prompt and project context.
-3. Nothing can switch the running session's model or effort for you. Hooks and plugins can recommend, or change settings for the next session. You run `/model` and `/effort`.
+3. Nothing can switch the running session's model or effort for you. Hooks and plugins can recommend, or change settings for the next session. Pressing `s` in the `/model` picker or the `/effort` slider switches for this session only. Typing `/model <alias>` or `/effort <level>` also saves the choice as the default for new sessions, replacing a default that `/tokenwise:setup` wrote.
 
 ## Classify on two axes
 
@@ -88,7 +88,7 @@ Higher effort is not uniformly better. On the review case it bought 10 extra tur
 1. Finish the phase. Write what the next phase needs to a file: the plan, the findings, the task list.
 2. Route the next phase now, with `/tokenwise:route <next phase>`, so the next step clears its answer along with everything else.
 3. `/clear`. Use `/compact <what to keep>` only if continuity matters; compaction is itself a large request.
-4. `/model <alias>` then `/effort <level>`. If ultracode is on and the next phase does not split, leave it here; the workflows docs drop back with `/effort high`.
+4. Open `/model`, choose the model and effort, and press `s` to switch for this session only. Type `/model <alias>` then `/effort <level>` only to make them the new default. If ultracode is on and the next phase does not split, leave it here; the workflows docs drop back with `/effort high`.
 5. Start the next phase from the file, not from memory.
 
 Switch at a boundary so a model or effort change does not re-process a warm cache. Splitting a small task into a planning session and an implementation session cost more than doing it in one session on the expensive model, because the plan is written, read and paid for. Split when the phases are long enough that carrying the first one's context through the second would cost more than rebuilding it.
@@ -109,7 +109,7 @@ Switch at a boundary so a model or effort change does not re-process a warm cach
 A short block, no preamble:
 
 - Phase:
-- Model and effort: the exact `/model` and `/effort` commands, or the `ultracode` keyword for a single task that splits
+- Model and effort: which model and effort, switched for this session only with `s` in the `/model` picker, or the `ultracode` keyword for a single task that splits. Give `/model <alias>` and `/effort <level>` as typed commands only when the user wants a new default.
 - Boundary: whether to `/clear` or `/compact` first, and what changing model or effort costs if not. Say that this answer stays in the user's context until their next `/clear`, so routing just before one costs least.
 - Delegate: what to push into subagents, if anything
 - Done when: the one check that says this phase is finished, stated so the user can run it. Tests green with no test file edited; every finding carries a file:line and a failing input; the plan names files, signatures and test cases; a grep shows no old name. Run the check before the next phase starts.

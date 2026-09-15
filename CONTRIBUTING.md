@@ -43,7 +43,7 @@ node bench/breakeven.mjs
 node bench/skill-cost.mjs --compare <previous>,<version>
 ```
 
-Add `mention` to the first command when the skill's name or description changes, since those are all that loads until the skill fires. The chart reads the xhigh route and the idle session from the bare version label and the other two routes from the suffixed ones. `bench/breakeven.mjs` also writes those route costs to `hooks/route-costs.json`, which sets the resume guard's threshold, so re-measuring moves the threshold with the chart. With `mention`, the six sessions cost $1.95 at list price on 11 September 2026. Then update the figures in `docs/findings.md`, `docs/guide.md` and the README.
+Add `mention` to the first command when the skill's name or description changes, since those are all that loads until the skill fires. The chart reads the xhigh route and the idle session from the bare version label and the other two routes from the suffixed ones. `bench/breakeven.mjs` also writes those route costs to `hooks/route-costs.json`, which sets the threshold both hooks use, so re-measuring moves the threshold with the chart. With `mention`, the six sessions cost $1.95 at list price on 11 September 2026. Then update the figures in `docs/findings.md`, `docs/guide.md` and the README.
 
 ## Adding a bench case
 

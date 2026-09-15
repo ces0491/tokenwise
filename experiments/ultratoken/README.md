@@ -6,7 +6,7 @@
 - keep the small ones in the session
 - send the rest to worker agents (`agents/`) on the model and effort the routing table starts that kind of work on
 
-It cost more than the same prompt without the keyword, from both starting settings the bench ran, with small jobs and with a large one. C10 and C11 in `../../bench/SCOPE.md` set the bar before any run.
+From both starting settings the bench ran, with small jobs and with a large one, it cost 0.99 to 1.85 times the same prompt without the keyword, against a 0.7 bar. C10 and C11 in `../../bench/SCOPE.md` set the bar before any run.
 
 ## Result
 
@@ -29,15 +29,15 @@ Figures are cost per completed task at list price. A claim needed 0.7x or lower 
 
 ## What it shows
 
-- **Routing was the same in every run.** The bug fix or feature went to a Sonnet 5 worker at medium, the review to an Opus 5 worker at low, and the rounding question stayed in the session. One run also started a Haiku worker.
+- **Routing barely varied.** In every run the bug fix or feature went to a Sonnet 5 worker at medium and the review to an Opus 5 worker at low. The rounding question stayed in the session in 11 of 12 runs. In the other it went to a Haiku worker, which failed its check, and the session wrote the answer itself.
 - **From Opus at xhigh, handing work to Sonnet did not reduce the Opus spend enough.** With the bug fix, Opus spend per run was $0.67 to $0.87, against $0.66 to $0.78 without the keyword, and the Sonnet worker added $0.10 to $0.14. With the feature, Opus spend fell to $0.91 to $0.96 from $1.19 to $1.46, and the Sonnet worker added $0.31 to $0.38 back.
 - **From Sonnet at medium, the review went up to Opus**, because the routing table starts reviews there. Without the keyword, Sonnet at medium passed the review in all six runs, so the Opus worker added $0.20 to $0.75 per run for the same result.
 
 ## What it does not show
 
-- **Jobs big enough for delegation to pay.** The largest job was the credit-note feature, which costs a $1.65 median on its own on Opus at xhigh.
+- **Jobs larger than the credit-note feature.** The largest job was the credit-note feature, which costs a $1.65 median on its own on Opus at xhigh.
 - **Other starting settings.** No run started at `max`, or on Sonnet 5 at high, the default on Pro and Team Standard.
-- **Escalation.** Every worker passed its check, so the instructions' escalation step never ran.
+- **Escalation.** The one worker that failed its check was not sent again on a stronger setting, so no run exercised the escalation step.
 - **Grading without a hand reading.** One review section wrote its references as `` `src/discounts.js` line 24 ``, which the review grader does not read. It found all five defects, and `../../bench/results/hand-grades.json` records that. Graded by the grader alone, that cell is 2 of 3 at 1.75x. C11 is falsified either way.
 
 ## Check it

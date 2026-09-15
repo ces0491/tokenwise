@@ -51,6 +51,59 @@ test('restore puts back the previous values, removing keys that were absent', (t
   assert.equal(run('restore', h).ok, false, 'a second restore has nothing to put back');
 });
 
+// Found in the 1.3.0 release review: a second apply after the user changed a value overwrote the backup with setup's
+// own values, so restore could never reach the settings from before setup ran.
+test('a second apply after the user changed a value keeps the first backup', (t) => {
+  const h = home(t, { model: 'opus' });
+  run('apply', h);
+  const s = read(h.file);
+  s.modelSettings['claude-sonnet-5'].effortLevel = 'low';
+  fs.writeFileSync(h.file, JSON.stringify(s));
+  assert.equal(run('apply', h).changed, true);
+  run('restore', h);
+  assert.deepEqual(read(h.file), { model: 'opus' });
+});
+
+test('restore leaves alone a value the user changed after apply', (t) => {
+  const h = home(t, {});
+  run('apply', h);
+  const s = read(h.file);
+  s.model = 'opus';
+  fs.writeFileSync(h.file, JSON.stringify(s));
+  const r = run('restore', h);
+  assert.deepEqual(r.kept, ['model']);
+  assert.deepEqual(read(h.file), { model: 'opus' });
+});
+
+test('settings that are not a JSON object are left untouched', (t) => {
+  for (const text of ['[]', '"x"', 'null']) {
+    const h = home(t, text);
+    assert.equal(run('apply', h).ok, false, text);
+    assert.equal(fs.readFileSync(h.file, 'utf8'), text);
+    assert.equal(fs.existsSync(path.join(h.env.CLAUDE_CONFIG_DIR, 'tokenwise-setup-backup.json')), false);
+  }
+});
+
+test('a write that fails reports it and leaves no backup or temporary file', (t) => {
+  const h = home(t, { model: 'opus' });
+  // A directory where the temporary file would go makes the write fail on every platform.
+  fs.mkdirSync(`${h.file}.tokenwise-${process.pid}.tmp`);
+  const r = run('apply', h);
+  assert.equal(r.ok, false);
+  assert.match(r.message, /Could not write/);
+  assert.deepEqual(read(h.file), { model: 'opus' });
+  assert.equal(fs.existsSync(path.join(h.env.CLAUDE_CONFIG_DIR, 'tokenwise-setup-backup.json')), false);
+});
+
+test('the command line still runs through a directory link', (t) => {
+  const h = home(t, { model: 'opus' });
+  const link = path.join(h.cwd, 'linked-setup');
+  fs.symlinkSync(HERE, link, 'junction');
+  const r = spawnSync('node', [path.join(link, 'setup.mjs'), 'show'], { env: { ...process.env, ...h.env }, cwd: h.cwd, encoding: 'utf8' });
+  assert.equal(r.status, 0, r.stderr);
+  assert.equal(JSON.parse(r.stdout).current.model, 'opus');
+});
+
 test('with no settings file, apply creates one and restore leaves it with neither key', (t) => {
   const h = home(t);
   run('apply', h);

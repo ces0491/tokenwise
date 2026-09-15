@@ -8,9 +8,7 @@
 // a SessionStart hook would go into Claude's context, so a failure of any kind prints nothing (route-cost.mjs).
 // Tested by resume-guard.test.mjs.
 
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { respond as respondWith, runHook, threshold, tokens } from './route-cost.mjs';
+import { effortOf, isMain, respond as respondWith, runHook, threshold, tokens } from './route-cost.mjs';
 
 export { canonical, threshold } from './route-cost.mjs';
 
@@ -19,11 +17,11 @@ export function message(input, routes) {
   if (input.prompt_cache_likely_expired !== true) return null;
   const usd = input.estimated_cache_write_usd;
   if (typeof usd !== 'number' || typeof input.context_tokens !== 'number' || !routes.length) return null;
-  if (usd <= threshold(routes, input.model, input.effort?.level)) return null;
+  if (usd <= threshold(routes, input.model, effortOf(input))) return null;
   // Claude Code shows this as one dim line under the last message, so the cost comes first.
   return `tokenwise: resuming re-sends ${tokens(input.context_tokens)} tokens, about $${usd.toFixed(2)} at list price, because the cache has expired. Run /clear first if you don't need this conversation.`;
 }
 
 export const respond = (stdin, routesFile) => respondWith(stdin, message, routesFile);
 
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) runHook(message);
+if (isMain(import.meta)) runHook(message);

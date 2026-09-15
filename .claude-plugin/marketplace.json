@@ -6,7 +6,7 @@
     {
       "name": "tokenwise",
       "source": "./",
-      "description": "Model and effort routing per phase for Claude Code, with the cost of switching and what the cheaper choice gives up.",
+      "description": "A cheaper default for new Claude Code sessions, warnings before a resume or model switch re-sends the conversation, and model and effort routing per phase.",
       "category": "productivity"
     }
   ]
