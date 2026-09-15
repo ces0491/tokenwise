@@ -11,6 +11,17 @@
           }
         ]
       }
+    ],
+    "PreModelSwitch": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/switch-figure.mjs\"",
+            "timeout": 10
+          }
+        ]
+      }
     ]
   }
 }
