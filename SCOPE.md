@@ -10,7 +10,7 @@ A Claude Code plugin that gets more work out of a Claude subscription for the le
 
 The pieces ask the user for as little as possible, in this order: a default set once, a warning only when something material is about to happen, and advice on request.
 
-- [ ] **Setup.** `/tokenwise:setup` shows the `model` and `effortLevel` in the user's `~/.claude/settings.json` and recommends Sonnet 5 at medium, with the bench evidence behind it. It writes only after an explicit yes, says how to restore the previous values, and changes nothing when run a second time.
+- [ ] **Setup.** `/tokenwise:setup` shows the `model`, and the effort level saved for Sonnet 5 under `modelSettings`, in the user's `~/.claude/settings.json`, and recommends Sonnet 5 at medium, with the bench evidence behind it. It writes only after an explicit yes, says how to restore the previous values, and changes nothing when run a second time.
 - [ ] **Resume guard.** A SessionStart hook shows the re-send size and estimated cost from its input (`context_tokens`, `estimated_cache_write_usd`) and suggests starting fresh. It fires only on a resumed or forked session whose `prompt_cache_likely_expired` is true, and only above the materiality threshold. It returns only `systemMessage`, and a `bench/skill-cost.mjs` session shows it adds no tokens to the conversation.
 - [ ] **Switch figure.** An interactive `/model` on a warm cache is checked first. If Claude Code's own confirmation already shows the re-send size, this item closes without code. Otherwise a PreModelSwitch hook adds the figure to that confirmation above the threshold. The hooks reference lists no event for effort changes, so those rely on Claude Code's confirmation.
 - [ ] **Cost and tests.** Each new piece's idle and per-trigger cost is measured on the shipped version and published beside the route's. Each hook is tested against the input schema in Claude Code's hooks reference and verified once in a live session.
@@ -32,7 +32,7 @@ Met at 1.0.0, released 9 September 2026 as `tokenwise--v1.0.0`, and kept on ever
 - [x] `SKILL.md`, `docs/guide.md` and `docs/findings.md` name the exact models the published runs used (`node scripts/check-models.mjs`), and `node scripts/check-models.mjs --live` shows every alias the bench uses still resolving to its measured model.
 - [x] While those models are still served, `node bench/run.mjs --results bench/rerun` runs every published run from a clean checkout, `node scripts/check-matrix.mjs` confirms `bench/matrix.json` names exactly those runs, and `node bench/summarize.mjs` regenerates `bench/RESULTS.md` with the same verdicts.
 - [x] `claude plugin validate .` passes, the plugin installs from its marketplace entry, and `/tokenwise:route` answers in the block `SKILL.md` documents.
-- [x] `node --test` green on `bench/fixture`, and `markdownlint *.md docs/*.md bench/*.md skills/route/*.md --config .markdownlint.json` clean.
+- [x] `node --test` green on `bench/fixture`, and `markdownlint *.md docs/*.md bench/*.md skills/*/*.md --config .markdownlint.json` clean.
 - [x] Every URL cited in `skills/route/reference.md` resolves.
 - [x] Tagged `tokenwise--v1.0.0` with `claude plugin tag`, `plugin.json` and the marketplace entry agreeing.
 
@@ -65,6 +65,8 @@ Anthropic moves aliases to new models and retires old ones. A routing row measur
 Ces. A routing row changes only when a graded run says so. A falsified claim changes `SKILL.md`. A guard ships only once its trigger and its cost are measured.
 
 ## Revision history
+
+- 2026-09-15, building setup: **the setup criterion names the key Claude Code reads.** A level saved for a model under `modelSettings` takes precedence over the top-level `effortLevel` in the same file, and `/effort` saves there. Writing `effortLevel` would not change a user who had ever saved a level for Sonnet 5. The lint criterion covers every skill directory.
 
 - 2026-09-15: the purpose widens from routing to defaults and guards. C10 and C11 in `bench/SCOPE.md` showed that sending each job in a prompt to its own setting cost more than doing all of it in one session, and both multi-job cases were cheapest on Sonnet 5 at medium without the keyword. The step that saves a user most is a better starting default. Claude Code's docs set the form of each piece:
   - a plugin cannot write settings, so defaults go through a setup skill
