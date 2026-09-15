@@ -48,6 +48,8 @@ The page states those two rules, and the cost of a change on a cleared context f
 
 Hooks cannot change the model or effort of the session that is running. Tools that automate routing either inject a recommendation each turn or write the model into settings so the next session starts on it. The only mid-session switch is the user's own `/model` and `/effort`. A routing aid therefore has to explain the tradeoff well enough that the user acts on it.
 
+How the user switches decides whether the switch outlasts the session. From the Claude Code model configuration docs: "`/model` saves your choice as the default for new sessions by writing the `model` field in your user settings." In the picker, `Enter` switches and saves as the default, and `s` switches "for this session only and leave your default unchanged". "Typing `/model <name>` directly behaves like `Enter`." For effort, "`Enter` in the `/effort` slider or the `/model` picker, or a level typed after `/effort`" saves the level as the default, and "`s` in the `/effort` slider or the `/model` picker" applies it to the session only. A default written by `/tokenwise:setup` is therefore replaced by any typed `/model <alias>` or `/effort <level>`, which is why the skill advises `s` for a phase and a typed command only for a new default.
+
 ## Subagent models
 
 Each subagent runs in its own context window; only its summary returns. Agent files take `model` (`sonnet`, `haiku`, `opus`, `fable`, a full model id, or `inherit`) and `effort`. From v2.1.198 the built-in Explore subagent inherits the main conversation's model, capped at Opus on the Claude API; Plan inherits it. `CLAUDE_CODE_SUBAGENT_MODEL` sets the model for general subagents; adding `CLAUDE_CODE_SUBAGENT_MODEL_FORCE=1` (v2.1.257 or later) applies it to every subagent, including Explore and Plan. A subagent's tokens still count toward usage.
@@ -56,7 +58,7 @@ Each subagent runs in its own context window; only its summary returns. Agent fi
 
 From the Claude Code skills docs: "When you or Claude invoke a skill, the rendered `SKILL.md` content enters the conversation as a single message and stays there across later turns." A second invocation with different arguments appends the full content again, and auto-compaction re-attaches invoked skills after its summary, up to a token budget. `context: fork` runs a skill in a subagent instead: "The skill content becomes the prompt that drives the subagent. It won't have access to your conversation history."
 
-This skill runs forked for that reason. Measured on Opus 5 at xhigh effort (`../../docs/findings.md`), a route that ran in the conversation left 9.6K tokens behind for every later call, most of it the answer and its thinking. Forked, a 1.2.0 route left 780, the answer alone. The cost is that the skill routes from the description it is given and cannot see the conversation or its context size.
+This skill runs forked for that reason. Measured on Opus 5 at xhigh effort (`../../docs/findings.md`), a route that ran in the conversation left 9.6K tokens behind for every later call, most of it the answer and its thinking. Forked, a 1.3.0 route left 822, the answer alone. The cost is that the skill routes from the description it is given and cannot see the conversation or its context size.
 
 ## Images
 

@@ -1,6 +1,6 @@
 # tokenwise
 
-A one-skill Claude Code plugin for choosing the model and effort level per phase of a session, and switching after `/clear` so the conversation is not re-processed.
+A Claude Code plugin that starts new sessions on a cheaper default, shows what a resume or a model switch is about to re-send, and recommends the model and effort level per phase of a session.
 
 ## Why
 
@@ -12,9 +12,20 @@ Two facts shape the advice. The prompt cache is per model, and on most models pe
 
 ## What it does
 
-`/tokenwise:route <what you're about to do>` classifies the task on two axes (reading volume, judgment density) and answers with:
+In order of how often it interrupts you: a default set once, warnings, and advice on request.
 
-- the model and effort, as the exact `/model` and `/effort` commands, including when a task splits into enough independent parts to run under ultracode
+**`/tokenwise:setup`** starts new sessions on Sonnet 5 at medium effort. On the four bench tasks both ran, Sonnet 5 at medium passed every run at 19% to 59% of Opus 5 at xhigh's cost per completed task. It shows your current settings, what would override the change, and what Sonnet gives up, and writes only after you say yes. `/tokenwise:setup restore` puts the previous values back, leaving alone any you changed since.
+
+**Two warnings**, from hooks that run a local script and add nothing to the conversation:
+
+- Resuming a conversation whose prompt cache has expired: how many tokens your first message re-sends, and what that costs at list price.
+- Switching model while the cache is warm: the same figures for your next message. Claude Code's own confirmation says the history gets re-read but not how much.
+
+Each stays silent unless the re-send costs more than a route from your model, and neither changes whether a resume or switch goes ahead. Both need Claude Code 2.1.251 or later, which added the hook fields they read.
+
+**`/tokenwise:route <what you're about to do>`** classifies the task on two axes (reading volume, judgment density) and answers with:
+
+- the model and effort, and how to switch to them for this session only, including when a task splits into enough independent parts to run under ultracode
 - whether to `/clear` or `/compact` first, and what the switch costs if you don't
 - what to push into subagents
 - what you give up with the cheaper choice
@@ -31,7 +42,7 @@ Across 87 graded runs, six of the eleven claims in `bench/SCOPE.md` were falsifi
 
 Pass/fail thresholds were fixed before the results were read (`bench/SCOPE.md`) and the verdicts are computed from them. Full numbers in [docs/findings.md](docs/findings.md), method in [docs/methodology.md](docs/methodology.md), raw runs in `bench/results/`.
 
-Those task costs leave out the skill itself, so its cost is measured separately. Loaded and unused, it adds 156 tokens of context. It runs on your session's model and effort: a route in a session already under way cost $0.04 asked from Sonnet 5 at medium, $0.10 from Opus 5 at high and $0.11 from Opus 5 at xhigh. The first route left 655 to 780 tokens behind, carried on every later call, and routing just before a `/clear` carries nothing. For a single small chore, asking can cost about what the cheaper model saves.
+Those task costs leave out the skill itself, so its cost is measured separately. Loaded and unused, the plugin adds 153 tokens of context: the route skill's name and description, since setup loads only when typed and the hooks add nothing to the conversation. It runs on your session's model and effort: a route in a session already under way cost $0.04 asked from Sonnet 5 at medium, $0.10 from Opus 5 at high and $0.12 from Opus 5 at xhigh. The first route left 468 to 825 tokens behind, carried on every later call, and routing just before a `/clear` carries nothing. For a single small chore, asking can cost about what the cheaper model saves.
 
 ![What each setting cost on the bench's tasks, what a route costs from three settings, and the task sizes where a route pays for itself](docs/breakeven.svg)
 
@@ -43,7 +54,7 @@ Every number above comes from a file in this repository or from a script in it. 
 git clone https://github.com/ces0491/tokenwise && cd tokenwise
 
 node bench/summarize.mjs --check     # do the published tables follow from the published runs?
-node bench/skill-cost.mjs --compare 1.2.0,1.2.0-opus-high@1.2.0,1.2.0-sonnet-medium@1.2.0   # the skill's own cost, from the saved sessions
+node bench/skill-cost.mjs --compare 1.3.0,1.3.0-opus-high@1.3.0,1.3.0-sonnet-medium@1.3.0   # the skill's own cost, from the saved sessions
 node bench/breakeven.mjs --check     # does the breakeven chart follow from the saved runs?
 node bench/context-profile.mjs       # the token figures above, against your own transcripts
 node bench/run.mjs --results bench/rerun   # re-run all 92 runs on your account, into a fresh directory

@@ -28,7 +28,13 @@ Five extra runs resume the finished `implement-opus-xhigh` session with one shor
 node bench/run.mjs --matrix bench/ultracode-probe.json --results bench/probe
 ```
 
-None of these runs load the plugin, so none of their costs include the skill. `skill-cost.mjs` measures what the skill itself costs in sessions of its own, with transcripts in `results/skill-cost/`; `../docs/methodology.md` describes them.
+The `multi` and `multi-large` cells load the plugin with the `ultratoken` hook and worker agents staged in, whether or not the prompt uses the keyword (C10 and C11 in `SCOPE.md`, and `../experiments/ultratoken/README.md`). Before those cells, one probe on Sonnet checks that the hook fires and dispatches workers:
+
+```sh
+node bench/run.mjs --matrix bench/ultratoken-probe.json --results bench/probe
+```
+
+The other runs load no plugin, so their costs leave out the skill. `skill-cost.mjs` measures what the skill itself costs in sessions of its own, with transcripts in `results/skill-cost/`; `../docs/methodology.md` describes them.
 
 ## Run it
 

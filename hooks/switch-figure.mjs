@@ -10,29 +10,41 @@
 // Tested by switch-figure.test.mjs.
 
 import fs from 'node:fs';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { canonical, respond as respondWith, runHook, threshold, tokens } from './route-cost.mjs';
+import { canonical, effortOf, isMain, respond as respondWith, runHook, threshold, tokens } from './route-cost.mjs';
 
-// The model that wrote the conversation's last response, read from the end of the transcript. Claude Code confirms a
-// switch only when the target differs from that model, since otherwise its cache still holds the conversation.
-export function lastResponseModel(transcriptPath, tailBytes = 512 * 1024) {
+// The model that wrote the conversation's last response, read backwards from the end of the transcript. Claude Code
+// confirms a switch only when the target differs from that model, since otherwise its cache still holds the
+// conversation. Rows Claude Code writes itself carry the model "<synthetic>" and are skipped. The transcript is read in
+// chunks, since one tool result can run to hundreds of kilobytes, up to a cap that keeps the hook well inside its timeout.
+export function lastResponseModel(transcriptPath, { chunkBytes = 512 * 1024, maxBytes = 16 * 1024 * 1024 } = {}) {
+  let fd;
   try {
-    const fd = fs.openSync(transcriptPath, 'r');
-    const size = fs.fstatSync(fd).size;
-    const start = Math.max(0, size - tailBytes);
-    const buf = Buffer.alloc(size - start);
-    fs.readSync(fd, buf, 0, buf.length, start);
-    fs.closeSync(fd);
-    const lines = buf.toString('utf8').split('\n');
-    for (let i = lines.length - 1; i >= 0; i--) {
-      if (!lines[i].includes('"assistant"')) continue;
-      try {
-        const o = JSON.parse(lines[i]);
-        if (o.type === 'assistant' && !o.isSidechain && o.message?.model) return o.message.model;
-      } catch { /* the first line of the tail can be cut */ }
+    fd = fs.openSync(transcriptPath, 'r');
+    let end = fs.fstatSync(fd).size;
+    const floor = Math.max(0, end - maxBytes);
+    let carry = Buffer.alloc(0);
+    while (end > floor) {
+      const start = Math.max(floor, end - chunkBytes);
+      const chunk = Buffer.alloc(end - start);
+      fs.readSync(fd, chunk, 0, chunk.length, start);
+      const buf = Buffer.concat([chunk, carry]);
+      const lines = buf.toString('utf8').split('\n');
+      // Unless this chunk starts the file, its first line may be cut; it is read whole with the next chunk back.
+      const first = start > 0 ? 1 : 0;
+      for (let i = lines.length - 1; i >= first; i--) {
+        if (!lines[i].includes('"assistant"')) continue;
+        try {
+          const o = JSON.parse(lines[i]);
+          const model = o.message?.model;
+          if (o.type === 'assistant' && !o.isSidechain && model && model !== '<synthetic>') return model;
+        } catch { /* not a whole JSON row */ }
+      }
+      carry = start > 0 ? Buffer.from(lines[0], 'utf8') : Buffer.alloc(0);
+      end = start;
     }
-  } catch { /* no transcript to read */ }
+  } catch { /* no transcript to read */ } finally {
+    if (fd !== undefined) fs.closeSync(fd);
+  }
   return null;
 }
 
@@ -45,7 +57,7 @@ export function message(input, routes, readLast = lastResponseModel) {
   if (typeof usd !== 'number' || typeof input.context_tokens !== 'number' || !input.context_tokens || !routes.length) return null;
   // "default" means Claude Code had no price for the target model and assumed one, so the figure cannot be weighed.
   if (input.pricing === 'default') return null;
-  if (usd <= threshold(routes, input.from_model, input.effort?.level)) return null;
+  if (usd <= threshold(routes, input.from_model, effortOf(input))) return null;
   const to = input.to_model ? canonical(input.to_model) : 'the new model';
   // Claude Code can show this after the switch has applied, and the re-send happens on the next message, so the line
   // says what that message costs and how to avoid it from either side of the switch.
@@ -54,4 +66,4 @@ export function message(input, routes, readLast = lastResponseModel) {
 
 export const respond = (stdin, routesFile) => respondWith(stdin, (input, routes) => message(input, routes), routesFile);
 
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) runHook(message);
+if (isMain(import.meta)) runHook(message);

@@ -1,6 +1,6 @@
 # Using tokenwise
 
-The plugin adds one skill. This guide covers what it does, when to reach for it, and two environment variables worth setting once.
+The plugin adds two skills and two warnings. This guide covers what each does, when to reach for the route skill, and two environment variables worth setting once.
 
 ## Install
 
@@ -11,7 +11,26 @@ The plugin adds one skill. This guide covers what it does, when to reach for it,
 
 In the VS Code extension the manager opens with `/plugins`. From the terminal, `claude plugin install tokenwise@ces0491-plugins` does the same thing and writes to the same settings.
 
-Idle, the skill costs only its name and description, which is all that loads until it fires: 156 tokens of context, measured on Opus 5. What a route costs is under "What routing costs" below.
+Idle, the plugin costs only the route skill's name and description, which is all that loads until it fires: 153 tokens of context, measured on Opus 5. Setup loads only when you type it, and the hooks add nothing to the conversation. What a route costs is under "What routing costs" below.
+
+## Set a cheaper default
+
+```text
+/tokenwise:setup
+```
+
+It shows the model and effort new sessions start on, recommends Sonnet 5 at medium with the bench figures behind it, lists anything that would still override the change (`ANTHROPIC_MODEL`, `CLAUDE_CODE_EFFORT_LEVEL`, a project's settings, an organization default), and asks before writing. It writes `model` and the effort level saved for Sonnet 5 under `modelSettings` in your user settings, because a level saved for a model takes precedence over the top-level `effortLevel`. `/tokenwise:setup restore` puts back the values from before setup first ran, leaving alone any you changed since.
+
+The session you run it in keeps its model, and a resumed session keeps the model it was using. A typed `/model` or `/effort` replaces this default; "Switching mid-session" covers the switch that doesn't.
+
+## Warnings before a re-send
+
+Two hooks show a line when something is about to re-send your conversation to an empty cache:
+
+- **On resume.** A conversation idle for longer than its prompt cache lifetime re-sends all of it with your first message. The line gives the tokens and the estimated cost, and suggests `/clear` if you don't need the conversation.
+- **On a model switch.** Each model has its own cache, so unless the new model wrote the last response, the next message re-sends the whole conversation. Claude Code's confirmation says so without a size; the line gives it. It shows with the switch result, and not when you cancel. Effort changes have no hook, so only Claude Code's confirmation covers them.
+
+The figures come from Claude Code, which passes the hook the token count and an estimated cost at list price. A line shows only when that cost is more than a route from your model, and a hook never changes whether the resume or switch goes ahead. Claude never sees the line. Two forks of one conversation, one with a hook message of 40,000 characters that Claude Code cut to a 2,281-character preview, sent first requests within 31 tokens of each other. Both warnings need Claude Code 2.1.251 or later.
 
 ## Ask it
 
@@ -19,16 +38,16 @@ Idle, the skill costs only its name and description, which is all that loads unt
 /tokenwise:route implement the plan in docs/plan.md, about 12 files
 ```
 
-It answers with the model and effort to use, the exact commands, whether to clear first, what to delegate, one check that tells you the phase is finished, what you give up by going cheaper, and the signal that says move up a tier.
+It answers with the model and effort to use, how to switch to them for this session only, whether to clear first, what to delegate, one check that tells you the phase is finished, what you give up by going cheaper, and the signal that says move up a tier.
 
 Claude also runs it without being asked by name when you ask which model or effort level to use. It recommends and never acts, so you can ignore it.
 
 ## What routing costs
 
-The skill runs in its own subagent context. Its text and its reasoning stay there, and only the answer comes back into your conversation, where it is carried on every later call like anything else in context. The skill runs on your session's model and effort. A route in a session already under way cost $0.04 asked from Sonnet 5 at medium, $0.10 from Opus 5 at high and $0.11 from Opus 5 at xhigh, and the first route left 655 to 780 tokens behind. `findings.md` has the numbers, and a chart of the task sizes where a route pays for itself.
+The skill runs in its own subagent context. Its text and its reasoning stay there, and only the answer comes back into your conversation, where it is carried on every later call like anything else in context. The skill runs on your session's model and effort. A route in a session already under way cost $0.04 asked from Sonnet 5 at medium, $0.10 from Opus 5 at high and $0.12 from Opus 5 at xhigh, and the first route left 468 to 825 tokens behind. `findings.md` has the numbers, and a chart of the task sizes where a route pays for itself.
 
 - Route just before a `/clear`, at a phase boundary, and nothing it returns is carried.
-- For a single small chore, pick Sonnet at low effort, or Haiku, yourself. On the bench, moving a rename from Opus at xhigh to Sonnet at low saved $0.17, against $0.11 for asking from Opus 5 at xhigh.
+- For a single small chore, pick Sonnet at low effort, or Haiku, yourself. On the bench, moving a rename from Opus at xhigh to Sonnet at low saved $0.17, against $0.12 for asking from Opus 5 at xhigh.
 - Describe the work after the command. The skill cannot see your conversation, so `/tokenwise:route` on its own only asks for a description.
 
 ## The one idea
@@ -86,8 +105,10 @@ Switch at a phase boundary:
 1. Write what the next phase needs to a file: the plan, the findings, the task list.
 2. `/tokenwise:route <the next phase>`, so the next step clears its answer too.
 3. `/clear`.
-4. `/model sonnet` then `/effort medium`.
+4. Open `/model`, choose the model and effort, and press `s`.
 5. Start from the file.
+
+Pressing `s` in the `/model` picker or the `/effort` slider switches for this session only. Typing `/model sonnet` or `/effort medium` does the same and also saves it as your default for new sessions, replacing the default `/tokenwise:setup` sets, so type the command only when you mean to change the default.
 
 On a cleared context there is no conversation to re-process, so a switch usually costs what a new session's first request costs: the system prompt and project context.
 

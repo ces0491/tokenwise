@@ -1,6 +1,6 @@
 ---
 name: setup
-description: Start new Claude Code sessions on Sonnet 5 at medium effort, the cheapest setting per completed task on the tokenwise bench. Shows your current settings and asks before writing. /tokenwise:setup restore puts the previous values back.
+description: Start new Claude Code sessions on Sonnet 5 at medium effort, which passed every tokenwise bench run it shared with Opus 5 at xhigh at 19% to 59% of the cost per completed task. Shows your current settings and asks before writing. /tokenwise:setup restore puts the previous values back.
 disable-model-invocation: true
 allowed-tools: Bash(node "${CLAUDE_PLUGIN_ROOT}/skills/setup/setup.mjs" show)
 ---
@@ -21,7 +21,7 @@ Otherwise:
    - Why, and what it gives up, from the two sections below.
    - Each entry in `overrides`, since those still win, and that an organization default model or managed settings can too.
    - This session keeps its model. The change applies to sessions started afterwards.
-   - `/tokenwise:setup restore` puts the previous values back.
+   - `/tokenwise:setup restore` puts the previous values back, leaving alone any the user changed since.
 4. Ask whether to apply it. Run `node "${CLAUDE_PLUGIN_ROOT}/skills/setup/setup.mjs" apply` only after a clear yes, then report its message.
 
 ## Why Sonnet 5 at medium
@@ -37,9 +37,11 @@ Cost per completed task at list price, on the bench's small invoicing library, C
 
 ## What it gives up
 
-The bench's tasks are small and fully specified, so it never reached work Sonnet fails. For work the routing table starts higher, switch with `/model` and `/effort`, after `/clear` so the conversation is not re-processed:
+The bench's tasks are small and fully specified, and no Sonnet run failed its grader. The routing table starts two kinds of work higher:
 
-- Reviewing a diff starts on Opus at low. Sonnet at high missed one of five planted defects in one run of three.
+- Reviewing a diff starts on Opus at low. Sonnet at high missed one of five planted defects in two runs of three.
 - Planning or resolving an ambiguous spec, and debugging a failure with no reproduction, start on Opus at high. The bench did not measure these.
+
+For those, switch after `/clear` so the conversation is not re-processed. Open `/model`, choose the model and effort, and press `s` so the switch lasts this session only. Typing `/model opus` or `/effort high` also saves them as the default, which replaces what this skill sets.
 
 `/tokenwise:route <the work>` gives the setting for a specific task.

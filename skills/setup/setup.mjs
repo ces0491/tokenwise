@@ -3,8 +3,8 @@
 // The /tokenwise:setup skill runs it; nothing here runs on install.
 //
 //   node skills/setup/setup.mjs show      # current values, the recommendation, and anything that would override it
-//   node skills/setup/setup.mjs apply     # write the recommendation, saving the values it replaces
-//   node skills/setup/setup.mjs restore   # put back the values the last apply replaced
+//   node skills/setup/setup.mjs apply     # write the recommendation, saving the values from before setup first ran
+//   node skills/setup/setup.mjs restore   # put those back, except values the user changed after apply
 //
 // Claude Code resolves effort per model: a level saved under modelSettings for a model wins over the top-level
 // effortLevel in the same file, and /effort saves there. So the effort is written under modelSettings for the
@@ -65,18 +65,27 @@ export function overrides(env, projectFiles) {
 
 // ---- files -------------------------------------------------------------------------------------------
 
+// undefined when the file does not exist, so a file holding JSON null is not mistaken for a missing one.
 function readJson(file) {
-  if (!fs.existsSync(file)) return null;
+  if (!fs.existsSync(file)) return undefined;
   return JSON.parse(fs.readFileSync(file, 'utf8'));
 }
 
-// Written to a temporary file and renamed, so an interrupted write cannot leave half a settings file.
+// Written to a temporary file and renamed, so an interrupted write cannot leave half a settings file. A failed write
+// removes its temporary file and throws.
 function writeJson(file, value) {
   fs.mkdirSync(path.dirname(file), { recursive: true });
   const tmp = `${file}.tokenwise-${process.pid}.tmp`;
-  fs.writeFileSync(tmp, `${JSON.stringify(value, null, 2)}\n`);
-  fs.renameSync(tmp, file);
+  try {
+    fs.writeFileSync(tmp, `${JSON.stringify(value, null, 2)}\n`);
+    fs.renameSync(tmp, file);
+  } catch (e) {
+    fs.rmSync(tmp, { force: true });
+    throw e;
+  }
 }
+
+const isObject = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
 
 export function run(command, { env = process.env, cwd = process.cwd() } = {}) {
   const dir = configDir(env);
@@ -84,10 +93,12 @@ export function run(command, { env = process.env, cwd = process.cwd() } = {}) {
   const backupFile = path.join(dir, BACKUP);
   let settings;
   try {
-    settings = readJson(file) ?? {};
+    const parsed = readJson(file);
+    settings = parsed === undefined ? {} : parsed;
   } catch (e) {
     return { ok: false, message: `${file} is not valid JSON, so nothing was changed: ${e.message}` };
   }
+  if (!isObject(settings)) return { ok: false, message: `${file} does not hold a JSON object, so nothing was changed.` };
 
   if (command === 'show') {
     const projectFiles = {};
@@ -108,9 +119,17 @@ export function run(command, { env = process.env, cwd = process.cwd() } = {}) {
   if (command === 'apply') {
     if (applied(settings)) return { ok: true, changed: false, message: `${file} already starts new sessions on ${RECOMMENDED.model} at ${RECOMMENDED.effort}. Nothing changed.` };
     const before = current(settings);
-    writeJson(backupFile, { ...before, savedAt: new Date().toISOString() });
-    writeJson(file, withValues(settings, RECOMMENDED));
-    return { ok: true, changed: true, before, message: `New sessions start on ${RECOMMENDED.model} at ${RECOMMENDED.effort}. The previous values are saved; restore puts them back.` };
+    // A backup left by an earlier apply holds the values from before setup first ran, so it is kept. Otherwise a second
+    // apply, after the user changed a value, would save setup's own values as the ones to go back to.
+    const hadBackup = fs.existsSync(backupFile);
+    try {
+      if (!hadBackup) writeJson(backupFile, { ...before, savedAt: new Date().toISOString() });
+      writeJson(file, withValues(settings, RECOMMENDED));
+    } catch (e) {
+      if (!hadBackup) fs.rmSync(backupFile, { force: true });
+      return { ok: false, message: `Could not write ${file}, so nothing was changed: ${e.message}` };
+    }
+    return { ok: true, changed: true, before, message: `New sessions start on ${RECOMMENDED.model} at ${RECOMMENDED.effort}. The values from before setup first ran are saved; restore puts them back.` };
   }
 
   if (command === 'restore') {
@@ -121,15 +140,35 @@ export function run(command, { env = process.env, cwd = process.cwd() } = {}) {
       return { ok: false, message: `${backupFile} is not valid JSON, so nothing was changed: ${e.message}` };
     }
     if (!backup) return { ok: false, message: 'No saved values to restore: setup has not changed these settings.' };
-    writeJson(file, withValues(settings, backup));
+    // A value the user changed after apply is theirs, so only a value still holding setup's recommendation goes back.
+    const now = current(settings);
+    const target = {
+      model: now.model === RECOMMENDED.model ? backup.model : now.model,
+      effort: now.effort === RECOMMENDED.effort ? backup.effort : now.effort,
+    };
+    const kept = ['model', 'effort'].filter((k) => now[k] !== RECOMMENDED[k]);
+    try {
+      writeJson(file, withValues(settings, target));
+    } catch (e) {
+      return { ok: false, message: `Could not write ${file}, so nothing was changed: ${e.message}` };
+    }
     fs.rmSync(backupFile);
-    return { ok: true, changed: true, restored: { model: backup.model, effort: backup.effort }, message: 'The model and effort setup replaced are back.' };
+    const note = kept.length ? ` Left alone, because they changed after setup: ${kept.join(' and ')}.` : '';
+    return { ok: true, changed: true, restored: target, kept, message: `The model and effort setup replaced are back.${note}` };
   }
 
   return { ok: false, message: `Unknown command "${command}". Use show, apply or restore.` };
 }
 
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+// Run directly, including through a symlink or junction, where argv[1] is the link and import.meta.url the real path.
+const realArgv = () => {
+  try {
+    return fs.realpathSync(process.argv[1]);
+  } catch {
+    return null;
+  }
+};
+if (import.meta.main ?? (process.argv[1] && realArgv() === fileURLToPath(import.meta.url))) {
   const result = run(process.argv[2]);
   process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
   process.exitCode = result.ok ? 0 : 1;

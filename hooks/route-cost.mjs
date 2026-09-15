@@ -23,7 +23,24 @@ export function threshold(routes, model, effort) {
   return Math.min(...pool.map((r) => r.usd));
 }
 
-export const tokens = (n) => (n >= 1e6 ? `${(n / 1e6).toFixed(1)}M` : `${Math.round(n / 1e3)}K`);
+// Rounded before the unit is picked, so 999,600 reads 1.0M rather than 1000K.
+export const tokens = (n) => (Math.round(n / 1e3) >= 1000 ? `${(n / 1e6).toFixed(1)}M` : `${Math.round(n / 1e3)}K`);
+
+// The session's effort level. The hooks reference sends an `effort` object only on events inside a tool-use context,
+// which SessionStart and PreModelSwitch are not, and gives the level to every hook command as $CLAUDE_EFFORT.
+export const effortOf = (input, env = process.env) => input.effort?.level ?? env.CLAUDE_EFFORT ?? undefined;
+
+// Whether a hook script was run directly, including through a symlink or junction, where argv[1] is the link and
+// import.meta.url the real path.
+export function isMain(meta) {
+  if (typeof meta.main === 'boolean') return meta.main;
+  if (!process.argv[1]) return false;
+  try {
+    return fs.realpathSync(process.argv[1]) === fileURLToPath(meta.url);
+  } catch {
+    return false;
+  }
+}
 
 // A hook's whole stdout: a systemMessage when message() returns text, and nothing otherwise, including on any failure.
 // Neither hook makes a decision or adds context, so a broken hook changes nothing for the user.

@@ -117,16 +117,16 @@ function promptFor(run) {
 const streamed = (run) => run.effort === 'ultracode' || !!run.plugin;
 const REPO = path.resolve(HERE, '..');
 
-// The plugin a `plugin` run loads: tokenwise as shipped plus the ultratoken experiment's hook and worker agents, which
-// the shipped plugin does not carry. They are staged together as one plugin named tokenwise, under the runs root, so the
-// agent types (tokenwise:work-<effort>) and the hook's paths are the ones the published multi runs used. Staged once per
-// invocation.
+// The plugin a `plugin` run loads: what the published multi runs loaded, which is the route skill with the ultratoken
+// experiment's hook and worker agents, staged as one plugin named tokenwise under the runs root. That keeps the agent
+// types (tokenwise:work-<effort>) and the hook's paths as they were. The shipped plugin's later setup skill and hooks
+// are left out, since those runs predate them. Staged once per invocation.
 let stagedPlugin = null;
 function stagePlugin() {
   if (stagedPlugin) return stagedPlugin;
   const dir = path.join(RUNS_ROOT, '_plugin');
   fs.rmSync(dir, { recursive: true, force: true });
-  for (const p of ['.claude-plugin', 'skills', 'scripts/routing-table.mjs', 'experiments/ultratoken']) {
+  for (const p of ['.claude-plugin', 'skills/route', 'scripts/routing-table.mjs', 'experiments/ultratoken']) {
     fs.cpSync(path.join(REPO, p), path.join(dir, p), { recursive: true });
   }
   fs.cpSync(path.join(REPO, 'experiments/ultratoken/agents'), path.join(dir, 'agents'), { recursive: true });
