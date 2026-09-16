@@ -14,6 +14,7 @@ node bench/summarize.mjs --check       # RESULTS.md still follows from results/r
 node bench/breakeven.mjs --check       # docs/breakeven.svg and hooks/route-costs.json still follow from the saved runs and SKILL.md
 node scripts/check-matrix.mjs          # matrix.json expands to exactly the published runs
 node scripts/check-models.mjs          # the docs name exactly the models the published runs used
+node scripts/check-figures.mjs         # the README and the skill quote reference.md's token profile
 node scripts/check-manifests.mjs       # manifests agree, changelog matches plugin.json
 node scripts/sync-routing-table.mjs --check
 claude plugin validate .
@@ -33,7 +34,7 @@ Five of the nine rows carry no measurement. Evidence for one of them needs a new
 
 ## Changing the skill's text
 
-What a route costs depends on `SKILL.md`: how much the model thinks, what it reads, and what the answer leaves in the user's context. Any change to `SKILL.md` fails `bench/breakeven.mjs --check` until the skill is measured again, since each transcript records a hash of the text it ran against. Label the runs with the new version from `plugin.json`:
+What a route costs depends on `SKILL.md`: how much the model thinks, what it reads, and what the answer leaves in the user's context. Each transcript records a hash of the text it ran against, and `bench/breakeven.mjs` uses the newest label set recorded against this checkout's hash. So a release that changes no byte of `SKILL.md` needs no new runs, whatever version it carries: `hooks/route-costs.json` names the set it used in `measured`, and the chart's footer gives the hash, the Claude Code version and the date behind the figures. A release that does change `SKILL.md` fails `--check` until it is measured again. Label the runs with the new version from `plugin.json`:
 
 ```sh
 node bench/skill-cost.mjs --label <version> --sessions idle,invoked,unprompted   # add no-plugin when claude --version differs from the last label's
@@ -43,7 +44,7 @@ node bench/breakeven.mjs
 node bench/skill-cost.mjs --compare <previous>,<version>
 ```
 
-Add `mention` to the first command when the skill's name or description changes, since those are all that loads until the skill fires. The chart reads the xhigh route and the idle session from the bare version label and the other two routes from the suffixed ones. `bench/breakeven.mjs` also writes those route costs to `hooks/route-costs.json`, which sets the threshold both hooks use, so re-measuring moves the threshold with the chart. With `mention`, the six sessions cost $1.95 at list price on 11 September 2026. Then update the figures in `docs/findings.md`, `docs/guide.md` and the README.
+Add `mention` to the first command when the skill's name or description changes, since those are all that loads until the skill fires. The chart reads the xhigh route and the idle session from the bare version label and the other two routes from the suffixed ones. `bench/breakeven.mjs` also writes those route costs to `hooks/route-costs.json`, which sets the threshold both hooks use, so re-measuring moves the threshold with the chart. Its error names every version it tried and what each ran against, so a stale label set says which. With `mention`, the six sessions cost $1.95 at list price on 11 September 2026. Then update the figures in `docs/findings.md`, `docs/guide.md` and the README.
 
 ## Adding a bench case
 
@@ -126,6 +127,9 @@ No number in this repository should be one a reader cannot recompute. In practic
 
 - A figure from the bench traces to `bench/results/`, and `summarize.mjs` regenerates the tables that quote it.
 - A figure about token usage comes from `bench/context-profile.mjs`, which anyone can run against their own transcripts.
+  Its output is transcribed once, into the table in `skills/route/reference.md`; the README and `SKILL.md` quote that table
+  in prose, and `scripts/check-figures.mjs` fails when they drift apart. Re-running the profile means editing the table first.
+  Editing `SKILL.md` to match also means re-measuring the skill's cost, as "Changing the skill's text" sets out.
 - A figure from someone else's documentation is attributed to them, not stated flat.
 
 If a number cannot be produced either way, it comes out rather than being softened. A specific number invented for emphasis borrows an authority it has not earned, and it breaks the moment anything downstream refers back to it.
