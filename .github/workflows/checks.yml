@@ -44,6 +44,9 @@ jobs:
       - name: Docs name the models the published runs used
         run: node scripts/check-models.mjs
 
+      - name: Docs quote the same token profile
+        run: node scripts/check-figures.mjs
+
       - name: Manifests and skill frontmatter
         run: node scripts/check-manifests.mjs
 
@@ -58,5 +61,5 @@ jobs:
       - name: claude plugin validate
         timeout-minutes: 3
         run: |
-          npm install -g @anthropic-ai/claude-code@2.1.272
+          npm install -g @anthropic-ai/claude-code@2.1.273
           claude plugin validate .

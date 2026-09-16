@@ -10,7 +10,7 @@
 // Tested by switch-figure.test.mjs.
 
 import fs from 'node:fs';
-import { canonical, effortOf, isMain, respond as respondWith, runHook, threshold, tokens } from './route-cost.mjs';
+import { basis, canonical, effortOf, isMain, respond as respondWith, runHook, threshold, tokens } from './route-cost.mjs';
 
 // The model that wrote the conversation's last response, read backwards from the end of the transcript. Claude Code
 // confirms a switch only when the target differs from that model, since otherwise its cache still holds the
@@ -26,12 +26,26 @@ export function lastResponseModel(transcriptPath, { chunkBytes = 512 * 1024, max
     while (end > floor) {
       const start = Math.max(floor, end - chunkBytes);
       const chunk = Buffer.alloc(end - start);
-      fs.readSync(fd, chunk, 0, chunk.length, start);
-      const buf = Buffer.concat([chunk, carry]);
-      const lines = buf.toString('utf8').split('\n');
-      // Unless this chunk starts the file, its first line may be cut; it is read whole with the next chunk back.
-      const first = start > 0 ? 1 : 0;
-      for (let i = lines.length - 1; i >= first; i--) {
+      // readSync can return short of the buffer, so it is called until the chunk is full or the file ends.
+      let got = 0;
+      for (let n = 1; n > 0 && got < chunk.length;) {
+        n = fs.readSync(fd, chunk, got, chunk.length - got, start + got);
+        got += n;
+      }
+      const buf = Buffer.concat([chunk.subarray(0, got), carry]);
+      // Unless this chunk starts the file, its first line may be cut, and cut mid-character: it is carried back as
+      // raw bytes and read whole with the next chunk. Splitting the decoded string instead would re-encode a split
+      // character as U+FFFD and corrupt that row.
+      let body = buf;
+      if (start > 0) {
+        const cut = buf.indexOf(0x0a);
+        carry = cut >= 0 ? buf.subarray(0, cut + 1) : buf;
+        body = cut >= 0 ? buf.subarray(cut + 1) : Buffer.alloc(0);
+      } else {
+        carry = Buffer.alloc(0);
+      }
+      const lines = body.toString('utf8').split('\n');
+      for (let i = lines.length - 1; i >= 0; i--) {
         if (!lines[i].includes('"assistant"')) continue;
         try {
           const o = JSON.parse(lines[i]);
@@ -39,7 +53,6 @@ export function lastResponseModel(transcriptPath, { chunkBytes = 512 * 1024, max
           if (o.type === 'assistant' && !o.isSidechain && model && model !== '<synthetic>') return model;
         } catch { /* not a whole JSON row */ }
       }
-      carry = start > 0 ? Buffer.from(lines[0], 'utf8') : Buffer.alloc(0);
       end = start;
     }
   } catch { /* no transcript to read */ } finally {
@@ -61,7 +74,7 @@ export function message(input, routes, readLast = lastResponseModel) {
   const to = input.to_model ? canonical(input.to_model) : 'the new model';
   // Claude Code can show this after the switch has applied, and the re-send happens on the next message, so the line
   // says what that message costs and how to avoid it from either side of the switch.
-  return `tokenwise: on ${to}, your next message re-sends ${tokens(input.context_tokens)} tokens, about $${usd.toFixed(2)} at list price, because each model has its own cache. Run /clear first if you don't need this conversation.`;
+  return `tokenwise: on ${to}, your next message re-sends ${tokens(input.context_tokens)} tokens, about $${usd.toFixed(2)}${basis(input.pricing)}, because each model has its own cache. Run /clear first if you don't need this conversation.`;
 }
 
 export const respond = (stdin, routesFile) => respondWith(stdin, (input, routes) => message(input, routes), routesFile);

@@ -23,6 +23,15 @@ export function threshold(routes, model, effort) {
   return Math.min(...pool.map((r) => r.usd));
 }
 
+// How to describe estimated_cache_write_usd. PreModelSwitch reports the basis in `pricing`: "catalog" is list price and
+// "configured" is the organization's own rates ("default" is dropped by the caller, since the figure cannot be weighed).
+// SessionStart sends no such field, so a figure from there is quoted with no basis rather than claimed as list price.
+export const basis = (pricing) => {
+  if (pricing === 'catalog') return ' at list price';
+  if (pricing === 'configured') return " at your organization's rates";
+  return '';
+};
+
 // Rounded before the unit is picked, so 999,600 reads 1.0M rather than 1000K.
 export const tokens = (n) => (Math.round(n / 1e3) >= 1000 ? `${(n / 1e6).toFixed(1)}M` : `${Math.round(n / 1e3)}K`);
 

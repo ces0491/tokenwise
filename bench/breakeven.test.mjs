@@ -3,7 +3,10 @@
 
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { bands, day, linearAxis, logAxis, modelName, parseCells, setting, tickUsd } from './breakeven.mjs';
+import { DataError, bands, day, linearAxis, logAxis, measuredVersions, modelName, parseCells, routeSet, setting, tickUsd } from './breakeven.mjs';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import { median } from './records.mjs';
 
 test('model ids read as names, dated or not', () => {
@@ -64,4 +67,38 @@ test('dates and medians do not depend on locale or sort order', () => {
   assert.equal(day('2026-09-08T12:36:03.152Z'), '8 September 2026');
   assert.equal(median([3, 1, 2]), 2);
   assert.equal(median([4, 1, 3, 2]), 2.5);
+});
+
+// What a route costs follows from the skill's text, so the measurement is keyed on its hash and not on the version a
+// release happens to carry. A patch release that leaves SKILL.md alone re-uses the set already recorded for that text.
+test('version directories are listed newest first, ignoring route labels and variants', (t) => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'tokenwise-skillcost-'));
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  for (const name of ['1.1.2', '1.3.0', '1.10.0', '1.3.0-opus-high', '1.1.0-inline', '1.1.1-r2']) fs.mkdirSync(path.join(dir, name));
+  fs.writeFileSync(path.join(dir, 'no-plugin.jsonl'), '');
+  assert.deepEqual(measuredVersions(dir), ['1.10.0', '1.3.0', '1.1.2']);
+  assert.deepEqual(measuredVersions(path.join(dir, 'absent')), []);
+});
+
+test('the route set falls back to the newest version measured against this SKILL.md', () => {
+  const MEASURED = { '1.3.0': 'abc', '1.2.0': 'old' };
+  const from = (v, hash) => {
+    if (!(v in MEASURED)) throw new DataError(`${v} has no complete invoked session of its own`);
+    if (MEASURED[v] !== hash) throw new DataError(`${v} ran against SKILL.md ${MEASURED[v]}, not this checkout's ${hash}`);
+    return [{ label: v }];
+  };
+  const versions = ['1.3.0', '1.2.0'];
+  // Its own version when that was measured against this text.
+  assert.equal(routeSet('1.3.0', 'abc', 0.5, versions, from).measured, '1.3.0');
+  // A release that changed no byte of SKILL.md re-uses the set already recorded for it, with no new runs.
+  assert.equal(routeSet('1.3.1', 'abc', 0.5, versions, from).measured, '1.3.0');
+  // A release that did change it fails, and says what every version it tried ran against.
+  assert.throws(() => routeSet('1.3.1', 'new', 0.5, versions, from), (e) => {
+    assert.ok(e instanceof DataError);
+    assert.match(e.message, /no measured route set ran against this checkout's SKILL.md new/);
+    assert.match(e.message, /1\.3\.1 has no complete invoked session/);
+    assert.match(e.message, /1\.3\.0 ran against SKILL.md abc/);
+    assert.match(e.message, /1\.2\.0 ran against SKILL.md old/);
+    return true;
+  });
 });
