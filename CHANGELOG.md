@@ -2,6 +2,20 @@
 
 Versions follow the bar in `SCOPE.md`: a changed recommendation is a minor bump, a changed answer format or a removed section is a major one.
 
+## 1.3.1 — 2026-09-16
+
+No row of the routing table changed, and `SKILL.md` is untouched, so the 1.3.0 route measurements still describe what ships.
+
+- **The re-send figures say what rates they are priced on.** Both hooks called Claude Code's estimate "at list price". `PreModelSwitch` reports the basis in `pricing`, where `"configured"` is the organization's own rates, and the hook dropped only `"default"`; `SessionStart` sends no such field. The switch figure now repeats what Claude Code reported, and the resume guard quotes the figure as an estimate without naming a basis.
+- **The switch figure reads a transcript by bytes.** A line cut across a chunk boundary was carried back as re-encoded text, so a character split at the boundary returned as U+FFFD. A JSON string absorbs that without failing to parse, so no answer it gave was wrong; the remainder is now carried as raw bytes, and `readSync` is called until the chunk is full.
+- **What the skill costs is keyed on `SKILL.md`'s hash.** `bench/breakeven.mjs` built its route labels from `plugin.json`'s version, so a release needed three new measured sessions even when the skill's text had not changed. It now takes the newest label set recorded against this checkout's hash, preferring the plugin's own version, and `hooks/route-costs.json` names that set in `measured`. A release that does edit `SKILL.md` still fails `--check`, listing every version tried and what each ran against. This is the first release to reuse a measurement: its routes are the 1.3.0 sessions.
+- **Corrections from a review against `SCOPE.md`'s standing criteria.**
+  - `skills/route/reference.md` said the bench falsified four of the nine claims, from when the scope had nine. C10 and C11 were added for 1.3.0 and both falsified, so it reads six of the eleven, as `docs/findings.md` and `bench/RESULTS.md` do.
+  - The setup skill's account defaults left out the Anthropic API, which the model configuration docs list alongside Max, Team Premium and Enterprise as defaulting to Opus 5.
+  - The README says `node` has to be on your PATH, since both hooks and setup run Node scripts, and qualifies "all 87 graded runs passed" with the one review answer `bench/results/hand-grades.json` decides.
+  - The guide drops three figures a reader cannot recompute and names the method behind them instead, carries the live check behind "not when you cancel" where the claim is, and loses a heading and a closing line that restated the section below it.
+- **`scripts/check-figures.mjs` holds the three copies of the observational token profile together.** The table in `reference.md` is the source of record, and the check fails when the README or `SKILL.md` quotes a different number, the way `check-models.mjs` already works for model ids. CI runs it, and the pinned CLI moves to 2.1.273.
+
 ## 1.3.0 — 2026-09-15
 
 No row of the routing table changed. The plugin now sets a default once, warns before a re-send, and routes on request, in that order; `SCOPE.md` sets out why.
