@@ -9,8 +9,11 @@
 //
 // Task costs are cell medians from results/runs.jsonl. A cell is drawn only if bench/RESULTS.md shows every run in it
 // passing, and the script fails if a cell a task pair compares did not. Route costs are the warm routing turns from
-// results/skill-cost/<version>*, where <version> is plugin.json's, and every transcript used has to have run against
-// the SKILL.md in this checkout, or the figures would describe a skill that no longer ships.
+// results/skill-cost/<version>*. What a route costs depends on the skill's text, not on the plugin's version number,
+// so the set used is the newest one whose transcripts ran against the SKILL.md in this checkout, preferring
+// plugin.json's own version when that has been measured. A release that changes no byte of SKILL.md therefore needs
+// no new runs, and one that changes it fails until it is measured again. The chart's footer names the hash, the
+// Claude Code version and the date behind the figures, so a re-used set says what it is.
 //
 // The bands assume the recommended setting saves the median share it saved across the task pairs, whatever the task
 // size. The bench's tasks are small, so that share is measured at one size only.
@@ -123,21 +126,53 @@ export function load() {
 
   const version = JSON.parse(fs.readFileSync(path.join(ROOT, '.claude-plugin', 'plugin.json'), 'utf8')).version;
   const hash = skillHash(fs.readFileSync(path.join(ROOT, 'skills', 'route', 'SKILL.md'), 'utf8'));
-  const routes = ROUTE_SUFFIXES.map((suffix) => {
-    const label = `${version}${suffix}`;
-    const f = figures(`${label}@${version}`);
+  const { routes, measured } = routeSet(version, hash, share);
+  return { ladders, share, routes, hash, version, measured };
+}
+
+// Version directories under results/skill-cost: 1.3.0, but not the route labels beside it (1.3.0-opus-high) or the
+// variants (1.1.0-inline). Newest first.
+export const SKILL_COST = path.join(HERE, 'results', 'skill-cost');
+export function measuredVersions(dir = SKILL_COST) {
+  const parts = (v) => v.split('.').map(Number);
+  if (!fs.existsSync(dir)) return [];
+  return fs.readdirSync(dir, { withFileTypes: true })
+    .filter((e) => e.isDirectory() && /^\d+\.\d+\.\d+$/.test(e.name))
+    .map((e) => e.name)
+    .sort((x, y) => { const a2 = parts(y); const b2 = parts(x); return (a2[0] - b2[0]) || (a2[1] - b2[1]) || (a2[2] - b2[2]); });
+}
+
+// The three route labels measured under one version directory, or a DataError naming what is missing or stale.
+export function routesFrom(v, hash, share) {
+  return ROUTE_SUFFIXES.map((suffix) => {
+    const label = `${v}${suffix}`;
+    const f = figures(`${label}@${v}`);
     const inv = f.sessions.invoked;
-    need(inv?.complete && !inv.from, `${label}: no complete invoked session of its own. Measure it (CONTRIBUTING.md).`);
-    need(inv.meta.skill === hash, `${label} ran against SKILL.md ${inv.meta.skill}; this checkout's is ${hash}. Re-measure (CONTRIBUTING.md).`);
-    need(f.carriedFirst != null, `${label}: no idle session in ${version} to measure the context a route leaves behind`);
-    const lines = fs.readFileSync(path.join(HERE, 'results', 'skill-cost', label, 'invoked.jsonl'), 'utf8').split('\n').filter(Boolean).map((l) => JSON.parse(l));
+    need(inv?.complete && !inv.from, `${label} has no complete invoked session of its own`);
+    need(inv.meta.skill === hash, `${label} ran against SKILL.md ${inv.meta.skill}, not this checkout's ${hash}`);
+    need(f.carriedFirst != null, `${label} has no idle session in ${v} to measure the context a route leaves behind`);
+    const lines = fs.readFileSync(path.join(SKILL_COST, label, 'invoked.jsonl'), 'utf8').split('\n').filter(Boolean).map((l) => JSON.parse(l));
     const result = lines.filter((o) => o.type === 'result').at(-1);
     const model = Object.keys(result?.modelUsage ?? {}).find((m) => m.includes(inv.meta.model));
-    need(model, `${label}: no ${inv.meta.model} model in the session's usage`);
+    need(model, `${label} has no ${inv.meta.model} model in the session's usage`);
     const cost = f.routeWarm.turnCost;
     return { label, name: setting(model, inv.meta.effort), model, effort: inv.meta.effort, recorded: inv.meta.recorded.slice(0, 10), version: lines.find((o) => o.subtype === 'init')?.claude_code_version, cost, carried: f.carriedFirst, even: cost / share, double: (2 * cost) / share };
   });
-  return { ladders, share, routes, hash, version };
+}
+
+// plugin.json's version first, then every other measured version newest first, so a release that leaves SKILL.md alone
+// keeps the figures already published for that text, and one that edits it fails until it is measured again.
+export function routeSet(version, hash, share, versions = measuredVersions(), from = routesFrom) {
+  const tried = [];
+  for (const v of [version, ...versions.filter((x) => x !== version)]) {
+    try {
+      return { routes: from(v, hash, share), measured: v };
+    } catch (e) {
+      if (!(e instanceof DataError)) throw e;
+      tried.push(`${v}: ${e.message}`);
+    }
+  }
+  throw new DataError(`no measured route set ran against this checkout's SKILL.md ${hash}. Measure it (CONTRIBUTING.md). Tried:\n  ${tried.join('\n  ')}`);
 }
 
 // ---- the figure --------------------------------------------------------------------------------------
@@ -343,10 +378,11 @@ export function tables({ ladders, share, routes }) {
 // What a warm route cost from each measured setting, for the threshold both hooks share (hooks/route-cost.mjs). Written
 // beside the chart from the same data, so the threshold moves when the routes are re-measured.
 export const ROUTE_COSTS = path.join(ROOT, 'hooks', 'route-costs.json');
-export function routeCosts({ routes, hash, version }) {
+export function routeCosts({ routes, hash, version, measured }) {
   const doc = {
-    note: 'Generated by bench/breakeven.mjs from bench/results/skill-cost: what a route cost in a session already under way, from each measured setting. The resume guard and the switch figure speak only when the re-send would cost more than a route from the session\'s model.',
+    note: 'Generated by bench/breakeven.mjs from bench/results/skill-cost: what a route cost in a session already under way, from each measured setting. The resume guard and the switch figure speak only when the re-send would cost more than a route from the session\'s model. The "measured" field names the label set behind the figures: the newest one recorded against the "skill" hash, which is this version unless the release left SKILL.md untouched.',
     version,
+    measured,
     skill: hash,
     routes: routes.map((r) => ({ model: canonical(r.model), effort: r.effort, usd: Number(r.cost.toFixed(4)) })),
   };
