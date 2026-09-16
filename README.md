@@ -62,7 +62,7 @@ node bench/run.mjs --results bench/rerun   # re-run all 92 runs on your account,
 
 `--check` regenerates `bench/RESULTS.md` from `bench/results/runs.jsonl` and fails if the committed report differs, so you can confirm the tables were not edited by hand without spending anything. `context-profile.mjs` reads your own transcripts, so expect different numbers: the ratio and the cache share are the parts that should look familiar. Only the last command uses your account: the published runs come to $68.52 at list price. `node bench/summarize.mjs --results bench/rerun --out bench/rerun/RESULTS.md` then builds the report and verdicts from your runs, to set beside the published one.
 
-What the bench cannot show: all 87 graded runs passed, so it measures cost at equal outcomes and never reaches the point where an expensive setting earns its price. The fixture is small, so it says nothing about long-context sessions. No run used `max` effort, and ultracode ran only on two small tasks, so whether it pays on large work that splits rests on Anthropic's docs and the skill's reading of them. And it measured the models the aliases pointed to on 8, 14 and 15 September 2026: Haiku 4.5, Sonnet 5, Opus 5 and Fable 5.1. `node scripts/check-models.mjs --live` asks Claude Code what each alias points to today, for a small cost.
+What the bench cannot show: all 87 graded runs passed, 86 of them on the graders alone and one review answer the keyword grader could not read on the hand reading in `bench/results/hand-grades.json`, so it measures cost at equal outcomes and never reaches the point where an expensive setting earns its price. The fixture is small, so it says nothing about long-context sessions. No run used `max` effort, and ultracode ran only on two small tasks, so whether it pays on large work that splits rests on Anthropic's docs and the skill's reading of them. And it measured the models the aliases pointed to on 8, 14 and 15 September 2026: Haiku 4.5, Sonnet 5, Opus 5 and Fable 5.1. `node scripts/check-models.mjs --live` asks Claude Code what each alias points to today, for a small cost.
 
 ## Documentation
 
@@ -87,6 +87,8 @@ From GitHub:
 /plugin marketplace add ces0491/tokenwise
 /plugin install tokenwise@ces0491-plugins
 ```
+
+Both hooks and `/tokenwise:setup` run Node scripts, so `node` has to be on your PATH. Without it Claude Code prints the shell's error on a resume or a model switch and changes nothing else.
 
 Pair it with two environment variables so delegated reading runs on Haiku, including the built-in Explore and Plan subagents (Claude Code 2.1.257 or later):
 

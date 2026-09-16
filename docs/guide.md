@@ -28,9 +28,9 @@ The session you run it in keeps its model, and a resumed session keeps the model
 Two hooks show a line when something is about to re-send your conversation to an empty cache:
 
 - **On resume.** A conversation idle for longer than its prompt cache lifetime re-sends all of it with your first message. The line gives the tokens and the estimated cost, and suggests `/clear` if you don't need the conversation.
-- **On a model switch.** Each model has its own cache, so unless the new model wrote the last response, the next message re-sends the whole conversation. Claude Code's confirmation says so without a size; the line gives it. It shows with the switch result, and not when you cancel. Effort changes have no hook, so only Claude Code's confirmation covers them.
+- **On a model switch.** Each model has its own cache, so unless the new model wrote the last response, the next message re-sends the whole conversation. Claude Code's confirmation says so without a size; the line gives it. It shows with the switch result, and not when you cancel: on a Sonnet-to-Opus switch in a fresh session the confirmation itself carried no line, and declining showed none either. Effort changes have no hook, so only Claude Code's confirmation covers them.
 
-The figures come from Claude Code, which passes the hook the token count and an estimated cost at list price. A line shows only when that cost is more than a route from your model, and a hook never changes whether the resume or switch goes ahead. Claude never sees the line. Two forks of one conversation, one with a hook message of 40,000 characters that Claude Code cut to a 2,281-character preview, sent first requests within 31 tokens of each other. Both warnings need Claude Code 2.1.251 or later.
+The figures come from Claude Code, which passes the hook the token count and an estimated cost. On a model switch it also reports which rates it priced that estimate on, and the line repeats it; on a resume it reports no rates, so the line quotes the figure without naming a basis. A line shows only when that cost is more than a route from your model, and a hook never changes whether the resume or switch goes ahead. Claude never sees the line, which was checked by forking one conversation twice and varying only the size of the hook message: the two first requests came back within run-to-run noise of each other. Both warnings need Claude Code 2.1.251 or later, and both run a Node script, so `node` has to be on your PATH.
 
 ## Ask it
 
@@ -50,11 +50,9 @@ The skill runs in its own subagent context. Its text and its reasoning stay ther
 - For a single small chore, pick Sonnet at low effort, or Haiku, yourself. On the bench, moving a rename from Opus at xhigh to Sonnet at low saved $0.17, against $0.12 for asking from Opus 5 at xhigh.
 - Describe the work after the command. The skill cannot see your conversation, so `/tokenwise:route` on its own only asks for a description.
 
-## The one idea
+## Why context size drives the cost
 
 Every API call re-sends the whole conversation. Cost is context size multiplied by the number of calls, plus output, and thinking counts as output. The price of each token depends on the model. Effort doesn't change that price, but it changes how many tokens a task spends: how much Claude thinks, and how many turns it takes, each re-reading the context. That is why a review of a small repository can cost as much as building a feature: the review reads everything into context early, then carries it on every later call.
-
-Keep reading out of the main context, and match the model to the work rather than defaulting to the top of the range.
 
 ## What to run where
 

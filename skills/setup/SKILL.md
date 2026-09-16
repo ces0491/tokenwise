@@ -16,7 +16,7 @@ Otherwise:
 1. Run `node "${CLAUDE_PLUGIN_ROOT}/skills/setup/setup.mjs" show`. It prints JSON. If `ok` is false, show its message and stop.
 2. If `applied` is true, say new sessions already start on Sonnet at medium, list any `overrides`, and stop.
 3. Otherwise tell the user, in a few short lines:
-   - What new sessions start on now, from `current`. A null model is the plan's default: Opus 5 on Max, Team Premium and Enterprise, Sonnet 5 on Pro and Team Standard. A null effort means Sonnet runs at `topLevelEffort` when that is `low`, `medium`, `high` or `xhigh`, and otherwise at the model's default, `high`. If `topLevelEffort` holds any other value, such as `max`, say that Claude Code's settings reference does not list it for that key.
+   - What new sessions start on now, from `current`. A null model is the account's default: Opus 5 on Max, Team Premium, Enterprise and the Anthropic API, Sonnet 5 on Pro and Team Standard. A null effort means Sonnet runs at `topLevelEffort` when that is `low`, `medium`, `high` or `xhigh`, and otherwise at the model's default, `high`. If `topLevelEffort` holds any other value, such as `max`, say that Claude Code's settings reference does not list it for that key.
    - The change: `model` set to `sonnet` and a saved effort of `medium` for Sonnet 5, written to `file`.
    - Why, and what it gives up, from the two sections below.
    - Each entry in `overrides`, since those still win, and that an organization default model or managed settings can too.
