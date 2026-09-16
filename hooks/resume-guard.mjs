@@ -19,7 +19,7 @@ export function message(input, routes) {
   if (typeof usd !== 'number' || typeof input.context_tokens !== 'number' || !routes.length) return null;
   if (usd <= threshold(routes, input.model, effortOf(input))) return null;
   // Claude Code shows this as one dim line under the last message, so the cost comes first.
-  return `tokenwise: resuming re-sends ${tokens(input.context_tokens)} tokens, about $${usd.toFixed(2)} at list price, because the cache has expired. Run /clear first if you don't need this conversation.`;
+  return `tokenwise: resuming re-sends ${tokens(input.context_tokens)} tokens, about $${usd.toFixed(2)} by Claude Code's estimate, because the cache has expired. Run /clear first if you don't need this conversation.`;
 }
 
 export const respond = (stdin, routesFile) => respondWith(stdin, message, routesFile);

@@ -72,6 +72,26 @@ test('the last response skips rows Claude Code writes itself, and is found behin
   assert.equal(lastResponseModel(big, { chunkBytes: 64 * 1024, maxBytes: 100 * 1024 }), null, 'a model beyond the cap is not found');
 });
 
+// A chunk can start in the middle of a multi-byte character. The carried remainder is raw bytes rather than re-encoded
+// text, so the row is reassembled exactly as written. Carrying text instead put U+FFFD in the row, which a JSON
+// string absorbs without failing to parse, so this pins the boundary rather than reproducing a past wrong answer.
+test('a row split mid-character across two chunks is read whole', (t) => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'tokenwise-chunk-'));
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  const file = path.join(dir, 'utf8.jsonl');
+  // The filler is three bytes per character, so at least one chunk boundary lands inside one of them.
+  const rows = [
+    JSON.stringify({ type: 'assistant', message: { model: 'claude-sonnet-5' } }),
+    JSON.stringify({ type: 'user', message: { content: 'café ☕ '.repeat(20000) } }),
+  ];
+  fs.writeFileSync(file, rows.join('\n'));
+  assert.equal(lastResponseModel(file, { chunkBytes: 8 * 1024 }), 'claude-sonnet-5');
+  // The carried row itself has to survive: read it back through the same path with the model on the far side.
+  const trailing = path.join(dir, 'trailing.jsonl');
+  fs.writeFileSync(trailing, [rows[1], rows[0]].join('\n'));
+  assert.equal(lastResponseModel(trailing, { chunkBytes: 8 * 1024 }), 'claude-sonnet-5');
+});
+
 test('the effort level comes from $CLAUDE_EFFORT, which these events get in place of an effort field', () => {
   assert.equal(effortOf({}, { CLAUDE_EFFORT: 'xhigh' }), 'xhigh');
   assert.equal(effortOf({ effort: { level: 'low' } }, { CLAUDE_EFFORT: 'xhigh' }), 'low');
@@ -99,6 +119,13 @@ test('nothing when the cache is cold, before the first response, or when the pri
   assert.notEqual(message({ ...DOC_EXAMPLE, pricing: 'configured' }, ROUTES), null);
 });
 
+// "configured" means the figure is at the organization's own rates, so the line must not call it list price.
+test('the line names the basis Claude Code priced the figure on', () => {
+  assert.match(message(DOC_EXAMPLE, ROUTES), /about \$1\.14 at list price,/);
+  assert.match(message({ ...DOC_EXAMPLE, pricing: 'configured' }, ROUTES), /about \$1\.14 at your organization's rates,/);
+  assert.match(message({ ...DOC_EXAMPLE, pricing: undefined }, ROUTES), /about \$1\.14,/);
+});
+
 test('nothing at or below a route from the model being switched from', () => {
   const at = (from, effort, usd) => message({ ...DOC_EXAMPLE, from_model: from, to_model: from.includes('opus') ? 'claude-sonnet-5' : 'claude-opus-5', effort: { level: effort }, estimated_cache_write_usd: usd }, ROUTES);
   assert.equal(at('claude-sonnet-5', 'medium', 0.03), null);
@@ -118,7 +145,7 @@ test('run as a hook, it prints a systemMessage and no decision, and bad input pr
   assert.equal(respond('not json'), '');
 });
 
-test('hooks.json runs the figure on every model switch with a timeout well under the 30 seconds that would block it', () => {
+test('hooks.json runs the figure on every model switch, and gives up well before the 30-second event default', () => {
   const entry = JSON.parse(fs.readFileSync(path.join(HERE, 'hooks.json'), 'utf8')).hooks.PreModelSwitch;
   assert.equal(entry.length, 1);
   assert.equal(entry[0].matcher, undefined);

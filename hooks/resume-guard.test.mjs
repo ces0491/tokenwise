@@ -26,7 +26,7 @@ const DOC_EXAMPLE = {
 
 test('the reference example warns with its size and cost', () => {
   const text = message(DOC_EXAMPLE, ROUTES);
-  assert.match(text, /^tokenwise: resuming re-sends 182K tokens, about \$1\.14 at list price/);
+  assert.match(text, /^tokenwise: resuming re-sends 182K tokens, about \$1\.14 by Claude Code's estimate/);
   assert.match(text, /Run \/clear first/);
 });
 
