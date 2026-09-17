@@ -1,0 +1,286 @@
+{
+ "recorded": "2026-09-16T09:38:48.634Z",
+ "effort": "low",
+ "baseline": {
+  "calls": [
+   15527
+  ],
+  "reads": [],
+  "model": "claude-sonnet-5",
+  "claudeCode": "2.1.272",
+  "cost": 0.0460658,
+  "isError": false,
+  "answer": "OK",
+  "exit": 0,
+  "stderr": ""
+ },
+ "rows": [
+  {
+   "document": "attention",
+   "format": "pdf",
+   "source": "https://arxiv.org/pdf/1706.03762v7",
+   "bytes": 2215244,
+   "sha256": "bdfaa68d8984f0dc02beaca527b76f207d99b666d31d1da728ee0728182df697",
+   "session": {
+    "calls": [
+     15615,
+     15893,
+     34972
+    ],
+    "reads": [
+     {
+      "pages": null,
+      "offset": null,
+      "limit": null,
+      "returned": {
+       "blocks": [
+        "text"
+       ],
+       "textChars": 162,
+       "error": true
+      }
+     },
+     {
+      "pages": "1-15",
+      "offset": null,
+      "limit": null,
+      "returned": {
+       "blocks": [
+        "text",
+        "image"
+       ],
+       "textChars": 123,
+       "error": false
+      }
+     }
+    ],
+    "model": "claude-sonnet-5",
+    "claudeCode": "2.1.272",
+    "cost": 0.13267659999999998,
+    "isError": false,
+    "answer": "OK",
+    "exit": 0,
+    "stderr": ""
+   }
+  },
+  {
+   "document": "attention",
+   "format": "html",
+   "source": "https://arxiv.org/html/1706.03762v7",
+   "bytes": 188707,
+   "sha256": "fe1288e9c6f8322156429ab44bf5ced203155f8ecc7ea9fe6cfd125872c72a3b",
+   "session": {
+    "calls": [
+     15612,
+     38323,
+     38705,
+     54598,
+     70705,
+     85126,
+     93051,
+     103364,
+     108867,
+     117442
+    ],
+    "reads": [
+     {
+      "pages": null,
+      "offset": null,
+      "limit": null,
+      "returned": {
+       "blocks": [
+        "text"
+       ],
+       "textChars": 47534,
+       "error": false
+      }
+     },
+     {
+      "pages": null,
+      "offset": 417,
+      "limit": 416,
+      "returned": {
+       "blocks": [
+        "text"
+       ],
+       "textChars": 204,
+       "error": true
+      }
+     },
+     {
+      "pages": null,
+      "offset": 417,
+      "limit": 150,
+      "returned": {
+       "blocks": [
+        "text"
+       ],
+       "textChars": 31076,
+       "error": false
+      }
+     },
+     {
+      "pages": null,
+      "offset": 567,
+      "limit": 150,
+      "returned": {
+       "blocks": [
+        "text"
+       ],
+       "textChars": 31592,
+       "error": false
+      }
+     },
+     {
+      "pages": null,
+      "offset": 717,
+      "limit": 200,
+      "returned": {
+       "blocks": [
+        "text"
+       ],
+       "textChars": 26348,
+       "error": false
+      }
+     },
+     {
+      "pages": null,
+      "offset": 917,
+      "limit": 200,
+      "returned": {
+       "blocks": [
+        "text"
+       ],
+       "textChars": 12961,
+       "error": false
+      }
+     },
+     {
+      "pages": null,
+      "offset": 1117,
+      "limit": 250,
+      "returned": {
+       "blocks": [
+        "text"
+       ],
+       "textChars": 19891,
+       "error": false
+      }
+     },
+     {
+      "pages": null,
+      "offset": 1367,
+      "limit": 250,
+      "returned": {
+       "blocks": [
+        "text"
+       ],
+       "textChars": 10211,
+       "error": false
+      }
+     },
+     {
+      "pages": null,
+      "offset": 1617,
+      "limit": 240,
+      "returned": {
+       "blocks": [
+        "text"
+       ],
+       "textChars": 16542,
+       "error": false
+      }
+     }
+    ],
+    "model": "claude-sonnet-5",
+    "claudeCode": "2.1.272",
+    "cost": 0.5889254,
+    "isError": false,
+    "answer": "I have now read the entire file (lines 1-1856).\n\nOK",
+    "exit": 0,
+    "stderr": ""
+   }
+  },
+  {
+   "document": "attention",
+   "format": "pdf as text (pdftotext)",
+   "source": "https://arxiv.org/pdf/1706.03762v7, converted",
+   "bytes": 60771,
+   "sha256": "6df84a53c48231e15961d3fdfb045f4a4f8868fd742f4faaf984fa7d7cfb4740",
+   "session": {
+    "calls": [
+     15622,
+     34134
+    ],
+    "reads": [
+     {
+      "pages": null,
+      "offset": null,
+      "limit": null,
+      "returned": {
+       "blocks": [
+        "text"
+       ],
+       "textChars": 63217,
+       "error": false
+      }
+     }
+    ],
+    "model": "claude-sonnet-5",
+    "claudeCode": "2.1.272",
+    "cost": 0.12475080000000001,
+    "isError": false,
+    "answer": "OK",
+    "exit": 0,
+    "stderr": ""
+   }
+  },
+  {
+   "document": "attention",
+   "format": "html as Markdown (pandoc)",
+   "source": "https://arxiv.org/html/1706.03762v7, converted",
+   "bytes": 62948,
+   "sha256": "0686e551b99fab37eea96dabc141d4ee5cbf4c6354825c3c8e0f649ea0bf480f",
+   "session": {
+    "calls": [
+     15623,
+     38092,
+     50204
+    ],
+    "reads": [
+     {
+      "pages": null,
+      "offset": null,
+      "limit": null,
+      "returned": {
+       "blocks": [
+        "text"
+       ],
+       "textChars": 43202,
+       "error": false
+      }
+     },
+     {
+      "pages": null,
+      "offset": 675,
+      "limit": 674,
+      "returned": {
+       "blocks": [
+        "text"
+       ],
+       "textChars": 22347,
+       "error": false
+      }
+     }
+    ],
+    "model": "claude-sonnet-5",
+    "claudeCode": "2.1.272",
+    "cost": 0.198043,
+    "isError": false,
+    "answer": "OK",
+    "exit": 0,
+    "stderr": ""
+   }
+  }
+ ]
+}

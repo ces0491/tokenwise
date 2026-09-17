@@ -1,0 +1,202 @@
+{
+ "recorded": "2026-09-17T08:34:41.912Z",
+ "effort": "low",
+ "baseline": {
+  "calls": [
+   15678
+  ],
+  "reads": [],
+  "model": "claude-sonnet-5",
+  "claudeCode": "2.1.272",
+  "cost": 0.0466798,
+  "isError": false,
+  "answer": "OK",
+  "exit": 0,
+  "stderr": ""
+ },
+ "baselines": {
+  "Artifact,Read": {
+   "calls": [
+    33078
+   ],
+   "reads": [],
+   "model": "claude-sonnet-5",
+   "claudeCode": "2.1.272",
+   "cost": 0.0501498,
+   "isError": false,
+   "answer": "OK",
+   "exit": 0,
+   "stderr": ""
+  },
+  "WebFetch": {
+   "calls": [
+    15507
+   ],
+   "reads": [],
+   "model": "claude-sonnet-5",
+   "claudeCode": "2.1.272",
+   "cost": 0.046653200000000006,
+   "isError": false,
+   "answer": "OK",
+   "exit": 0,
+   "stderr": ""
+  }
+ },
+ "rows": [
+  {
+   "document": "tidylearn-review",
+   "format": "markdown",
+   "source": "tidylearn-review.md",
+   "bytes": 38322,
+   "sha256": "ae8e2ca989d3de6c5a46bca9a03c301a20fb75193ba23f6a29ef260fdf42b7f9",
+   "session": {
+    "calls": [
+     15772,
+     34558
+    ],
+    "reads": [
+     {
+      "tool": "Read",
+      "pages": null,
+      "offset": null,
+      "limit": null,
+      "returned": {
+       "blocks": [
+        "text"
+       ],
+       "textChars": 41338,
+       "error": false
+      }
+     }
+    ],
+    "model": "claude-sonnet-5",
+    "claudeCode": "2.1.272",
+    "cost": 0.1264188,
+    "isError": false,
+    "answer": "OK",
+    "exit": 0,
+    "stderr": ""
+   }
+  },
+  {
+   "document": "tidylearn-review",
+   "format": "html",
+   "source": "tidylearn-review.html",
+   "bytes": 51238,
+   "sha256": "bcaf23068d82d1d17e5bacb830ab28d258d93373c6ab991b62e8ed50603672f5",
+   "session": {
+    "calls": [
+     15768,
+     39458
+    ],
+    "reads": [
+     {
+      "tool": "Read",
+      "pages": null,
+      "offset": null,
+      "limit": null,
+      "returned": {
+       "blocks": [
+        "text"
+       ],
+       "textChars": 53729,
+       "error": false
+      }
+     }
+    ],
+    "model": "claude-sonnet-5",
+    "claudeCode": "2.1.272",
+    "cost": 0.146218,
+    "isError": false,
+    "answer": "OK",
+    "exit": 0,
+    "stderr": ""
+   }
+  },
+  {
+   "document": "artifact-1",
+   "format": "link, Artifact tool",
+   "source": "claude.ai artifact",
+   "bytes": null,
+   "sha256": null,
+   "session": {
+    "calls": [
+     33173,
+     55066,
+     65792,
+     79274
+    ],
+    "reads": [
+     {
+      "tool": "Artifact",
+      "pages": null,
+      "offset": null,
+      "limit": null,
+      "returned": {
+       "blocks": [
+        "text"
+       ],
+       "textChars": 50000,
+       "error": false,
+       "version": "1789381025-e7de"
+      },
+      "action": "read"
+     },
+     {
+      "tool": "Read",
+      "pages": null,
+      "offset": 400,
+      "limit": null,
+      "returned": {
+       "blocks": [
+        "text"
+       ],
+       "textChars": 24274,
+       "error": false
+      }
+     },
+     {
+      "tool": "Read",
+      "pages": null,
+      "offset": 1,
+      "limit": 399,
+      "returned": {
+       "blocks": [
+        "text"
+       ],
+       "textChars": 29793,
+       "error": false
+      }
+     }
+    ],
+    "model": "claude-sonnet-5",
+    "claudeCode": "2.1.272",
+    "cost": 0.2716758,
+    "isError": false,
+    "answer": "OK",
+    "exit": 0,
+    "stderr": ""
+   }
+  },
+  {
+   "document": "artifact-1",
+   "format": "link, WebFetch",
+   "source": "claude.ai artifact",
+   "bytes": null,
+   "sha256": null,
+   "session": {
+    "calls": [
+     15600
+    ],
+    "reads": [],
+    "model": "claude-sonnet-5",
+    "claudeCode": "2.1.272",
+    "cost": 0.047705199999999996,
+    "isError": false,
+    "answer": "I'm not able to fetch or read content from claude.ai/artifact links — I don't have access to that as a private/authenticated resource. Could you paste the document content directly, or provide it as a local file?",
+    "exit": 0,
+    "stderr": ""
+   }
+  }
+ ]
+}

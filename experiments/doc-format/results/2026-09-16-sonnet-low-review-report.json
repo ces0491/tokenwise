@@ -1,0 +1,377 @@
+{
+ "recorded": "2026-09-16T09:29:47.089Z",
+ "effort": "low",
+ "baseline": {
+  "calls": [
+   15525
+  ],
+  "reads": [],
+  "model": "claude-sonnet-5",
+  "claudeCode": "2.1.272",
+  "cost": 0.046057799999999996,
+  "isError": false,
+  "answer": "OK",
+  "exit": 0,
+  "stderr": ""
+ },
+ "rows": [
+  {
+   "document": "review",
+   "format": "markdown",
+   "source": "review.md",
+   "bytes": 11855,
+   "sha256": "e46a227b48e3f0a615aa7b794d9e510d22fd2e45e54892e5742f654234a40c65",
+   "session": {
+    "calls": [
+     15612,
+     20474
+    ],
+    "reads": [
+     {
+      "pages": null,
+      "offset": null,
+      "limit": null,
+      "returned": {
+       "blocks": [
+        "text"
+       ],
+       "textChars": 11972,
+       "error": false
+      }
+     }
+    ],
+    "model": "claude-sonnet-5",
+    "claudeCode": "2.1.272",
+    "cost": 0.06998180000000001,
+    "isError": false,
+    "answer": "OK",
+    "exit": 0,
+    "stderr": ""
+   }
+  },
+  {
+   "document": "review-pandoc",
+   "format": "html",
+   "source": "review-pandoc.html",
+   "bytes": 17870,
+   "sha256": "791f54cf9bfa034c57ee989187e832b9cc22cfe844f199e164ef8893a674ef2d",
+   "session": {
+    "calls": [
+     15619,
+     23899
+    ],
+    "reads": [
+     {
+      "pages": null,
+      "offset": null,
+      "limit": null,
+      "returned": {
+       "blocks": [
+        "text"
+       ],
+       "textChars": 18879,
+       "error": false
+      }
+     }
+    ],
+    "model": "claude-sonnet-5",
+    "claudeCode": "2.1.272",
+    "cost": 0.0840412,
+    "isError": false,
+    "answer": "OK",
+    "exit": 0,
+    "stderr": ""
+   }
+  },
+  {
+   "document": "review-quarto",
+   "format": "html",
+   "source": "review-quarto.html",
+   "bytes": 1202436,
+   "sha256": "5fea64bc2759167d87a9dade51622199600a500efe67fb6cac0ff0f4e2f258f1",
+   "session": {
+    "calls": [
+     15616,
+     15884,
+     16240,
+     16582,
+     16977,
+     17784,
+     18144,
+     18414,
+     18875,
+     19241,
+     19650,
+     19900,
+     20182,
+     20732,
+     21089,
+     25716,
+     26084,
+     26379,
+     26676
+    ],
+    "reads": [
+     {
+      "pages": null,
+      "offset": null,
+      "limit": null,
+      "returned": {
+       "blocks": [
+        "text"
+       ],
+       "textChars": 195,
+       "error": true
+      }
+     },
+     {
+      "pages": null,
+      "offset": 0,
+      "limit": 2000,
+      "returned": {
+       "blocks": [
+        "text"
+       ],
+       "textChars": 205,
+       "error": true
+      }
+     },
+     {
+      "pages": null,
+      "offset": 0,
+      "limit": 300,
+      "returned": {
+       "blocks": [
+        "text"
+       ],
+       "textChars": 205,
+       "error": true
+      }
+     },
+     {
+      "pages": null,
+      "offset": 0,
+      "limit": 5,
+      "returned": {
+       "blocks": [
+        "text"
+       ],
+       "textChars": 172,
+       "error": false
+      }
+     },
+     {
+      "pages": null,
+      "offset": 5,
+      "limit": 50,
+      "returned": {
+       "blocks": [
+        "text"
+       ],
+       "textChars": 204,
+       "error": true
+      }
+     },
+     {
+      "pages": null,
+      "offset": 5,
+      "limit": 10,
+      "returned": {
+       "blocks": [
+        "text"
+       ],
+       "textChars": 274,
+       "error": false
+      }
+     },
+     {
+      "pages": null,
+      "offset": 15,
+      "limit": 1,
+      "returned": {
+       "blocks": [
+        "text"
+       ],
+       "textChars": 26,
+       "error": false
+      }
+     },
+     {
+      "pages": null,
+      "offset": 16,
+      "limit": 1,
+      "returned": {
+       "blocks": [
+        "text"
+       ],
+       "textChars": 18,
+       "error": false
+      }
+     },
+     {
+      "pages": null,
+      "offset": 16,
+      "limit": 5,
+      "returned": {
+       "blocks": [
+        "text"
+       ],
+       "textChars": 158,
+       "error": false
+      }
+     },
+     {
+      "pages": null,
+      "offset": 20,
+      "limit": 5,
+      "returned": {
+       "blocks": [
+        "text"
+       ],
+       "textChars": 215,
+       "error": false
+      }
+     },
+     {
+      "pages": null,
+      "offset": 25,
+      "limit": 5,
+      "returned": {
+       "blocks": [
+        "text"
+       ],
+       "textChars": 39,
+       "error": false
+      }
+     },
+     {
+      "pages": null,
+      "offset": 29,
+      "limit": 1,
+      "returned": {
+       "blocks": [
+        "text"
+       ],
+       "textChars": 14,
+       "error": false
+      }
+     },
+     {
+      "pages": null,
+      "offset": 30,
+      "limit": 1,
+      "returned": {
+       "blocks": [
+        "text"
+       ],
+       "textChars": 26,
+       "error": false
+      }
+     },
+     {
+      "pages": null,
+      "offset": 31,
+      "limit": 10,
+      "returned": {
+       "blocks": [
+        "text"
+       ],
+       "textChars": 204,
+       "error": true
+      }
+     },
+     {
+      "pages": null,
+      "offset": 31,
+      "limit": 5,
+      "returned": {
+       "blocks": [
+        "text"
+       ],
+       "textChars": 9155,
+       "error": false
+      }
+     },
+     {
+      "pages": null,
+      "offset": 36,
+      "limit": 10,
+      "returned": {
+       "blocks": [
+        "text"
+       ],
+       "textChars": 204,
+       "error": true
+      }
+     },
+     {
+      "pages": null,
+      "offset": 36,
+      "limit": 2,
+      "returned": {
+       "blocks": [
+        "text"
+       ],
+       "textChars": 204,
+       "error": true
+      }
+     },
+     {
+      "pages": null,
+      "offset": 36,
+      "limit": 1,
+      "returned": {
+       "blocks": [
+        "text"
+       ],
+       "textChars": 204,
+       "error": true
+      }
+     }
+    ],
+    "model": "claude-sonnet-5",
+    "claudeCode": "2.1.272",
+    "cost": 0.2057944,
+    "isError": false,
+    "answer": "I can't read this file in full — line 36 alone (a minified bundled JavaScript blob typical of Quarto's self-contained HTML output) exceeds the tool's 25,000-token limit even at `limit=1`, so the Read tool cannot return it under any offset/limit combination. This isn't a partial-view issue I can page around; the single line itself is too large for any single call to return.\n\nI've confirmed lines 0–35 are boilerplate (Quarto meta tags, CSS reset, clipboard.js library) with no document content yet. I cannot proceed further with this tool. Let me know if you'd like me to try an alternative approach (e.g., extracting just the rendered content/body text rather than the full HTML with embedded scripts).",
+    "exit": 0,
+    "stderr": ""
+   }
+  },
+  {
+   "document": "review",
+   "format": "pdf",
+   "source": "review.pdf",
+   "bytes": 161152,
+   "sha256": "996f44f38dea7c0b2b2a678f89da65ca14c5cf0b724f6b5dfaf5572964a838a2",
+   "session": {
+    "calls": [
+     15616,
+     28089
+    ],
+    "reads": [
+     {
+      "pages": null,
+      "offset": null,
+      "limit": null,
+      "returned": {
+       "blocks": [
+        "text",
+        "document"
+       ],
+       "textChars": 100,
+       "error": false
+      }
+     }
+    ],
+    "model": "claude-sonnet-5",
+    "claudeCode": "2.1.272",
+    "cost": 0.1006426,
+    "isError": false,
+    "answer": "OK",
+    "exit": 0,
+    "stderr": ""
+   }
+  }
+ ]
+}

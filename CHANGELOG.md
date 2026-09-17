@@ -2,6 +2,12 @@
 
 Versions follow the bar in `SCOPE.md`: a changed recommendation is a minor bump, a changed answer format or a removed section is a major one.
 
+## Unreleased
+
+- **Document formats: a code review report and a claude.ai artifact.** `experiments/doc-format/` adds two documents to the paper. A 12 KB Markdown review added 4.9K tokens, its pandoc HTML 8.3K and its PDF 12.5K, and a single-file Quarto page could not be read. `measure.mjs` now also takes links: a `https://claude.ai/artifact/<id>` link is read once offered the Artifact and Read tools and once offered only WebFetch, any other `https` link once offered only WebFetch, each against its own no-document session. On a 51 KB artifact the link added 46.1K tokens against 23.7K for the saved HTML and 18.8K for a Markdown copy, and WebFetch could not open it. The paper's arXiv page through WebFetch added 1.2K. `--tools` offers file sessions Grep, Glob and read-only Bash as well, which got Claude through the Quarto page. The report counts calls by tool, and runs saved before this still reprint.
+- **File paths in a printed PDF.** `experiments/doc-format/pdf-wrap.mjs` makes a PDF of a synthetic review with Chrome, pdflatex, Typst, LibreOffice and Word, skipping any that is not installed, and checks which paths survive text extraction. Chrome, LibreOffice and Word split paths only at a hyphen, Typst at slashes too, and pdflatex split none but let one run off the page. Chrome with inline code set to `nowrap` split none. It spends nothing, and its tests run in CI.
+- **Whether Claude gives the paths back.** `experiments/doc-format/recall.mjs` hands Claude the synthetic review as Markdown, HTML and PDFs, asks for every path, and scores the list, `--repeat` times per copy. Claude gave back every split path in the main run. On an earlier, filler-text version of the document, rebuilt with `--text filler`, it returned split paths with a hyphen missing in 3 of 16 reads; the prompt's `--framing` made no clear difference. Its tests run in CI.
+
 ## 1.3.1 — 2026-09-16
 
 No row of the routing table changed, and `SKILL.md` is untouched, so the 1.3.0 route measurements still describe what ships.

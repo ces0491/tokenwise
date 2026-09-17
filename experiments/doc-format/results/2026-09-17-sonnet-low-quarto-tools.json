@@ -1,0 +1,159 @@
+{
+ "recorded": "2026-09-17T10:10:33.783Z",
+ "effort": "low",
+ "baseline": {
+  "calls": [
+   15679
+  ],
+  "reads": [],
+  "model": "claude-sonnet-5",
+  "claudeCode": "2.1.272",
+  "cost": 0.046673799999999994,
+  "isError": false,
+  "answer": "OK",
+  "exit": 0,
+  "stderr": ""
+ },
+ "baselines": {
+  "Read,Grep,Glob,Bash": {
+   "calls": [
+    21855
+   ],
+   "reads": [],
+   "model": "claude-sonnet-5",
+   "claudeCode": "2.1.272",
+   "cost": 0.088408,
+   "isError": false,
+   "answer": "OK",
+   "exit": 0,
+   "stderr": ""
+  }
+ },
+ "rows": [
+  {
+   "document": "review-quarto",
+   "format": "html",
+   "source": "review-quarto.html",
+   "bytes": 1202228,
+   "sha256": "10d33c6fed43528b0753a59491d18001c8c671b10a996b48deb0c14f4ad2c608",
+   "tools": [
+    "Read",
+    "Grep",
+    "Glob",
+    "Bash"
+   ],
+   "session": {
+    "calls": [
+     21943,
+     22192,
+     22501,
+     22796,
+     23366,
+     23972,
+     33071,
+     37171
+    ],
+    "reads": [
+     {
+      "tool": "Read",
+      "pages": null,
+      "offset": null,
+      "limit": null,
+      "returned": {
+       "blocks": [
+        "text"
+       ],
+       "textChars": 195,
+       "error": true
+      }
+     },
+     {
+      "tool": "Bash",
+      "pages": null,
+      "offset": null,
+      "limit": null,
+      "returned": {
+       "blocks": [
+        "text"
+       ],
+       "textChars": 176,
+       "error": false
+      }
+     },
+     {
+      "tool": "Read",
+      "pages": null,
+      "offset": 1,
+      "limit": 700,
+      "returned": {
+       "blocks": [
+        "text"
+       ],
+       "textChars": 205,
+       "error": true
+      }
+     },
+     {
+      "tool": "Read",
+      "pages": null,
+      "offset": 1,
+      "limit": 20,
+      "returned": {
+       "blocks": [
+        "text"
+       ],
+       "textChars": 594,
+       "error": false
+      }
+     },
+     {
+      "tool": "Grep",
+      "pages": null,
+      "offset": null,
+      "limit": null,
+      "returned": {
+       "blocks": [
+        "text"
+       ],
+       "textChars": 643,
+       "error": false
+      }
+     },
+     {
+      "tool": "Read",
+      "pages": null,
+      "offset": 2170,
+      "limit": 240,
+      "returned": {
+       "blocks": [
+        "text"
+       ],
+       "textChars": 22026,
+       "error": false
+      }
+     },
+     {
+      "tool": "Read",
+      "pages": null,
+      "offset": 2410,
+      "limit": 241,
+      "returned": {
+       "blocks": [
+        "text"
+       ],
+       "textChars": 10326,
+       "error": false
+      }
+     }
+    ],
+    "model": "claude-sonnet-5",
+    "claudeCode": "2.1.272",
+    "cost": 0.1554468,
+    "isError": false,
+    "answer": "OK",
+    "exit": 0,
+    "stderr": ""
+   }
+  }
+ ]
+}

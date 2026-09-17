@@ -1,0 +1,412 @@
+{
+ "recorded": "2026-09-17T10:33:05.261Z",
+ "perShape": 60,
+ "seed": 7,
+ "tools": {
+  "pandoc": "3.8.3\r",
+  "pdftotext": "4.00",
+  "chrome": "152.0.7977.83",
+  "chrome-nowrap": "152.0.7977.83",
+  "latex": "MiKTeX-pdfTeX 4.23 (MiKTeX 25.12)",
+  "typst": "0.15.1 (9dfd3a08)",
+  "libreoffice": "26.2.5.2",
+  "word": "16.0"
+ },
+ "variants": [
+  {
+   "name": "Chrome, pandoc stylesheet",
+   "pages": 16,
+   "rows": {
+    "kebab-case name": {
+     "paths": 60,
+     "split": 14,
+     "cutOff": 0,
+     "alteredWhenJoined": 14,
+     "hyphenDropped": 14,
+     "splitAfter": {
+      "-": 14
+     }
+    },
+    "hyphenated line range": {
+     "paths": 60,
+     "split": 0,
+     "cutOff": 0,
+     "alteredWhenJoined": 0,
+     "hyphenDropped": 0,
+     "splitAfter": {}
+    },
+    "snake_case name": {
+     "paths": 60,
+     "split": 0,
+     "cutOff": 0,
+     "alteredWhenJoined": 0,
+     "hyphenDropped": 0,
+     "splitAfter": {}
+    },
+    "camelCase name": {
+     "paths": 60,
+     "split": 0,
+     "cutOff": 0,
+     "alteredWhenJoined": 0,
+     "hyphenDropped": 0,
+     "splitAfter": {}
+    },
+    "slashes only": {
+     "paths": 60,
+     "split": 0,
+     "cutOff": 0,
+     "alteredWhenJoined": 0,
+     "hyphenDropped": 0,
+     "splitAfter": {}
+    },
+    "comma-separated lines": {
+     "paths": 60,
+     "split": 0,
+     "cutOff": 0,
+     "alteredWhenJoined": 0,
+     "hyphenDropped": 0,
+     "splitAfter": {}
+    },
+    "dotted name": {
+     "paths": 60,
+     "split": 0,
+     "cutOff": 0,
+     "alteredWhenJoined": 0,
+     "hyphenDropped": 0,
+     "splitAfter": {}
+    }
+   }
+  },
+  {
+   "name": "Chrome, code nowrap",
+   "pages": 16,
+   "rows": {
+    "kebab-case name": {
+     "paths": 60,
+     "split": 0,
+     "cutOff": 0,
+     "alteredWhenJoined": 0,
+     "hyphenDropped": 0,
+     "splitAfter": {}
+    },
+    "hyphenated line range": {
+     "paths": 60,
+     "split": 0,
+     "cutOff": 0,
+     "alteredWhenJoined": 0,
+     "hyphenDropped": 0,
+     "splitAfter": {}
+    },
+    "snake_case name": {
+     "paths": 60,
+     "split": 0,
+     "cutOff": 0,
+     "alteredWhenJoined": 0,
+     "hyphenDropped": 0,
+     "splitAfter": {}
+    },
+    "camelCase name": {
+     "paths": 60,
+     "split": 0,
+     "cutOff": 0,
+     "alteredWhenJoined": 0,
+     "hyphenDropped": 0,
+     "splitAfter": {}
+    },
+    "slashes only": {
+     "paths": 60,
+     "split": 0,
+     "cutOff": 0,
+     "alteredWhenJoined": 0,
+     "hyphenDropped": 0,
+     "splitAfter": {}
+    },
+    "comma-separated lines": {
+     "paths": 60,
+     "split": 0,
+     "cutOff": 0,
+     "alteredWhenJoined": 0,
+     "hyphenDropped": 0,
+     "splitAfter": {}
+    },
+    "dotted name": {
+     "paths": 60,
+     "split": 0,
+     "cutOff": 0,
+     "alteredWhenJoined": 0,
+     "hyphenDropped": 0,
+     "splitAfter": {}
+    }
+   }
+  },
+  {
+   "name": "LaTeX (pdflatex)",
+   "pages": 19,
+   "rows": {
+    "kebab-case name": {
+     "paths": 60,
+     "split": 0,
+     "cutOff": 0,
+     "alteredWhenJoined": 0,
+     "hyphenDropped": 0,
+     "splitAfter": {}
+    },
+    "hyphenated line range": {
+     "paths": 60,
+     "split": 0,
+     "cutOff": 0,
+     "alteredWhenJoined": 0,
+     "hyphenDropped": 0,
+     "splitAfter": {}
+    },
+    "snake_case name": {
+     "paths": 60,
+     "split": 0,
+     "cutOff": 0,
+     "alteredWhenJoined": 0,
+     "hyphenDropped": 0,
+     "splitAfter": {}
+    },
+    "camelCase name": {
+     "paths": 60,
+     "split": 0,
+     "cutOff": 0,
+     "alteredWhenJoined": 0,
+     "hyphenDropped": 0,
+     "splitAfter": {}
+    },
+    "slashes only": {
+     "paths": 60,
+     "split": 0,
+     "cutOff": 1,
+     "alteredWhenJoined": 1,
+     "hyphenDropped": 0,
+     "splitAfter": {}
+    },
+    "comma-separated lines": {
+     "paths": 60,
+     "split": 0,
+     "cutOff": 0,
+     "alteredWhenJoined": 0,
+     "hyphenDropped": 0,
+     "splitAfter": {}
+    },
+    "dotted name": {
+     "paths": 60,
+     "split": 0,
+     "cutOff": 0,
+     "alteredWhenJoined": 0,
+     "hyphenDropped": 0,
+     "splitAfter": {}
+    }
+   }
+  },
+  {
+   "name": "Typst",
+   "pages": 14,
+   "rows": {
+    "kebab-case name": {
+     "paths": 60,
+     "split": 19,
+     "cutOff": 0,
+     "alteredWhenJoined": 19,
+     "hyphenDropped": 7,
+     "splitAfter": {
+      "-": 8,
+      "/": 11
+     }
+    },
+    "hyphenated line range": {
+     "paths": 60,
+     "split": 9,
+     "cutOff": 0,
+     "alteredWhenJoined": 9,
+     "hyphenDropped": 0,
+     "splitAfter": {
+      "/": 9
+     }
+    },
+    "snake_case name": {
+     "paths": 60,
+     "split": 29,
+     "cutOff": 0,
+     "alteredWhenJoined": 29,
+     "hyphenDropped": 0,
+     "splitAfter": {
+      "/": 29
+     }
+    },
+    "camelCase name": {
+     "paths": 60,
+     "split": 16,
+     "cutOff": 0,
+     "alteredWhenJoined": 16,
+     "hyphenDropped": 0,
+     "splitAfter": {
+      "/": 16
+     }
+    },
+    "slashes only": {
+     "paths": 60,
+     "split": 18,
+     "cutOff": 0,
+     "alteredWhenJoined": 18,
+     "hyphenDropped": 0,
+     "splitAfter": {
+      "/": 18
+     }
+    },
+    "comma-separated lines": {
+     "paths": 60,
+     "split": 6,
+     "cutOff": 0,
+     "alteredWhenJoined": 6,
+     "hyphenDropped": 0,
+     "splitAfter": {
+      "/": 6
+     }
+    },
+    "dotted name": {
+     "paths": 60,
+     "split": 0,
+     "cutOff": 0,
+     "alteredWhenJoined": 0,
+     "hyphenDropped": 0,
+     "splitAfter": {}
+    }
+   }
+  },
+  {
+   "name": "LibreOffice (from docx)",
+   "pages": 17,
+   "rows": {
+    "kebab-case name": {
+     "paths": 60,
+     "split": 15,
+     "cutOff": 0,
+     "alteredWhenJoined": 15,
+     "hyphenDropped": 15,
+     "splitAfter": {
+      "-": 15
+     }
+    },
+    "hyphenated line range": {
+     "paths": 60,
+     "split": 3,
+     "cutOff": 0,
+     "alteredWhenJoined": 3,
+     "hyphenDropped": 3,
+     "splitAfter": {
+      "-": 3
+     }
+    },
+    "snake_case name": {
+     "paths": 60,
+     "split": 0,
+     "cutOff": 0,
+     "alteredWhenJoined": 0,
+     "hyphenDropped": 0,
+     "splitAfter": {}
+    },
+    "camelCase name": {
+     "paths": 60,
+     "split": 0,
+     "cutOff": 0,
+     "alteredWhenJoined": 0,
+     "hyphenDropped": 0,
+     "splitAfter": {}
+    },
+    "slashes only": {
+     "paths": 60,
+     "split": 0,
+     "cutOff": 0,
+     "alteredWhenJoined": 0,
+     "hyphenDropped": 0,
+     "splitAfter": {}
+    },
+    "comma-separated lines": {
+     "paths": 60,
+     "split": 0,
+     "cutOff": 0,
+     "alteredWhenJoined": 0,
+     "hyphenDropped": 0,
+     "splitAfter": {}
+    },
+    "dotted name": {
+     "paths": 60,
+     "split": 0,
+     "cutOff": 0,
+     "alteredWhenJoined": 0,
+     "hyphenDropped": 0,
+     "splitAfter": {}
+    }
+   }
+  },
+  {
+   "name": "Word (from docx)",
+   "pages": 18,
+   "rows": {
+    "kebab-case name": {
+     "paths": 60,
+     "split": 14,
+     "cutOff": 0,
+     "alteredWhenJoined": 14,
+     "hyphenDropped": 13,
+     "splitAfter": {
+      "-": 14
+     }
+    },
+    "hyphenated line range": {
+     "paths": 60,
+     "split": 2,
+     "cutOff": 0,
+     "alteredWhenJoined": 2,
+     "hyphenDropped": 2,
+     "splitAfter": {
+      "-": 2
+     }
+    },
+    "snake_case name": {
+     "paths": 60,
+     "split": 0,
+     "cutOff": 0,
+     "alteredWhenJoined": 0,
+     "hyphenDropped": 0,
+     "splitAfter": {}
+    },
+    "camelCase name": {
+     "paths": 60,
+     "split": 0,
+     "cutOff": 0,
+     "alteredWhenJoined": 0,
+     "hyphenDropped": 0,
+     "splitAfter": {}
+    },
+    "slashes only": {
+     "paths": 60,
+     "split": 0,
+     "cutOff": 0,
+     "alteredWhenJoined": 0,
+     "hyphenDropped": 0,
+     "splitAfter": {}
+    },
+    "comma-separated lines": {
+     "paths": 60,
+     "split": 0,
+     "cutOff": 0,
+     "alteredWhenJoined": 0,
+     "hyphenDropped": 0,
+     "splitAfter": {}
+    },
+    "dotted name": {
+     "paths": 60,
+     "split": 0,
+     "cutOff": 0,
+     "alteredWhenJoined": 0,
+     "hyphenDropped": 0,
+     "splitAfter": {}
+    }
+   }
+  }
+ ]
+}
