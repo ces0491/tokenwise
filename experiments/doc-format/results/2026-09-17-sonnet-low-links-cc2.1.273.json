@@ -1,0 +1,281 @@
+{
+ "recorded": "2026-09-17T11:03:02.034Z",
+ "effort": "low",
+ "baseline": {
+  "calls": [
+   15683
+  ],
+  "reads": [],
+  "model": "claude-sonnet-5",
+  "claudeCode": "2.1.273",
+  "cost": 0.0466848,
+  "isError": false,
+  "answer": "OK",
+  "exit": 0,
+  "stderr": ""
+ },
+ "baselines": {
+  "Artifact,Read": {
+   "calls": [
+    33244
+   ],
+   "reads": [],
+   "model": "claude-sonnet-5",
+   "claudeCode": "2.1.273",
+   "cost": 0.13394899999999998,
+   "isError": false,
+   "answer": "OK",
+   "exit": 0,
+   "stderr": ""
+  },
+  "WebFetch": {
+   "calls": [
+    15506
+   ],
+   "reads": [],
+   "model": "claude-sonnet-5",
+   "claudeCode": "2.1.273",
+   "cost": 0.0466492,
+   "isError": false,
+   "answer": "OK",
+   "exit": 0,
+   "stderr": ""
+  }
+ },
+ "rows": [
+  {
+   "document": "artifact-1",
+   "format": "link, Artifact tool",
+   "source": "claude.ai artifact",
+   "bytes": null,
+   "sha256": null,
+   "session": {
+    "calls": [
+     33337,
+     55246,
+     59818
+    ],
+    "reads": [
+     {
+      "tool": "Artifact",
+      "pages": null,
+      "offset": null,
+      "limit": null,
+      "returned": {
+       "blocks": [
+        "text"
+       ],
+       "textChars": 50000,
+       "error": false,
+       "version": "1789381025-e7de"
+      },
+      "action": "read"
+     },
+     {
+      "tool": "Read",
+      "pages": null,
+      "offset": 560,
+      "limit": null,
+      "returned": {
+       "blocks": [
+        "text"
+       ],
+       "textChars": 10242,
+       "error": false
+      }
+     }
+    ],
+    "model": "claude-sonnet-5",
+    "claudeCode": "2.1.273",
+    "cost": 0.1786716,
+    "isError": false,
+    "answer": "I've now read the entire document (all 668 lines, including the head content shown initially and the full script/findings body).\n\nOK",
+    "exit": 0,
+    "stderr": ""
+   }
+  },
+  {
+   "document": "artifact-1",
+   "format": "link, WebFetch",
+   "source": "claude.ai artifact",
+   "bytes": null,
+   "sha256": null,
+   "session": {
+    "calls": [
+     15601
+    ],
+    "reads": [],
+    "model": "claude-sonnet-5",
+    "claudeCode": "2.1.273",
+    "cost": 0.047759199999999995,
+    "isError": false,
+    "answer": "I'm not able to fetch content from claude.ai URLs (artifacts aren't accessible to me as external pages). Could you paste the document text directly, or provide a different accessible link?",
+    "exit": 0,
+    "stderr": ""
+   }
+  },
+  {
+   "document": "artifact-2",
+   "format": "link, Artifact tool",
+   "source": "claude.ai artifact",
+   "bytes": null,
+   "sha256": null,
+   "session": {
+    "calls": [
+     33342,
+     50434
+    ],
+    "reads": [
+     {
+      "tool": "Artifact",
+      "pages": null,
+      "offset": null,
+      "limit": null,
+      "returned": {
+       "blocks": [
+        "text"
+       ],
+       "textChars": 41738,
+       "error": false,
+       "version": "1787075138-b5a9"
+      },
+      "action": "read"
+     }
+    ],
+    "model": "claude-sonnet-5",
+    "claudeCode": "2.1.273",
+    "cost": 0.1274098,
+    "isError": false,
+    "answer": "OK",
+    "exit": 0,
+    "stderr": ""
+   }
+  },
+  {
+   "document": "artifact-2",
+   "format": "link, WebFetch",
+   "source": "claude.ai artifact",
+   "bytes": null,
+   "sha256": null,
+   "session": {
+    "calls": [
+     15599
+    ],
+    "reads": [],
+    "model": "claude-sonnet-5",
+    "claudeCode": "2.1.273",
+    "cost": 0.047782200000000004,
+    "isError": false,
+    "answer": "I'm not able to fetch content from claude.ai/artifact links — that's a private/authenticated URL I don't have access to. Could you paste the document content directly, or provide a different accessible source?",
+    "exit": 0,
+    "stderr": ""
+   }
+  },
+  {
+   "document": "artifact-3",
+   "format": "link, Artifact tool",
+   "source": "claude.ai artifact",
+   "bytes": null,
+   "sha256": null,
+   "session": {
+    "calls": [
+     33339,
+     41705
+    ],
+    "reads": [
+     {
+      "tool": "Artifact",
+      "pages": null,
+      "offset": null,
+      "limit": null,
+      "returned": {
+       "blocks": [
+        "text"
+       ],
+       "textChars": 18280,
+       "error": false,
+       "version": "1787298279-14bb"
+      },
+      "action": "read"
+     }
+    ],
+    "model": "claude-sonnet-5",
+    "claudeCode": "2.1.273",
+    "cost": 0.0927282,
+    "isError": false,
+    "answer": "OK",
+    "exit": 0,
+    "stderr": ""
+   }
+  },
+  {
+   "document": "artifact-3",
+   "format": "link, WebFetch",
+   "source": "claude.ai artifact",
+   "bytes": null,
+   "sha256": null,
+   "session": {
+    "calls": [
+     15603
+    ],
+    "reads": [],
+    "model": "claude-sonnet-5",
+    "claudeCode": "2.1.273",
+    "cost": 0.04765319999999999,
+    "isError": false,
+    "answer": "I can't access claude.ai artifact links — they require authenticated access I don't have. Could you paste the document content directly, or provide it as a local file?",
+    "exit": 0,
+    "stderr": ""
+   }
+  },
+  {
+   "document": "arxiv.org",
+   "format": "link, WebFetch",
+   "source": "https://arxiv.org/html/1706.03762v7",
+   "bytes": null,
+   "sha256": null,
+   "session": {
+    "calls": [
+     15586,
+     16398,
+     17174
+    ],
+    "reads": [
+     {
+      "tool": "WebFetch",
+      "pages": null,
+      "offset": null,
+      "limit": null,
+      "returned": {
+       "blocks": [
+        "text"
+       ],
+       "textChars": 1843,
+       "error": false
+      }
+     },
+     {
+      "tool": "WebFetch",
+      "pages": null,
+      "offset": null,
+      "limit": null,
+      "returned": {
+       "blocks": [
+        "text"
+       ],
+       "textChars": 1370,
+       "error": false
+      }
+     }
+    ],
+    "model": "claude-sonnet-5",
+    "claudeCode": "2.1.273",
+    "cost": 0.1019302,
+    "isError": false,
+    "answer": "I can't do this. My WebFetch tool routes the page through a summarization model before returning results — it's giving me condensed/paraphrased summaries even when I explicitly ask for verbatim raw text. I don't have a way to retrieve or read the actual full raw content of that page with the tools available to me, so I can't honestly say I've read it in full, and I can't reply \"OK\" as if I had.",
+    "exit": 0,
+    "stderr": ""
+   }
+  }
+ ]
+}

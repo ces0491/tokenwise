@@ -3,7 +3,15 @@
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { parseSession, report, summarise } from './measure.mjs';
+import fs from 'node:fs';
+import { allowedFor, callsText, isArtifactLink, isLink, parseSession, report, summarise } from './measure.mjs';
+
+test('offering Bash allows only read-only commands', () => {
+  const allowed = allowedFor(['Read', 'Grep', 'Bash']);
+  assert.deepEqual(allowed.slice(0, 2), ['Read', 'Grep']);
+  assert.ok(allowed.slice(2).every((a) => /^Bash\((grep|head|tail|wc|cut):\*\)$/.test(a)));
+  assert.ok(!allowed.includes('Bash'));
+});
 
 const jl = (...events) => events.map((e) => JSON.stringify(e)).join('\n');
 const call = (id, context, tools = []) => ({ type: 'assistant', message: { id, usage: { input_tokens: 5, cache_read_input_tokens: context - 5 }, content: tools } });
@@ -31,7 +39,7 @@ test('a session that never read, or replied with more than OK, is flagged', () =
   const { added, notes } = summarise(s);
   assert.equal(added, null);
   assert.match(notes.join(), /did not end with OK/);
-  assert.match(notes.join(), /no Read call/);
+  assert.match(notes.join(), /no tool call/);
 });
 
 test('a reply that reports the read and ends with OK is not flagged', () => {
@@ -49,4 +57,54 @@ test('the report reads a saved run without running anything', () => {
   const md = report({ recorded: '2026-09-14T20:00:00Z', effort: 'low', baseline, rows: [{ document: 'doc', format: 'html', source: 'https://example.org/doc', bytes: 2048, sha256: 'ab', session }] });
   assert.match(md, /\| doc \| html \| 2\.0KB \| 1 \| text \| 3\.0K \| \$0\.020 \| - \|/);
   assert.match(md, /sha256 ab/);
+});
+
+test('Artifact and WebFetch calls are recorded, with the artifact version', () => {
+  const artifact = { type: 'tool_use', id: 'a1', name: 'Artifact', input: { action: 'read', url: 'https://claude.ai/artifact/x' } };
+  const s = parseSession(jl(
+    call('a', 30000, [artifact]), returned('a1', '[Artifact 7d39 (version 1789381025-e7de) — owned by you] <html>'),
+    call('b', 50000, [read(null, 'r1')]), returned('r1', 'line 1'),
+    call('c', 70000, [{ type: 'tool_use', id: 'w1', name: 'WebFetch', input: { url: 'https://claude.ai/artifact/x' } }]), returned('w1', 'HTTP 403'),
+    call('d', 70100), result(),
+  ));
+  assert.deepEqual(s.reads.map((r) => r.tool), ['Artifact', 'Read', 'WebFetch']);
+  assert.equal(s.reads[0].action, 'read');
+  assert.equal(s.reads[0].returned.version, '1789381025-e7de');
+  assert.equal(s.reads[2].returned.version, undefined);
+  assert.equal(callsText(s.reads), '1 Artifact, 1 Read, 1 WebFetch');
+});
+
+test('a link row has no size, and each extra tool set reports its own baseline', () => {
+  const init = { type: 'system', subtype: 'init', model: 'claude-sonnet-5', claude_code_version: '2.1.272' };
+  const artifact = { type: 'tool_use', id: 'a1', name: 'Artifact', input: { action: 'read' } };
+  const session = parseSession(jl(init, call('a', 33000, [artifact]), returned('a1', '(version v1) <html>'), call('b', 79000), result()));
+  const baseline = parseSession(jl(init, call('a', 15700), result()));
+  const withArtifact = parseSession(jl(init, call('a', 33300), result()));
+  const md = report({ recorded: '2026-09-17T09:00:00Z', effort: 'low', baseline, baselines: { 'Artifact,Read': withArtifact }, rows: [{ document: 'artifact-1', format: 'link, Artifact tool', source: 'claude.ai artifact', bytes: null, sha256: null, session }] });
+  assert.match(md, /\| artifact-1 \| link, Artifact tool \| - \| 1 Artifact \| text \| 46\.0K \|/);
+  assert.match(md, /15\.7K offered Read, 33\.3K offered Artifact and Read\. All 3 sessions: \$0\.060/);
+  assert.match(md, /artifact-1 link, Artifact tool: claude\.ai artifact, version v1/);
+});
+
+test('saved runs from before other tools were offered still report their Read calls', () => {
+  const run = JSON.parse(fs.readFileSync(new URL('./results/2026-09-16-sonnet-low-review-report.json', import.meta.url), 'utf8'));
+  const md = report(run);
+  assert.match(md, /\| review \| markdown \| 11\.9KB \| 1 \| text \| 4\.9K \|/);
+  assert.match(md, /\| review-quarto \| html \| 1202\.4KB \| 18 \| text, 8 errors \|/);
+  assert.match(md, /Baseline session with no document: 15\.5K tokens/);
+});
+
+test('only claude.ai artifact links are taken as links', () => {
+  assert.equal(isArtifactLink('https://claude.ai/artifact/GTrkydz4Yso4yoKdkjxtiT'), true);
+  assert.equal(isArtifactLink('https://claude.ai/artifact/GTrkydz4Yso4yoKdkjxtiT/'), true);
+  assert.equal(isArtifactLink('https://example.org/artifact/abc'), false);
+  assert.equal(isArtifactLink('http://claude.ai/artifact/abc'), false);
+  assert.equal(isArtifactLink('report.html'), false);
+});
+
+test('any https address is taken as a link, and a file name or plain http is not', () => {
+  assert.equal(isLink('https://arxiv.org/html/1706.03762v7'), true);
+  assert.equal(isLink('https://claude.ai/artifact/abc'), true);
+  assert.equal(isLink('http://arxiv.org/html/1706.03762v7'), false);
+  assert.equal(isLink('report.html'), false);
 });

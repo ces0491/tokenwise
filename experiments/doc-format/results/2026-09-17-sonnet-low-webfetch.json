@@ -1,0 +1,83 @@
+{
+ "recorded": "2026-09-17T10:08:47.529Z",
+ "effort": "low",
+ "baseline": {
+  "calls": [
+   15683
+  ],
+  "reads": [],
+  "model": "claude-sonnet-5",
+  "claudeCode": "2.1.272",
+  "cost": 0.0466998,
+  "isError": false,
+  "answer": "OK",
+  "exit": 0,
+  "stderr": ""
+ },
+ "baselines": {
+  "WebFetch": {
+   "calls": [
+    15512
+   ],
+   "reads": [],
+   "model": "claude-sonnet-5",
+   "claudeCode": "2.1.272",
+   "cost": 0.0466632,
+   "isError": false,
+   "answer": "OK",
+   "exit": 0,
+   "stderr": ""
+  }
+ },
+ "rows": [
+  {
+   "document": "arxiv.org",
+   "format": "link, WebFetch",
+   "source": "https://arxiv.org/html/1706.03762v7",
+   "bytes": null,
+   "sha256": null,
+   "session": {
+    "calls": [
+     15593,
+     16222,
+     16792
+    ],
+    "reads": [
+     {
+      "tool": "WebFetch",
+      "pages": null,
+      "offset": null,
+      "limit": null,
+      "returned": {
+       "blocks": [
+        "text"
+       ],
+       "textChars": 1279,
+       "error": false
+      }
+     },
+     {
+      "tool": "WebFetch",
+      "pages": null,
+      "offset": null,
+      "limit": null,
+      "returned": {
+       "blocks": [
+        "text"
+       ],
+       "textChars": 736,
+       "error": false
+      }
+     }
+    ],
+    "model": "claude-sonnet-5",
+    "claudeCode": "2.1.272",
+    "cost": 0.0977994,
+    "isError": false,
+    "answer": "OK",
+    "exit": 0,
+    "stderr": ""
+   }
+  }
+ ]
+}

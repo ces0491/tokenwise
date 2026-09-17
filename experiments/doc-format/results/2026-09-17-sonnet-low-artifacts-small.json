@@ -1,0 +1,161 @@
+{
+ "recorded": "2026-09-17T10:12:01.012Z",
+ "effort": "low",
+ "baseline": {
+  "calls": [
+   15684
+  ],
+  "reads": [],
+  "model": "claude-sonnet-5",
+  "claudeCode": "2.1.272",
+  "cost": 0.046688799999999996,
+  "isError": false,
+  "answer": "OK",
+  "exit": 0,
+  "stderr": ""
+ },
+ "baselines": {
+  "Artifact,Read": {
+   "calls": [
+    33084
+   ],
+   "reads": [],
+   "model": "claude-sonnet-5",
+   "claudeCode": "2.1.272",
+   "cost": 0.133324,
+   "isError": false,
+   "answer": "OK",
+   "exit": 0,
+   "stderr": ""
+  },
+  "WebFetch": {
+   "calls": [
+    15514
+   ],
+   "reads": [],
+   "model": "claude-sonnet-5",
+   "claudeCode": "2.1.272",
+   "cost": 0.046681200000000006,
+   "isError": false,
+   "answer": "OK",
+   "exit": 0,
+   "stderr": ""
+  }
+ },
+ "rows": [
+  {
+   "document": "artifact-1",
+   "format": "link, Artifact tool",
+   "source": "claude.ai artifact",
+   "bytes": null,
+   "sha256": null,
+   "session": {
+    "calls": [
+     33179,
+     50252
+    ],
+    "reads": [
+     {
+      "tool": "Artifact",
+      "pages": null,
+      "offset": null,
+      "limit": null,
+      "returned": {
+       "blocks": [
+        "text"
+       ],
+       "textChars": 41621,
+       "error": false,
+       "version": "1787075138-b5a9"
+      },
+      "action": "read"
+     }
+    ],
+    "model": "claude-sonnet-5",
+    "claudeCode": "2.1.272",
+    "cost": 0.1274662,
+    "isError": false,
+    "answer": "OK",
+    "exit": 0,
+    "stderr": ""
+   }
+  },
+  {
+   "document": "artifact-1",
+   "format": "link, WebFetch",
+   "source": "claude.ai artifact",
+   "bytes": null,
+   "sha256": null,
+   "session": {
+    "calls": [
+     15610
+    ],
+    "reads": [],
+    "model": "claude-sonnet-5",
+    "claudeCode": "2.1.272",
+    "cost": 0.048001199999999994,
+    "isError": false,
+    "answer": "I'm not able to fetch content from claude.ai/artifact links — I don't have tool access to that domain, and I shouldn't fabricate having read it.\n\nCould you paste the document content directly, or share it via a URL I can access (or a local file)?",
+    "exit": 0,
+    "stderr": ""
+   }
+  },
+  {
+   "document": "artifact-2",
+   "format": "link, Artifact tool",
+   "source": "claude.ai artifact",
+   "bytes": null,
+   "sha256": null,
+   "session": {
+    "calls": [
+     33184,
+     41502
+    ],
+    "reads": [
+     {
+      "tool": "Artifact",
+      "pages": null,
+      "offset": null,
+      "limit": null,
+      "returned": {
+       "blocks": [
+        "text"
+       ],
+       "textChars": 18163,
+       "error": false,
+       "version": "1787298279-14bb"
+      },
+      "action": "read"
+     }
+    ],
+    "model": "claude-sonnet-5",
+    "claudeCode": "2.1.272",
+    "cost": 0.0923522,
+    "isError": false,
+    "answer": "OK",
+    "exit": 0,
+    "stderr": ""
+   }
+  },
+  {
+   "document": "artifact-2",
+   "format": "link, WebFetch",
+   "source": "claude.ai artifact",
+   "bytes": null,
+   "sha256": null,
+   "session": {
+    "calls": [
+     15610
+    ],
+    "reads": [],
+    "model": "claude-sonnet-5",
+    "claudeCode": "2.1.272",
+    "cost": 0.0477412,
+    "isError": false,
+    "answer": "I can't access claude.ai artifact links — they require authentication I don't have. Could you paste the document content directly, or share it another way (file upload, export, etc.)?",
+    "exit": 0,
+    "stderr": ""
+   }
+  }
+ ]
+}

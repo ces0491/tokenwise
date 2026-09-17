@@ -1,0 +1,383 @@
+{
+ "recorded": "2026-09-17T10:54:24.763Z",
+ "model": "claude-sonnet-5",
+ "claudeCode": "2.1.272",
+ "effort": "low",
+ "seed": 11,
+ "sizes": {
+  "short": 12,
+  "long": 60
+ },
+ "text": "filler",
+ "framing": "test",
+ "rows": [
+  {
+   "size": "short",
+   "form": "PDF, Chrome",
+   "ext": "pdf",
+   "run": 1,
+   "pages": 4,
+   "score": {
+    "paths": 84,
+    "listed": 84,
+    "exact": 84,
+    "splitPaths": 3,
+    "wrong": [],
+    "strays": []
+   },
+   "session": {
+    "calls": [
+     15810,
+     25758
+    ],
+    "reads": [
+     {
+      "tool": "Read",
+      "pages": null,
+      "offset": null,
+      "limit": null,
+      "returned": {
+       "blocks": [
+        "text",
+        "document"
+       ],
+       "textChars": 95,
+       "error": false
+      }
+     }
+    ],
+    "model": "claude-sonnet-5",
+    "claudeCode": "2.1.272",
+    "cost": 0.10776340000000001,
+    "isError": false,
+    "answer": "src/lib/statementRun1/applyDeductions.ts:11\nsrc/lib/statement/run4/deduct/apply/index.ts:14\nsrc/lib/statement_run_8/apply_deductions.py:18\npkg.module8.submodule.function_name\nsrc/lib/statement/run8/deduct/apply/index.ts:18\npkg.module6.submodule.function_name\nsrc/lib/statement/run3/deduct/apply/index.ts:13\nsrc/lib/statement/run2/deduct/apply/index.ts:12\nsrc/lib/statement-run-5/apply-deductions.ts\nsrc/lib/statement-run-4/apply-deductions.ts\nsrc/lib/statement/run7/deduct/apply/index.ts:17\nsrc/lib/statement-run-0/apply-deductions.ts\nsrc/lib/statementRun11/applyDeductions.ts:21\nsrc/pages.tsx:19,29,39\nsrc/lib/statement_run_4/apply_deductions.py:14\nsrc/lib/statementRun8/applyDeductions.ts:18\nsrc/lib/statement_run_1/apply_deductions.py:11\nsrc/lib/statement_run_5/apply_deductions.py:15\nsrc/pages.tsx:16,26,36\nsrc/model/build.ts:111-131\nsrc/pages.tsx:17,27,37\nsrc/model/build.ts:104-124\npkg.module5.submodule.function_name\nsrc/lib/statementRun5/applyDeductions.ts:15\nsrc/model/build.ts:101-121\nsrc/lib/statement-run-9/apply-deductions.ts\nsrc/lib/statementRun10/applyDeductions.ts:20\nsrc/pages.tsx:21,31,41\nsrc/lib/statement-run-2/apply-deductions.ts\npkg.module9.submodule.function_name\nsrc/pages.tsx:14,24,34\nsrc/pages.tsx:10,20,30\nsrc/lib/statement_run_2/apply_deductions.py:12\nsrc/lib/statement_run_10/apply_deductions.py:20\nsrc/lib/statement_run_3/apply_deductions.py:13\npkg.module4.submodule.function_name\nsrc/lib/statement_run_6/apply_deductions.py:16\npkg.module1.submodule.function_name\nsrc/lib/statement/run1/deduct/apply/index.ts:11\npkg.module3.submodule.function_name\nsrc/model/build.ts:105-125\nsrc/lib/statement/run10/deduct/apply/index.ts:20\nsrc/lib/statementRun4/applyDeductions.ts:14\nsrc/pages.tsx:20,30,40\nsrc/model/build.ts:108-128\nsrc/lib/statement_run_7/apply_deductions.py:17\nsrc/model/build.ts:102-122\nsrc/lib/statement-run-6/apply-deductions.ts\nsrc/lib/statement-run-7/apply-deductions.ts\nsrc/lib/statement/run11/deduct/apply/index.ts:21\nsrc/pages.tsx:12,22,32\nsrc/lib/statement/run5/deduct/apply/index.ts:15\npkg.module10.submodule.function_name\nsrc/lib/statement-run-1/apply-deductions.ts\nsrc/lib/statement/run9/deduct/apply/index.ts:19\nsrc/model/build.ts:110-130\nsrc/lib/statement_run_0/apply_deductions.py:10\nsrc/lib/statement-run-11/apply-deductions.ts\nsrc/lib/statement/run6/deduct/apply/index.ts:16\nsrc/model/build.ts:103-123\nsrc/lib/statement-run-3/apply-deductions.ts\npkg.module0.submodule.function_name\nsrc/lib/statement-run-8/apply-deductions.ts\nsrc/lib/statementRun0/applyDeductions.ts:10\nsrc/lib/statement_run_9/apply_deductions.py:19\nsrc/pages.tsx:15,25,35\nsrc/lib/statementRun7/applyDeductions.ts:17\nsrc/lib/statement/run0/deduct/apply/index.ts:10\nsrc/model/build.ts:100-120\npkg.module2.submodule.function_name\nsrc/lib/statementRun6/applyDeductions.ts:16\nsrc/pages.tsx:18,28,38\nsrc/model/build.ts:109-129\nsrc/model/build.ts:107-127\nsrc/model/build.ts:106-126\nsrc/lib/statementRun3/applyDeductions.ts:13\npkg.module7.submodule.function_name\nsrc/lib/statementRun9/applyDeductions.ts:19\nsrc/lib/statement-run-10/apply-deductions.ts\nsrc/lib/statementRun2/applyDeductions.ts:12\nsrc/pages.tsx:11,21,31\nsrc/pages.tsx:13,23,33\npkg.module11.submodule.function_name\nsrc/lib/statement_run_11/apply_deductions.py:21",
+    "exit": 0,
+    "stderr": ""
+   }
+  },
+  {
+   "size": "short",
+   "form": "PDF, Chrome",
+   "ext": "pdf",
+   "run": 2,
+   "pages": 4,
+   "score": {
+    "paths": 84,
+    "listed": 84,
+    "exact": 84,
+    "splitPaths": 3,
+    "wrong": [],
+    "strays": []
+   },
+   "session": {
+    "calls": [
+     15814,
+     25747
+    ],
+    "reads": [
+     {
+      "tool": "Read",
+      "pages": null,
+      "offset": null,
+      "limit": null,
+      "returned": {
+       "blocks": [
+        "text",
+        "document"
+       ],
+       "textChars": 95,
+       "error": false
+      }
+     }
+    ],
+    "model": "claude-sonnet-5",
+    "claudeCode": "2.1.272",
+    "cost": 0.0880192,
+    "isError": false,
+    "answer": "src/lib/statementRun1/applyDeductions.ts:11\nsrc/lib/statement/run4/deduct/apply/index.ts:14\nsrc/lib/statement_run_8/apply_deductions.py:18\npkg.module8.submodule.function_name\nsrc/lib/statement/run8/deduct/apply/index.ts:18\npkg.module6.submodule.function_name\nsrc/lib/statement/run3/deduct/apply/index.ts:13\nsrc/lib/statement/run2/deduct/apply/index.ts:12\nsrc/lib/statement-run-5/apply-deductions.ts\nsrc/lib/statement-run-4/apply-deductions.ts\nsrc/lib/statement/run7/deduct/apply/index.ts:17\nsrc/lib/statement-run-0/apply-deductions.ts\nsrc/lib/statementRun11/applyDeductions.ts:21\nsrc/pages.tsx:19,29,39\nsrc/lib/statement_run_4/apply_deductions.py:14\nsrc/lib/statementRun8/applyDeductions.ts:18\nsrc/lib/statement_run_1/apply_deductions.py:11\nsrc/lib/statement_run_5/apply_deductions.py:15\nsrc/pages.tsx:16,26,36\nsrc/model/build.ts:111-131\nsrc/pages.tsx:17,27,37\nsrc/model/build.ts:104-124\npkg.module5.submodule.function_name\nsrc/lib/statementRun5/applyDeductions.ts:15\nsrc/model/build.ts:101-121\nsrc/lib/statement-run-9/apply-deductions.ts\nsrc/lib/statementRun10/applyDeductions.ts:20\nsrc/pages.tsx:21,31,41\nsrc/lib/statement-run-2/apply-deductions.ts\npkg.module9.submodule.function_name\nsrc/pages.tsx:14,24,34\nsrc/pages.tsx:10,20,30\nsrc/lib/statement_run_2/apply_deductions.py:12\nsrc/lib/statement_run_10/apply_deductions.py:20\nsrc/lib/statement_run_3/apply_deductions.py:13\npkg.module4.submodule.function_name\nsrc/lib/statement_run_6/apply_deductions.py:16\npkg.module1.submodule.function_name\nsrc/lib/statement/run1/deduct/apply/index.ts:11\npkg.module3.submodule.function_name\nsrc/model/build.ts:105-125\nsrc/lib/statement/run10/deduct/apply/index.ts:20\nsrc/lib/statementRun4/applyDeductions.ts:14\nsrc/pages.tsx:20,30,40\nsrc/model/build.ts:108-128\nsrc/lib/statement_run_7/apply_deductions.py:17\nsrc/model/build.ts:102-122\nsrc/lib/statement-run-6/apply-deductions.ts\nsrc/lib/statement-run-7/apply-deductions.ts\nsrc/lib/statement/run11/deduct/apply/index.ts:21\nsrc/pages.tsx:12,22,32\nsrc/lib/statement/run5/deduct/apply/index.ts:15\npkg.module10.submodule.function_name\nsrc/lib/statement-run-1/apply-deductions.ts\nsrc/lib/statement/run9/deduct/apply/index.ts:19\nsrc/model/build.ts:110-130\nsrc/lib/statement_run_0/apply_deductions.py:10\nsrc/lib/statement-run-11/apply-deductions.ts\nsrc/lib/statement/run6/deduct/apply/index.ts:16\nsrc/model/build.ts:103-123\nsrc/lib/statement-run-3/apply-deductions.ts\npkg.module0.submodule.function_name\nsrc/lib/statement-run-8/apply-deductions.ts\nsrc/lib/statementRun0/applyDeductions.ts:10\nsrc/lib/statement_run_9/apply_deductions.py:19\nsrc/pages.tsx:15,25,35\nsrc/lib/statementRun7/applyDeductions.ts:17\nsrc/lib/statement/run0/deduct/apply/index.ts:10\nsrc/model/build.ts:100-120\npkg.module2.submodule.function_name\nsrc/lib/statementRun6/applyDeductions.ts:16\nsrc/pages.tsx:18,28,38\nsrc/model/build.ts:109-129\nsrc/model/build.ts:107-127\nsrc/model/build.ts:106-126\nsrc/lib/statementRun3/applyDeductions.ts:13\npkg.module7.submodule.function_name\nsrc/lib/statementRun9/applyDeductions.ts:19\nsrc/lib/statement-run-10/apply-deductions.ts\nsrc/lib/statementRun2/applyDeductions.ts:12\nsrc/pages.tsx:11,21,31\nsrc/pages.tsx:13,23,33\npkg.module11.submodule.function_name\nsrc/lib/statement_run_11/apply_deductions.py:21",
+    "exit": 0,
+    "stderr": ""
+   }
+  },
+  {
+   "size": "short",
+   "form": "PDF, Chrome",
+   "ext": "pdf",
+   "run": 3,
+   "pages": 4,
+   "score": {
+    "paths": 84,
+    "listed": 84,
+    "exact": 84,
+    "splitPaths": 3,
+    "wrong": [],
+    "strays": []
+   },
+   "session": {
+    "calls": [
+     15814,
+     25754
+    ],
+    "reads": [
+     {
+      "tool": "Read",
+      "pages": null,
+      "offset": null,
+      "limit": null,
+      "returned": {
+       "blocks": [
+        "text",
+        "document"
+       ],
+       "textChars": 95,
+       "error": false
+      }
+     }
+    ],
+    "model": "claude-sonnet-5",
+    "claudeCode": "2.1.272",
+    "cost": 0.0881622,
+    "isError": false,
+    "answer": "src/lib/statementRun1/applyDeductions.ts:11\nsrc/lib/statement/run4/deduct/apply/index.ts:14\nsrc/lib/statement_run_8/apply_deductions.py:18\npkg.module8.submodule.function_name\nsrc/lib/statement/run8/deduct/apply/index.ts:18\npkg.module6.submodule.function_name\nsrc/lib/statement/run3/deduct/apply/index.ts:13\nsrc/lib/statement/run2/deduct/apply/index.ts:12\nsrc/lib/statement-run-5/apply-deductions.ts\nsrc/lib/statement-run-4/apply-deductions.ts\nsrc/lib/statement/run7/deduct/apply/index.ts:17\nsrc/lib/statement-run-0/apply-deductions.ts\nsrc/lib/statementRun11/applyDeductions.ts:21\nsrc/pages.tsx:19,29,39\nsrc/lib/statement_run_4/apply_deductions.py:14\nsrc/lib/statementRun8/applyDeductions.ts:18\nsrc/lib/statement_run_1/apply_deductions.py:11\nsrc/lib/statement_run_5/apply_deductions.py:15\nsrc/pages.tsx:16,26,36\nsrc/model/build.ts:111-131\nsrc/pages.tsx:17,27,37\nsrc/model/build.ts:104-124\npkg.module5.submodule.function_name\nsrc/lib/statementRun5/applyDeductions.ts:15\nsrc/model/build.ts:101-121\nsrc/lib/statement-run-9/apply-deductions.ts\nsrc/lib/statementRun10/applyDeductions.ts:20\nsrc/pages.tsx:21,31,41\nsrc/lib/statement-run-2/apply-deductions.ts\npkg.module9.submodule.function_name\nsrc/pages.tsx:14,24,34\nsrc/pages.tsx:10,20,30\nsrc/lib/statement_run_2/apply_deductions.py:12\nsrc/lib/statement_run_10/apply_deductions.py:20\nsrc/lib/statement_run_3/apply_deductions.py:13\npkg.module4.submodule.function_name\nsrc/lib/statement_run_6/apply_deductions.py:16\npkg.module1.submodule.function_name\nsrc/lib/statement/run1/deduct/apply/index.ts:11\npkg.module3.submodule.function_name\nsrc/model/build.ts:105-125\nsrc/lib/statement/run10/deduct/apply/index.ts:20\nsrc/lib/statementRun4/applyDeductions.ts:14\nsrc/pages.tsx:20,30,40\nsrc/model/build.ts:108-128\nsrc/lib/statement_run_7/apply_deductions.py:17\nsrc/model/build.ts:102-122\nsrc/lib/statement-run-6/apply-deductions.ts\nsrc/lib/statement-run-7/apply-deductions.ts\nsrc/lib/statement/run11/deduct/apply/index.ts:21\nsrc/pages.tsx:12,22,32\nsrc/lib/statement/run5/deduct/apply/index.ts:15\npkg.module10.submodule.function_name\nsrc/lib/statement-run-1/apply-deductions.ts\nsrc/lib/statement/run9/deduct/apply/index.ts:19\nsrc/model/build.ts:110-130\nsrc/lib/statement_run_0/apply_deductions.py:10\nsrc/lib/statement-run-11/apply-deductions.ts\nsrc/lib/statement/run6/deduct/apply/index.ts:16\nsrc/model/build.ts:103-123\nsrc/lib/statement-run-3/apply-deductions.ts\npkg.module0.submodule.function_name\nsrc/lib/statement-run-8/apply-deductions.ts\nsrc/lib/statementRun0/applyDeductions.ts:10\nsrc/lib/statement_run_9/apply_deductions.py:19\nsrc/pages.tsx:15,25,35\nsrc/lib/statementRun7/applyDeductions.ts:17\nsrc/lib/statement/run0/deduct/apply/index.ts:10\nsrc/model/build.ts:100-120\npkg.module2.submodule.function_name\nsrc/lib/statementRun6/applyDeductions.ts:16\nsrc/pages.tsx:18,28,38\nsrc/model/build.ts:109-129\nsrc/model/build.ts:107-127\nsrc/model/build.ts:106-126\nsrc/lib/statementRun3/applyDeductions.ts:13\npkg.module7.submodule.function_name\nsrc/lib/statementRun9/applyDeductions.ts:19\nsrc/lib/statement-run-10/apply-deductions.ts\nsrc/lib/statementRun2/applyDeductions.ts:12\nsrc/pages.tsx:11,21,31\nsrc/pages.tsx:13,23,33\npkg.module11.submodule.function_name\nsrc/lib/statement_run_11/apply_deductions.py:21",
+    "exit": 0,
+    "stderr": ""
+   }
+  },
+  {
+   "size": "short",
+   "form": "PDF, Chrome",
+   "ext": "pdf",
+   "run": 4,
+   "pages": 4,
+   "score": {
+    "paths": 84,
+    "listed": 84,
+    "exact": 82,
+    "splitPaths": 3,
+    "wrong": [
+     {
+      "shape": "kebab-case name",
+      "text": "src/lib/statement-run-8/apply-deductions.ts",
+      "splitInPdf": true,
+      "got": "src/lib/statement-run8/apply-deductions.ts"
+     },
+     {
+      "shape": "kebab-case name",
+      "text": "src/lib/statement-run-11/apply-deductions.ts",
+      "splitInPdf": true,
+      "got": "src/lib/statement-run11/apply-deductions.ts"
+     }
+    ],
+    "strays": [
+     "src/lib/statement-run11/apply-deductions.ts",
+     "src/lib/statement-run8/apply-deductions.ts"
+    ]
+   },
+   "session": {
+    "calls": [
+     15809,
+     25750
+    ],
+    "reads": [
+     {
+      "tool": "Read",
+      "pages": null,
+      "offset": null,
+      "limit": null,
+      "returned": {
+       "blocks": [
+        "text",
+        "document"
+       ],
+       "textChars": 95,
+       "error": false
+      }
+     }
+    ],
+    "model": "claude-sonnet-5",
+    "claudeCode": "2.1.272",
+    "cost": 0.0881002,
+    "isError": false,
+    "answer": "src/lib/statementRun1/applyDeductions.ts:11\nsrc/lib/statement/run4/deduct/apply/index.ts:14\nsrc/lib/statement_run_8/apply_deductions.py:18\npkg.module8.submodule.function_name\nsrc/lib/statement/run8/deduct/apply/index.ts:18\npkg.module6.submodule.function_name\nsrc/lib/statement/run3/deduct/apply/index.ts:13\nsrc/lib/statement/run2/deduct/apply/index.ts:12\nsrc/lib/statement-run-5/apply-deductions.ts\nsrc/lib/statement-run-4/apply-deductions.ts\nsrc/lib/statement/run7/deduct/apply/index.ts:17\nsrc/lib/statement-run-0/apply-deductions.ts\nsrc/lib/statementRun11/applyDeductions.ts:21\nsrc/pages.tsx:19,29,39\nsrc/lib/statement_run_4/apply_deductions.py:14\nsrc/lib/statementRun8/applyDeductions.ts:18\nsrc/lib/statement_run_1/apply_deductions.py:11\nsrc/lib/statement_run_5/apply_deductions.py:15\nsrc/pages.tsx:16,26,36\nsrc/model/build.ts:111-131\nsrc/pages.tsx:17,27,37\nsrc/model/build.ts:104-124\npkg.module5.submodule.function_name\nsrc/lib/statementRun5/applyDeductions.ts:15\nsrc/model/build.ts:101-121\nsrc/lib/statement-run-9/apply-deductions.ts\nsrc/lib/statementRun10/applyDeductions.ts:20\nsrc/pages.tsx:21,31,41\nsrc/lib/statement-run-2/apply-deductions.ts\npkg.module9.submodule.function_name\nsrc/pages.tsx:14,24,34\nsrc/pages.tsx:10,20,30\nsrc/lib/statement_run_2/apply_deductions.py:12\nsrc/lib/statement_run_10/apply_deductions.py:20\nsrc/lib/statement_run_3/apply_deductions.py:13\npkg.module4.submodule.function_name\nsrc/lib/statement_run_6/apply_deductions.py:16\npkg.module1.submodule.function_name\nsrc/lib/statement/run1/deduct/apply/index.ts:11\npkg.module3.submodule.function_name\nsrc/model/build.ts:105-125\nsrc/lib/statement/run10/deduct/apply/index.ts:20\nsrc/lib/statementRun4/applyDeductions.ts:14\nsrc/pages.tsx:20,30,40\nsrc/model/build.ts:108-128\nsrc/lib/statement_run_7/apply_deductions.py:17\nsrc/model/build.ts:102-122\nsrc/lib/statement-run-6/apply-deductions.ts\nsrc/lib/statement-run-7/apply-deductions.ts\nsrc/lib/statement/run11/deduct/apply/index.ts:21\nsrc/pages.tsx:12,22,32\nsrc/lib/statement/run5/deduct/apply/index.ts:15\npkg.module10.submodule.function_name\nsrc/lib/statement-run-1/apply-deductions.ts\nsrc/lib/statement/run9/deduct/apply/index.ts:19\nsrc/model/build.ts:110-130\nsrc/lib/statement_run_0/apply_deductions.py:10\nsrc/lib/statement-run11/apply-deductions.ts\nsrc/lib/statement/run6/deduct/apply/index.ts:16\nsrc/model/build.ts:103-123\nsrc/lib/statement-run-3/apply-deductions.ts\npkg.module0.submodule.function_name\nsrc/lib/statement-run8/apply-deductions.ts\nsrc/lib/statementRun0/applyDeductions.ts:10\nsrc/lib/statement_run_9/apply_deductions.py:19\nsrc/pages.tsx:15,25,35\nsrc/lib/statementRun7/applyDeductions.ts:17\nsrc/lib/statement/run0/deduct/apply/index.ts:10\nsrc/model/build.ts:100-120\npkg.module2.submodule.function_name\nsrc/lib/statementRun6/applyDeductions.ts:16\nsrc/pages.tsx:18,28,38\nsrc/model/build.ts:109-129\nsrc/model/build.ts:107-127\nsrc/model/build.ts:106-126\nsrc/lib/statementRun3/applyDeductions.ts:13\npkg.module7.submodule.function_name\nsrc/lib/statementRun9/applyDeductions.ts:19\nsrc/lib/statement-run-10/apply-deductions.ts\nsrc/lib/statementRun2/applyDeductions.ts:12\nsrc/pages.tsx:11,21,31\nsrc/pages.tsx:13,23,33\npkg.module11.submodule.function_name\nsrc/lib/statement_run_11/apply_deductions.py:21",
+    "exit": 0,
+    "stderr": ""
+   }
+  },
+  {
+   "size": "short",
+   "form": "PDF, Chrome",
+   "ext": "pdf",
+   "run": 5,
+   "pages": 4,
+   "score": {
+    "paths": 84,
+    "listed": 84,
+    "exact": 84,
+    "splitPaths": 3,
+    "wrong": [],
+    "strays": []
+   },
+   "session": {
+    "calls": [
+     15812,
+     25758
+    ],
+    "reads": [
+     {
+      "tool": "Read",
+      "pages": null,
+      "offset": null,
+      "limit": null,
+      "returned": {
+       "blocks": [
+        "text",
+        "document"
+       ],
+       "textChars": 95,
+       "error": false
+      }
+     }
+    ],
+    "model": "claude-sonnet-5",
+    "claudeCode": "2.1.272",
+    "cost": 0.0882328,
+    "isError": false,
+    "answer": "src/lib/statementRun1/applyDeductions.ts:11\nsrc/lib/statement/run4/deduct/apply/index.ts:14\nsrc/lib/statement_run_8/apply_deductions.py:18\npkg.module8.submodule.function_name\nsrc/lib/statement/run8/deduct/apply/index.ts:18\npkg.module6.submodule.function_name\nsrc/lib/statement/run3/deduct/apply/index.ts:13\nsrc/lib/statement/run2/deduct/apply/index.ts:12\nsrc/lib/statement-run-5/apply-deductions.ts\nsrc/lib/statement-run-4/apply-deductions.ts\nsrc/lib/statement/run7/deduct/apply/index.ts:17\nsrc/lib/statement-run-0/apply-deductions.ts\nsrc/lib/statementRun11/applyDeductions.ts:21\nsrc/pages.tsx:19,29,39\nsrc/lib/statement_run_4/apply_deductions.py:14\nsrc/lib/statementRun8/applyDeductions.ts:18\nsrc/lib/statement_run_1/apply_deductions.py:11\nsrc/lib/statement_run_5/apply_deductions.py:15\nsrc/pages.tsx:16,26,36\nsrc/model/build.ts:111-131\nsrc/pages.tsx:17,27,37\nsrc/model/build.ts:104-124\npkg.module5.submodule.function_name\nsrc/lib/statementRun5/applyDeductions.ts:15\nsrc/model/build.ts:101-121\nsrc/lib/statement-run-9/apply-deductions.ts\nsrc/lib/statementRun10/applyDeductions.ts:20\nsrc/pages.tsx:21,31,41\nsrc/lib/statement-run-2/apply-deductions.ts\npkg.module9.submodule.function_name\nsrc/pages.tsx:14,24,34\nsrc/pages.tsx:10,20,30\nsrc/lib/statement_run_2/apply_deductions.py:12\nsrc/lib/statement_run_10/apply_deductions.py:20\nsrc/lib/statement_run_3/apply_deductions.py:13\npkg.module4.submodule.function_name\nsrc/lib/statement_run_6/apply_deductions.py:16\npkg.module1.submodule.function_name\nsrc/lib/statement/run1/deduct/apply/index.ts:11\npkg.module3.submodule.function_name\nsrc/model/build.ts:105-125\nsrc/lib/statement/run10/deduct/apply/index.ts:20\nsrc/lib/statementRun4/applyDeductions.ts:14\nsrc/pages.tsx:20,30,40\nsrc/model/build.ts:108-128\nsrc/lib/statement_run_7/apply_deductions.py:17\nsrc/model/build.ts:102-122\nsrc/lib/statement-run-6/apply-deductions.ts\nsrc/lib/statement-run-7/apply-deductions.ts\nsrc/lib/statement/run11/deduct/apply/index.ts:21\nsrc/pages.tsx:12,22,32\nsrc/lib/statement/run5/deduct/apply/index.ts:15\npkg.module10.submodule.function_name\nsrc/lib/statement-run-1/apply-deductions.ts\nsrc/lib/statement/run9/deduct/apply/index.ts:19\nsrc/model/build.ts:110-130\nsrc/lib/statement_run_0/apply_deductions.py:10\nsrc/lib/statement-run-11/apply-deductions.ts\nsrc/lib/statement/run6/deduct/apply/index.ts:16\nsrc/model/build.ts:103-123\nsrc/lib/statement-run-3/apply-deductions.ts\npkg.module0.submodule.function_name\nsrc/lib/statement-run-8/apply-deductions.ts\nsrc/lib/statementRun0/applyDeductions.ts:10\nsrc/lib/statement_run_9/apply_deductions.py:19\nsrc/pages.tsx:15,25,35\nsrc/lib/statementRun7/applyDeductions.ts:17\nsrc/lib/statement/run0/deduct/apply/index.ts:10\nsrc/model/build.ts:100-120\npkg.module2.submodule.function_name\nsrc/lib/statementRun6/applyDeductions.ts:16\nsrc/pages.tsx:18,28,38\nsrc/model/build.ts:109-129\nsrc/model/build.ts:107-127\nsrc/model/build.ts:106-126\nsrc/lib/statementRun3/applyDeductions.ts:13\npkg.module7.submodule.function_name\nsrc/lib/statementRun9/applyDeductions.ts:19\nsrc/lib/statement-run-10/apply-deductions.ts\nsrc/lib/statementRun2/applyDeductions.ts:12\nsrc/pages.tsx:11,21,31\nsrc/pages.tsx:13,23,33\npkg.module11.submodule.function_name\nsrc/lib/statement_run_11/apply_deductions.py:21",
+    "exit": 0,
+    "stderr": ""
+   }
+  },
+  {
+   "size": "short",
+   "form": "PDF, Chrome",
+   "ext": "pdf",
+   "run": 6,
+   "pages": 4,
+   "score": {
+    "paths": 84,
+    "listed": 84,
+    "exact": 84,
+    "splitPaths": 3,
+    "wrong": [],
+    "strays": []
+   },
+   "session": {
+    "calls": [
+     15812,
+     25758
+    ],
+    "reads": [
+     {
+      "tool": "Read",
+      "pages": null,
+      "offset": null,
+      "limit": null,
+      "returned": {
+       "blocks": [
+        "text",
+        "document"
+       ],
+       "textChars": 95,
+       "error": false
+      }
+     }
+    ],
+    "model": "claude-sonnet-5",
+    "claudeCode": "2.1.272",
+    "cost": 0.0882478,
+    "isError": false,
+    "answer": "src/lib/statementRun1/applyDeductions.ts:11\nsrc/lib/statement/run4/deduct/apply/index.ts:14\nsrc/lib/statement_run_8/apply_deductions.py:18\npkg.module8.submodule.function_name\nsrc/lib/statement/run8/deduct/apply/index.ts:18\npkg.module6.submodule.function_name\nsrc/lib/statement/run3/deduct/apply/index.ts:13\nsrc/lib/statement/run2/deduct/apply/index.ts:12\nsrc/lib/statement-run-5/apply-deductions.ts\nsrc/lib/statement-run-4/apply-deductions.ts\nsrc/lib/statement/run7/deduct/apply/index.ts:17\nsrc/lib/statement-run-0/apply-deductions.ts\nsrc/lib/statementRun11/applyDeductions.ts:21\nsrc/pages.tsx:19,29,39\nsrc/lib/statement_run_4/apply_deductions.py:14\nsrc/lib/statementRun8/applyDeductions.ts:18\nsrc/lib/statement_run_1/apply_deductions.py:11\nsrc/lib/statement_run_5/apply_deductions.py:15\nsrc/pages.tsx:16,26,36\nsrc/model/build.ts:111-131\nsrc/pages.tsx:17,27,37\nsrc/model/build.ts:104-124\npkg.module5.submodule.function_name\nsrc/lib/statementRun5/applyDeductions.ts:15\nsrc/model/build.ts:101-121\nsrc/lib/statement-run-9/apply-deductions.ts\nsrc/lib/statementRun10/applyDeductions.ts:20\nsrc/pages.tsx:21,31,41\nsrc/lib/statement-run-2/apply-deductions.ts\npkg.module9.submodule.function_name\nsrc/pages.tsx:14,24,34\nsrc/pages.tsx:10,20,30\nsrc/lib/statement_run_2/apply_deductions.py:12\nsrc/lib/statement_run_10/apply_deductions.py:20\nsrc/lib/statement_run_3/apply_deductions.py:13\npkg.module4.submodule.function_name\nsrc/lib/statement_run_6/apply_deductions.py:16\npkg.module1.submodule.function_name\nsrc/lib/statement/run1/deduct/apply/index.ts:11\npkg.module3.submodule.function_name\nsrc/model/build.ts:105-125\nsrc/lib/statement/run10/deduct/apply/index.ts:20\nsrc/lib/statementRun4/applyDeductions.ts:14\nsrc/pages.tsx:20,30,40\nsrc/model/build.ts:108-128\nsrc/lib/statement_run_7/apply_deductions.py:17\nsrc/model/build.ts:102-122\nsrc/lib/statement-run-6/apply-deductions.ts\nsrc/lib/statement-run-7/apply-deductions.ts\nsrc/lib/statement/run11/deduct/apply/index.ts:21\nsrc/pages.tsx:12,22,32\nsrc/lib/statement/run5/deduct/apply/index.ts:15\npkg.module10.submodule.function_name\nsrc/lib/statement-run-1/apply-deductions.ts\nsrc/lib/statement/run9/deduct/apply/index.ts:19\nsrc/model/build.ts:110-130\nsrc/lib/statement_run_0/apply_deductions.py:10\nsrc/lib/statement-run-11/apply-deductions.ts\nsrc/lib/statement/run6/deduct/apply/index.ts:16\nsrc/model/build.ts:103-123\nsrc/lib/statement-run-3/apply-deductions.ts\npkg.module0.submodule.function_name\nsrc/lib/statement-run-8/apply-deductions.ts\nsrc/lib/statementRun0/applyDeductions.ts:10\nsrc/lib/statement_run_9/apply_deductions.py:19\nsrc/pages.tsx:15,25,35\nsrc/lib/statementRun7/applyDeductions.ts:17\nsrc/lib/statement/run0/deduct/apply/index.ts:10\nsrc/model/build.ts:100-120\npkg.module2.submodule.function_name\nsrc/lib/statementRun6/applyDeductions.ts:16\nsrc/pages.tsx:18,28,38\nsrc/model/build.ts:109-129\nsrc/model/build.ts:107-127\nsrc/model/build.ts:106-126\nsrc/lib/statementRun3/applyDeductions.ts:13\npkg.module7.submodule.function_name\nsrc/lib/statementRun9/applyDeductions.ts:19\nsrc/lib/statement-run-10/apply-deductions.ts\nsrc/lib/statementRun2/applyDeductions.ts:12\nsrc/pages.tsx:11,21,31\nsrc/pages.tsx:13,23,33\npkg.module11.submodule.function_name\nsrc/lib/statement_run_11/apply_deductions.py:21",
+    "exit": 0,
+    "stderr": ""
+   }
+  },
+  {
+   "size": "short",
+   "form": "PDF, Chrome",
+   "ext": "pdf",
+   "run": 7,
+   "pages": 4,
+   "score": {
+    "paths": 84,
+    "listed": 84,
+    "exact": 84,
+    "splitPaths": 3,
+    "wrong": [],
+    "strays": []
+   },
+   "session": {
+    "calls": [
+     15812,
+     25741
+    ],
+    "reads": [
+     {
+      "tool": "Read",
+      "pages": null,
+      "offset": null,
+      "limit": null,
+      "returned": {
+       "blocks": [
+        "text",
+        "document"
+       ],
+       "textChars": 95,
+       "error": false
+      }
+     }
+    ],
+    "model": "claude-sonnet-5",
+    "claudeCode": "2.1.272",
+    "cost": 0.0879848,
+    "isError": false,
+    "answer": "src/lib/statementRun1/applyDeductions.ts:11\nsrc/lib/statement/run4/deduct/apply/index.ts:14\nsrc/lib/statement_run_8/apply_deductions.py:18\npkg.module8.submodule.function_name\nsrc/lib/statement/run8/deduct/apply/index.ts:18\npkg.module6.submodule.function_name\nsrc/lib/statement/run3/deduct/apply/index.ts:13\nsrc/lib/statement/run2/deduct/apply/index.ts:12\nsrc/lib/statement-run-5/apply-deductions.ts\nsrc/lib/statement-run-4/apply-deductions.ts\nsrc/lib/statement/run7/deduct/apply/index.ts:17\nsrc/lib/statement-run-0/apply-deductions.ts\nsrc/lib/statementRun11/applyDeductions.ts:21\nsrc/pages.tsx:19,29,39\nsrc/lib/statement_run_4/apply_deductions.py:14\nsrc/lib/statementRun8/applyDeductions.ts:18\nsrc/lib/statement_run_1/apply_deductions.py:11\nsrc/lib/statement_run_5/apply_deductions.py:15\nsrc/pages.tsx:16,26,36\nsrc/model/build.ts:111-131\nsrc/pages.tsx:17,27,37\nsrc/model/build.ts:104-124\npkg.module5.submodule.function_name\nsrc/lib/statementRun5/applyDeductions.ts:15\nsrc/model/build.ts:101-121\nsrc/lib/statement-run-9/apply-deductions.ts\nsrc/lib/statementRun10/applyDeductions.ts:20\nsrc/pages.tsx:21,31,41\nsrc/lib/statement-run-2/apply-deductions.ts\npkg.module9.submodule.function_name\nsrc/pages.tsx:14,24,34\nsrc/pages.tsx:10,20,30\nsrc/lib/statement_run_2/apply_deductions.py:12\nsrc/lib/statement_run_10/apply_deductions.py:20\nsrc/lib/statement_run_3/apply_deductions.py:13\npkg.module4.submodule.function_name\nsrc/lib/statement_run_6/apply_deductions.py:16\npkg.module1.submodule.function_name\nsrc/lib/statement/run1/deduct/apply/index.ts:11\npkg.module3.submodule.function_name\nsrc/model/build.ts:105-125\nsrc/lib/statement/run10/deduct/apply/index.ts:20\nsrc/lib/statementRun4/applyDeductions.ts:14\nsrc/pages.tsx:20,30,40\nsrc/model/build.ts:108-128\nsrc/lib/statement_run_7/apply_deductions.py:17\nsrc/model/build.ts:102-122\nsrc/lib/statement-run-6/apply-deductions.ts\nsrc/lib/statement-run-7/apply-deductions.ts\nsrc/lib/statement/run11/deduct/apply/index.ts:21\nsrc/pages.tsx:12,22,32\nsrc/lib/statement/run5/deduct/apply/index.ts:15\npkg.module10.submodule.function_name\nsrc/lib/statement-run-1/apply-deductions.ts\nsrc/lib/statement/run9/deduct/apply/index.ts:19\nsrc/model/build.ts:110-130\nsrc/lib/statement_run_0/apply_deductions.py:10\nsrc/lib/statement-run-11/apply-deductions.ts\nsrc/lib/statement/run6/deduct/apply/index.ts:16\nsrc/model/build.ts:103-123\nsrc/lib/statement-run-3/apply-deductions.ts\npkg.module0.submodule.function_name\nsrc/lib/statement-run-8/apply-deductions.ts\nsrc/lib/statementRun0/applyDeductions.ts:10\nsrc/lib/statement_run_9/apply_deductions.py:19\nsrc/pages.tsx:15,25,35\nsrc/lib/statementRun7/applyDeductions.ts:17\nsrc/lib/statement/run0/deduct/apply/index.ts:10\nsrc/model/build.ts:100-120\npkg.module2.submodule.function_name\nsrc/lib/statementRun6/applyDeductions.ts:16\nsrc/pages.tsx:18,28,38\nsrc/model/build.ts:109-129\nsrc/model/build.ts:107-127\nsrc/model/build.ts:106-126\nsrc/lib/statementRun3/applyDeductions.ts:13\npkg.module7.submodule.function_name\nsrc/lib/statementRun9/applyDeductions.ts:19\nsrc/lib/statement-run-10/apply-deductions.ts\nsrc/lib/statementRun2/applyDeductions.ts:12\nsrc/pages.tsx:11,21,31\nsrc/pages.tsx:13,23,33\npkg.module11.submodule.function_name\nsrc/lib/statement_run_11/apply_deductions.py:21",
+    "exit": 0,
+    "stderr": ""
+   }
+  },
+  {
+   "size": "short",
+   "form": "PDF, Chrome",
+   "ext": "pdf",
+   "run": 8,
+   "pages": 4,
+   "score": {
+    "paths": 84,
+    "listed": 84,
+    "exact": 84,
+    "splitPaths": 3,
+    "wrong": [],
+    "strays": []
+   },
+   "session": {
+    "calls": [
+     15812,
+     25750
+    ],
+    "reads": [
+     {
+      "tool": "Read",
+      "pages": null,
+      "offset": null,
+      "limit": null,
+      "returned": {
+       "blocks": [
+        "text",
+        "document"
+       ],
+       "textChars": 95,
+       "error": false
+      }
+     }
+    ],
+    "model": "claude-sonnet-5",
+    "claudeCode": "2.1.272",
+    "cost": 0.0881258,
+    "isError": false,
+    "answer": "src/lib/statementRun1/applyDeductions.ts:11\nsrc/lib/statement/run4/deduct/apply/index.ts:14\nsrc/lib/statement_run_8/apply_deductions.py:18\npkg.module8.submodule.function_name\nsrc/lib/statement/run8/deduct/apply/index.ts:18\npkg.module6.submodule.function_name\nsrc/lib/statement/run3/deduct/apply/index.ts:13\nsrc/lib/statement/run2/deduct/apply/index.ts:12\nsrc/lib/statement-run-5/apply-deductions.ts\nsrc/lib/statement-run-4/apply-deductions.ts\nsrc/lib/statement/run7/deduct/apply/index.ts:17\nsrc/lib/statement-run-0/apply-deductions.ts\nsrc/lib/statementRun11/applyDeductions.ts:21\nsrc/pages.tsx:19,29,39\nsrc/lib/statement_run_4/apply_deductions.py:14\nsrc/lib/statementRun8/applyDeductions.ts:18\nsrc/lib/statement_run_1/apply_deductions.py:11\nsrc/lib/statement_run_5/apply_deductions.py:15\nsrc/pages.tsx:16,26,36\nsrc/model/build.ts:111-131\nsrc/pages.tsx:17,27,37\nsrc/model/build.ts:104-124\npkg.module5.submodule.function_name\nsrc/lib/statementRun5/applyDeductions.ts:15\nsrc/model/build.ts:101-121\nsrc/lib/statement-run-9/apply-deductions.ts\nsrc/lib/statementRun10/applyDeductions.ts:20\nsrc/pages.tsx:21,31,41\nsrc/lib/statement-run-2/apply-deductions.ts\npkg.module9.submodule.function_name\nsrc/pages.tsx:14,24,34\nsrc/pages.tsx:10,20,30\nsrc/lib/statement_run_2/apply_deductions.py:12\nsrc/lib/statement_run_10/apply_deductions.py:20\nsrc/lib/statement_run_3/apply_deductions.py:13\npkg.module4.submodule.function_name\nsrc/lib/statement_run_6/apply_deductions.py:16\npkg.module1.submodule.function_name\nsrc/lib/statement/run1/deduct/apply/index.ts:11\npkg.module3.submodule.function_name\nsrc/model/build.ts:105-125\nsrc/lib/statement/run10/deduct/apply/index.ts:20\nsrc/lib/statementRun4/applyDeductions.ts:14\nsrc/pages.tsx:20,30,40\nsrc/model/build.ts:108-128\nsrc/lib/statement_run_7/apply_deductions.py:17\nsrc/model/build.ts:102-122\nsrc/lib/statement-run-6/apply-deductions.ts\nsrc/lib/statement-run-7/apply-deductions.ts\nsrc/lib/statement/run11/deduct/apply/index.ts:21\nsrc/pages.tsx:12,22,32\nsrc/lib/statement/run5/deduct/apply/index.ts:15\npkg.module10.submodule.function_name\nsrc/lib/statement-run-1/apply-deductions.ts\nsrc/lib/statement/run9/deduct/apply/index.ts:19\nsrc/model/build.ts:110-130\nsrc/lib/statement_run_0/apply_deductions.py:10\nsrc/lib/statement-run-11/apply-deductions.ts\nsrc/lib/statement/run6/deduct/apply/index.ts:16\nsrc/model/build.ts:103-123\nsrc/lib/statement-run-3/apply-deductions.ts\npkg.module0.submodule.function_name\nsrc/lib/statement-run-8/apply-deductions.ts\nsrc/lib/statementRun0/applyDeductions.ts:10\nsrc/lib/statement_run_9/apply_deductions.py:19\nsrc/pages.tsx:15,25,35\nsrc/lib/statementRun7/applyDeductions.ts:17\nsrc/lib/statement/run0/deduct/apply/index.ts:10\nsrc/model/build.ts:100-120\npkg.module2.submodule.function_name\nsrc/lib/statementRun6/applyDeductions.ts:16\nsrc/pages.tsx:18,28,38\nsrc/model/build.ts:109-129\nsrc/model/build.ts:107-127\nsrc/model/build.ts:106-126\nsrc/lib/statementRun3/applyDeductions.ts:13\npkg.module7.submodule.function_name\nsrc/lib/statementRun9/applyDeductions.ts:19\nsrc/lib/statement-run-10/apply-deductions.ts\nsrc/lib/statementRun2/applyDeductions.ts:12\nsrc/pages.tsx:11,21,31\nsrc/pages.tsx:13,23,33\npkg.module11.submodule.function_name\nsrc/lib/statement_run_11/apply_deductions.py:21",
+    "exit": 0,
+    "stderr": ""
+   }
+  }
+ ]
+}
