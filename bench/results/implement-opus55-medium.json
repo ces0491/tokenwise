@@ -1,0 +1,110 @@
+{
+ "duration_api_ms": 93328,
+ "stop_reason": "end_turn",
+ "session_id": "fdb7997c-e0aa-4ced-92ed-700002b7cf1a",
+ "total_cost_usd": 0.5949314,
+ "usage": {
+  "input_tokens": 16,
+  "cache_creation_input_tokens": 33975,
+  "cache_read_input_tokens": 364242,
+  "output_tokens": 12461,
+  "output_tokens_details": {
+   "thinking_tokens": 1553
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 33975,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 690,
+    "cache_read_input_tokens": 59061,
+    "cache_creation_input_tokens": 1279,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 1279
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard"
+ },
+ "modelUsage": {
+  "claude-haiku-4-5-20251001": {
+   "inputTokens": 944,
+   "outputTokens": 11,
+   "cacheReadInputTokens": 0,
+   "cacheCreationInputTokens": 0,
+   "webSearchRequests": 0,
+   "costUSD": 0.0009989999999999999,
+   "contextWindow": 200000,
+   "maxOutputTokens": 32000,
+   "thinkingTokens": 0,
+   "canonicalModel": "claude-haiku-4-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  },
+  "claude-opus-5-5": {
+   "inputTokens": 16,
+   "outputTokens": 12461,
+   "cacheReadInputTokens": 364242,
+   "cacheCreationInputTokens": 33975,
+   "webSearchRequests": 0,
+   "costUSD": 0.5939324,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 1553,
+   "canonicalModel": "claude-opus-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "is_error": false,
+ "num_turns": 9,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "I've built credit notes as `docs/spec.md` describes. `npm test` passes all 43 tests: the existing ones, unchanged, plus 14 new ones in `test/creditnote.test.js`. Nothing is committed yet.\n\n**What changed**\n- **`src/creditnote.js`**: new file with `createCreditNote`, also exported from `src/index.js`.\n  - It checks inputs in the spec's order (id, reason, invoice, `issuedOn`, lines) and throws the error types the spec names.\n  - Each credited line's `netCents` is the original line's discounted net scaled by the credited share of its quantity, rounded once with `roundHalfUp`.\n  - The credit note, its `lines` array and each line are frozen, and the original invoice is left untouched.\n- **`src/invoice.js`**: `invoiceTotals` now returns negative totals for a credit note, with VAT worked out once on the summed net for the note's region. I also added a small exported helper, `isIssueDate`, so credit notes check dates with the same pattern invoices use. It isn't exported from `src/index.js`.\n- **`src/report.js`**: `monthlySummary` counts credit notes in their own `issuedOn` month. `topSkus` subtracts credited quantity and net.\n- **`README.md`**: added a rule for credit notes, a row for the new module, and updated the descriptions of the invoice and report modules.\n\n**Rounding cases the tests cover**\n- A line with a net of 1002 over 4 units, credited for 1, gives 250.5, which rounds to 251.\n- A volume-discounted line keeps its discount when only part of it is credited: 2 of 12 units credits 190, not the undiscounted 200.\n- VAT on a credit note is rounded once on the total: three 3-cent lines in GB give −2 VAT, where rounding per line would give −3.\n\n**Decision for you:** the spec doesn't say what to do when a partial credit names a SKU that appears on more than one line of the invoice. My code credits the first matching line. If you'd rather reject that case, it's a one-line change.",
+ "ttft_ms": 2431,
+ "type": "result",
+ "duration_ms": 96880,
+ "uuid": "53dadd0c-be6b-4b68-bfc7-fb9c3023109d",
+ "ttft_stream_ms": 1143,
+ "time_to_request_ms": 62,
+ "first_content_frame_ms": 1143,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

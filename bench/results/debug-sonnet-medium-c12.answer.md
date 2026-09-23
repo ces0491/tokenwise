@@ -1,0 +1,1 @@
+All 29 tests pass now. `invoiceTotals` was computing VAT per line and summing the rounded results, so three 3¢ lines each rounded their 0.6¢ VAT up to 1¢ for a total of 3¢; it now rounds VAT once on the invoice's total net, matching the intended "round once" behavior and producing the correct 2¢.

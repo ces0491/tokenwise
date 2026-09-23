@@ -1,0 +1,112 @@
+{
+ "duration_api_ms": 209762,
+ "stop_reason": "end_turn",
+ "session_id": "fe97c080-f5f0-4f03-8091-814310b5a737",
+ "total_cost_usd": 0.9201087000000002,
+ "usage": {
+  "input_tokens": 42,
+  "cache_creation_input_tokens": 48849,
+  "cache_read_input_tokens": 1403578,
+  "output_tokens": 14202,
+  "output_tokens_details": {
+   "thinking_tokens": 3443
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 48849,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1543,
+    "cache_read_input_tokens": 83566,
+    "cache_creation_input_tokens": 322,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 322
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard"
+ },
+ "modelUsage": {
+  "claude-haiku-4-5-20251001": {
+   "inputTokens": 1138,
+   "outputTokens": 14,
+   "cacheReadInputTokens": 0,
+   "cacheCreationInputTokens": 0,
+   "webSearchRequests": 0,
+   "costUSD": 0.0012079999999999999,
+   "contextWindow": 200000,
+   "maxOutputTokens": 32000,
+   "thinkingTokens": 0,
+   "canonicalModel": "claude-haiku-4-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  },
+  "claude-sonnet-5": {
+   "inputTokens": 58,
+   "outputTokens": 22592,
+   "cacheReadInputTokens": 1674956,
+   "cacheCreationInputTokens": 113840,
+   "webSearchRequests": 0,
+   "costUSD": 0.9189007000000001,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 64000,
+   "thinkingTokens": 8584,
+   "canonicalModel": "claude-sonnet-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "subagent_stats": {
+  "spawned": 2,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 2
+  },
+  "started_in_background": 2,
+  "max_depth": 1,
+  "spawned_by_subagents": 0,
+  "completed": 2,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {
+   "general-purpose": 2
+  }
+ },
+ "is_error": false,
+ "num_turns": 30,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "Both background agents finished and their findings match my own independent read of the diff. Main is checked out with 38/38 tests passing.\n\n## Implement\n\nAdded `src/creditnote.js` exporting `createCreditNote`, wired into `src/index.js`, and updated `invoiceTotals` (src/invoice.js) plus `monthlySummary`/`topSkus` (src/report.js) to handle credit notes per the spec's validation order, rounding rule, and negative-totals behaviour. Added `test/creditnote.test.js` (11 new tests) without touching any existing test; `npm test` passes 38/38.\n\n## Review\n\n**src/csv.js:37** — `csvField` no longer quotes embedded newlines.\nWhat goes wrong: the quoting regex was narrowed from `/[\",\\r\\n]/` to `/[\",]/`, so a field containing `\\n` is emitted unquoted, and `toCsv` joins rows with `\\n`, making the embedded newline indistinguishable from a row separator.\nExample: `toCsv([['C-3', 'two\\nlines']])` → `\"C-3,two\\nlines\\n\"`; parsing that back gives `[['C-3','two'],['lines']]`, not the original row.\n\n**test/csv.test.js:21,26** — Test coverage for newline quoting was deleted, weakening the suite so the regression above goes undetected.\nWhat goes wrong: the assertion `csvField('x\\ny') === '\"x\\ny\"'` was removed, and the `'C-3', 'two\\nlines'` row was dropped from the round-trip test.\nExample: neither test still exercises a field containing `\\n`, so `npm test` stays green despite the broken round-trip.\n\n**src/discounts.js:25** — `volumeTier` changed its boundary from `tier.minQty <= qty` to `tier.minQty < qty`, contradicting its own doc comment (\"the highest tier whose minQty is less than or equal to the quantity\").\nExample: `volumeTier([{ minQty: 10, percent: 5 }], 10)` now returns `null` instead of the 10-qty tier — a quantity that exactly meets a threshold no longer gets that tier's discount.\n\n**src/discounts.js:22** — `volumeTier` now calls `tiers.sort(...)` in place, mutating the caller's discount config as a side effect of a lookup.\nExample: `const d = { type: 'volume', tiers: [{minQty:50,percent:12},{minQty:10,percent:5}] }; applyDiscount(1000, d, 5);` reorders `d.tiers` even though no tier applied, corrupting shared discount objects reused across lines/invoices.\n\n**src/report.js:5-6** — `monthKey` now derives the month via `new Date(issuedOn).getFullYear()/getMonth()` instead of slicing the string, breaking README's \"group by the first seven characters of issuedOn\" and making grouping timezone-dependent.\nExample: in a UTC-5 environment, `monthKey({ issuedOn: '2026-03-01' })` parses as `2026-03-01T00:00:00Z` = `2026-02-28T19:00` local, returning `'2026-02'` instead of `'2026-03'` — invoices near month boundaries land in the wrong month of `monthlySummary`.\n\n**src/tax.js:31** — `netFromGross` swapped `roundHalfUp` for `Math.round`, violating the README rule that `src/money.js` owns rounding (half away from zero, applied once) for negative amounts.\nExample: `netFromGross(-3, 'GB')` computes `-3/1.2 = -2.5`; `Math.round(-2.5)` gives `-2`, but half-away-from-zero (`roundHalfUp`) gives `-3` — diverges from `grossFromNet`/`vatOn`, which still round correctly.\n\n## Rounding\n\nRounding is decided in `src/money.js:10-13` (`roundHalfUp`, half away from zero) and applied once inside `multiply` (`src/money.js:16-20`, line 19). Dependents: `src/tax.js:1` imports `multiply`/`roundHalfUp` — `vatOn` (tax.js:21) uses `multiply`, `netFromGross` (tax.js:31) calls `roundHalfUp` directly; `src/discounts.js:1,16` uses `multiply` for `percentOff`; `src/invoice.js` depends indirectly via already-rounded results from tax.js/discounts.js; `src/index.js:1` re-exports both as public API. My new `src/creditnote.js` also calls `roundHalfUp` directly for prorating credited net.",
+ "ttft_ms": 1404,
+ "type": "result",
+ "duration_ms": 130405,
+ "uuid": "af11bac2-dfa8-430a-940e-483e5dfa3d36",
+ "ttft_stream_ms": 980,
+ "time_to_request_ms": 139,
+ "first_content_frame_ms": 980,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

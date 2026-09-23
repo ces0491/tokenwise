@@ -1,0 +1,1 @@
+All 29 tests pass. `invoiceTotals` was rounding VAT separately per line and summing the results, so three 3-cent lines each rounded 0.6 cents of VAT up to 1 cent (3 total) instead of rounding VAT once on the summed net (9 cents → 1.8 → 2). Fixed in `src/invoice.js` by computing VAT once on the total net amount.
