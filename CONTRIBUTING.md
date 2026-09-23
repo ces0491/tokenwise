@@ -62,7 +62,7 @@ node bench/summarize.mjs           # rebuild RESULTS.md
 node scripts/check-matrix.mjs      # the matrix still names exactly the published runs
 ```
 
-Runs draw on your own Claude account. The published runs come to $68.52 at list price.
+Runs draw on your own Claude account. The published runs come to $79.69 at list price.
 
 ## Changing an instrument after seeing data
 

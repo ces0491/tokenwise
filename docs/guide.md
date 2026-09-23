@@ -11,15 +11,15 @@ The plugin adds two skills and two warnings. This guide covers what each does, w
 
 In the VS Code extension the manager opens with `/plugins`. From the terminal, `claude plugin install tokenwise@ces0491-plugins` does the same thing and writes to the same settings.
 
-Idle, the plugin costs only the route skill's name and description, which is all that loads until it fires: 153 tokens of context, measured on Opus 5. Setup loads only when you type it, and the hooks add nothing to the conversation. What a route costs is under "What routing costs" below.
+Idle, the plugin costs only the route skill's name and description, which is all that loads until it fires: 148 tokens of context, measured on Opus 5. Setup loads only when you type it, and the hooks add nothing to the conversation. What a route costs is under "What routing costs" below.
 
-## Set a cheaper default
+## Check the default new sessions start on
 
 ```text
 /tokenwise:setup
 ```
 
-It shows the model and effort new sessions start on, recommends Sonnet 5 at medium with the bench figures behind it, lists anything that would still override the change (`ANTHROPIC_MODEL`, `CLAUDE_CODE_EFFORT_LEVEL`, a project's settings, an organization default), and asks before writing. It writes `model` and the effort level saved for Sonnet 5 under `modelSettings` in your user settings, because a level saved for a model takes precedence over the top-level `effortLevel`. `/tokenwise:setup restore` puts back the values from before setup first ran, leaving alone any you changed since.
+It shows the model and effort new sessions start on, and whether the bench measured that setting costing more than Sonnet 5 at medium by more than its 30% noise band. On the account default from Claude Code 2.1.280, Opus 5.5 at medium, it recommends no change: against it, Sonnet 5 at medium saved that much on one task of four. From Opus 5 at medium, high or xhigh, Fable 5.1 at xhigh or Sonnet 5 at xhigh, it recommends Sonnet 5 at medium with the bench figures behind it, lists anything that would still override the change (`ANTHROPIC_MODEL`, `CLAUDE_CODE_EFFORT_LEVEL`, a project's settings, an organization default), and asks before writing. It writes `model` and the effort level saved for Sonnet 5 under `modelSettings` in your user settings, because a level saved for a model takes precedence over the top-level `effortLevel`. `/tokenwise:setup restore` puts back the values from before setup first ran, leaving alone any you changed since.
 
 The session you run it in keeps its model, and a resumed session keeps the model it was using. A typed `/model` or `/effort` replaces this default; "Switching mid-session" covers the switch that doesn't.
 
@@ -44,10 +44,10 @@ Claude also runs it without being asked by name when you ask which model or effo
 
 ## What routing costs
 
-The skill runs in its own subagent context. Its text and its reasoning stay there, and only the answer comes back into your conversation, where it is carried on every later call like anything else in context. The skill runs on your session's model and effort. A route in a session already under way cost $0.04 asked from Sonnet 5 at medium, $0.12 from Opus 5 at high and $0.13 from Opus 5 at xhigh, and the first route left 457 to 980 tokens behind. `findings.md` has the numbers, and a chart of the task sizes where a route pays for itself.
+The skill runs in its own subagent context. Its text and its reasoning stay there, and only the answer comes back into your conversation, where it is carried on every later call like anything else in context. The skill runs on your session's model and effort. A route in a session already under way cost $0.04 asked from Sonnet 5 at medium, $0.12 from Opus 5 at high and $0.14 from Opus 5 at xhigh, and the first route left 315 to 873 tokens behind. `findings.md` has the numbers, and a chart of the task sizes where a route pays for itself.
 
 - Route just before a `/clear`, at a phase boundary, and nothing it returns is carried.
-- For a single small chore, pick Sonnet at low effort, or Haiku, yourself. On the bench, moving a rename from Opus at xhigh to Sonnet at low saved $0.17, against $0.13 for asking from Opus 5 at xhigh.
+- For a single small chore, pick Sonnet at low effort, or Haiku, yourself. On the bench, moving a rename from Opus at xhigh to Sonnet at low saved $0.17, against $0.14 for asking from Opus 5 at xhigh.
 - Describe the work after the command. The skill cannot see your conversation, so `/tokenwise:route` on its own only asks for a description.
 
 ## Why context size drives the cost
@@ -58,7 +58,7 @@ Every API call re-sends the whole conversation. Cost is context size multiplied 
 
 Start at the cheap end and escalate on a failure you can point to. The Measured column says whether the bench covered that row; the skill's own table carries the evidence for each one.
 
-Measured means measured on `claude-haiku-4-5-20251001`, `claude-sonnet-5`, `claude-opus-5` and `claude-fable-5-1`, the models the aliases pointed to on 8 and 14 September 2026. When Anthropic moves an alias to a newer model, the advice follows the alias, but the evidence stays with the older model until the bench is re-run. From Claude Code 2.1.280 `opus` points to Opus 5.5, which no bench run has used, so the Opus evidence describes Opus 5.
+Measured means measured on `claude-haiku-4-5-20251001`, `claude-sonnet-5`, `claude-opus-5` and `claude-fable-5-1`, the models the aliases pointed to on 8 and 14 September 2026. When Anthropic moves an alias to a newer model, the advice follows the alias, but the evidence stays with the older model until the bench is re-run. From Claude Code 2.1.280 `opus` points to Opus 5.5, `claude-opus-5-5`, which the bench ran only at medium against Sonnet 5 at medium, so the Opus evidence in the table describes Opus 5.
 
 <!-- routing-table: generated from skills/route/SKILL.md by scripts/sync-routing-table.mjs -->
 | Work | Start | Escalate to | Measured |
