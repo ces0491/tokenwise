@@ -25,7 +25,7 @@ The pieces ask the user for as little as possible, in this order: a default chec
 
 ## Materiality
 
-A guard fires only when the estimated re-send cost exceeds what a route costs from the session's model, as measured on the shipped skill ($0.04 from Sonnet 5 at medium, $0.12 to $0.14 from Opus 5 on 1.4.0). Below that, Ces judged a warning not worth the interruption. A cost difference under 30%, the noise band C10 and C11 used, does not change a recommendation.
+A guard fires only when the estimated re-send cost exceeds what a route costs from the session's model, as measured on the shipped skill ($0.04 from Sonnet 5 at medium, $0.12 to $0.14 from Opus 5 on 1.5.0). Below that, Ces judged a warning not worth the interruption. A cost difference under 30%, the noise band C10 and C11 used, does not change a recommendation.
 
 ## Standing criteria
 

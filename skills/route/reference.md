@@ -58,7 +58,7 @@ Each subagent runs in its own context window; only its summary returns. Agent fi
 
 From the Claude Code skills docs: "When you or Claude invoke a skill, the rendered `SKILL.md` content enters the conversation as a single message and stays there across later turns." A second invocation with different arguments appends the full content again, and auto-compaction re-attaches invoked skills after its summary, up to a token budget. `context: fork` runs a skill in a subagent instead: Claude Code "gives it the skill content as its prompt. The subagent doesn't see your conversation history".
 
-This skill runs forked for that reason. Measured on Opus 5 at xhigh effort (`../../docs/findings.md`), a route that ran in the conversation left 9.6K tokens behind for every later call, most of it the answer and its thinking. Forked, a 1.4.0 route left 873, the answer alone. The cost is that the skill routes from the description it is given and cannot see the conversation or its context size.
+This skill runs forked for that reason. Measured on Opus 5 at xhigh effort (`../../docs/findings.md`), a route that ran in the conversation left 9.6K tokens behind for every later call, most of it the answer and its thinking. Forked, a 1.5.0 route left 910, the answer alone. The cost is that the skill routes from the description it is given and cannot see the conversation or its context size.
 
 ## Images
 

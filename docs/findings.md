@@ -105,19 +105,19 @@ The forked skill cannot see the conversation. It routes from the description typ
 
 ### By the setting you ask from
 
-A route runs on the session's own model and effort, so its cost depends on the setting you ask from. The routing session ran once on each of three settings against the 1.4.0 `SKILL.md`, on Claude Code 2.1.280, from `node bench/skill-cost.mjs --compare 1.4.0@1.3.2,1.4.0-opus-high@1.4.0,1.4.0-sonnet-medium@1.4.0`. `opus` resolves to Opus 5.5 on that version, so the Opus sessions were pinned to `claude-opus-5`, the model the task runs below used.
+A route runs on the session's own model and effort, so its cost depends on the setting you ask from. The routing session ran once on each of three settings against the 1.5.0 `SKILL.md`, on Claude Code 2.1.280, from `node bench/skill-cost.mjs --compare 1.5.0@1.3.2,1.5.0-opus-high@1.5.0,1.5.0-sonnet-medium@1.5.0`. `opus` resolves to Opus 5.5 on that version, so the Opus sessions were pinned to `claude-opus-5`, the model the task runs below used.
 
 | Asking from | A route in a session already under way | Context carried after one route | A route as a session's first message, plus the reply after it |
 | --- | --- | --- | --- |
-| Opus 5, xhigh | $0.144 | 873 | $0.416 |
-| Opus 5, high | $0.116 | 856 | $0.407 |
-| Sonnet 5, medium | $0.044 | 315 | $0.183 |
+| Opus 5, xhigh | $0.141 | 910 | $0.423 |
+| Opus 5, high | $0.125 | 898 | $0.411 |
+| Sonnet 5, medium | $0.045 | 337 | $0.183 |
 
-Loaded and never used, the 1.4.0 plugin adds 148 tokens of context, against 153 for 1.3.2 on the same Claude Code version. Setup's description stays out of context because it runs only when typed, and the hooks write nothing into the conversation. The 1.3.2 route at xhigh cost $0.131 and left 980 tokens, within the $0.025 that two runs of identical text differed by. On Claude Code 2.1.280 a Sonnet 5 session started 11.4K tokens larger than an Opus 5 one, so the Sonnet figures are measured against a Sonnet idle session of their own. `methodology.md` records both.
+Loaded and never used, the 1.5.0 plugin adds 152 tokens of context. The route skill's name and description, all that loads, are the same as in 1.3.2 and 1.4.0, whose sessions on the same Claude Code version gave 153 and 148, so that spread is between runs of the same text. Setup's description stays out of context because it runs only when typed, and the hooks write nothing into the conversation. The 1.4.0 route at xhigh cost $0.144 and left 873 tokens, within the $0.025 that two runs of identical text differed by. On Claude Code 2.1.280 a Sonnet 5 session started 11.4K tokens larger than an Opus 5 one, so the Sonnet figures are measured against a Sonnet idle session of their own. `methodology.md` records both.
 
-From Claude Code 2.1.280, Claude Code's model configuration docs give Opus 5.5 at `medium` as the default on Pro, Max, Team, Enterprise and the API. No route has run on it, so the hooks' threshold for a session on Opus 5.5 is the cheapest route, $0.044. Before 2.1.280, Max, Team Premium, Enterprise and the API started on Opus 5 at `high`, the second row, and Pro and Team Standard on Sonnet 5 at `high`, which was not measured.
+From Claude Code 2.1.280, Claude Code's model configuration docs give Opus 5.5 at `medium` as the default on Pro, Max, Team, Enterprise and the API. No route has run on it, so the hooks' threshold for a session on Opus 5.5 is the cheapest route, $0.045. Before 2.1.280, Max, Team Premium, Enterprise and the API started on Opus 5 at `high`, the second row, and Pro and Team Standard on Sonnet 5 at `high`, which was not measured.
 
-All three routing sessions recommended the same model and effort for both tasks. Every answer gave the switch for this session only, with `s` in the `/model` picker, and five of the six said that changing model or effort on a warm context re-processes it. All four Opus answers ruled ultracode out, because the work does not split into independent parts or because of its measured cost on the review, and three of them suggested `ultrathink` for a single hard turn before changing effort or model. Three of the Opus answers said their evidence came from Opus 5, or quoted C12's comparison with Opus 5.5. Sonnet 5 at medium wrote the shortest answers, 145 and 207 words against 332 to 443 for Opus. Neither suggested `ultrathink`, and one mentioned ultracode only to advise against starting there.
+All three routing sessions recommended the same model and effort for both tasks. Every answer gave the switch for this session only, with `s` in the `/model` picker, and said that changing model or effort on a warm context re-processes it. All four Opus answers ruled ultracode out, because the work does not split into independent parts or because of its measured cost on the review, and two of them suggested `ultrathink` for a single hard turn before changing effort or model. Three of the Opus answers said their evidence came from Opus 5, or quoted C12's comparison with Opus 5.5. Sonnet 5 at medium wrote the shortest answers, 154 and 218 words against 384 to 401 for Opus. Neither suggested `ultrathink`, and one mentioned ultracode only to rule it out.
 
 ### Where a route pays for itself
 
@@ -137,10 +137,10 @@ With that share held fixed, a route costs more than it saves on a task that woul
 | Asking from | Costs more than it saves below | Saves less than twice its cost below |
 | --- | --- | --- |
 | Sonnet 5, medium | $0.06 | $0.13 |
-| Opus 5, high | $0.17 | $0.33 |
-| Opus 5, xhigh | $0.21 | $0.41 |
+| Opus 5, high | $0.18 | $0.36 |
+| Opus 5, xhigh | $0.20 | $0.40 |
 
-The bench's rename falls in the middle band for Opus 5 at xhigh: moving it to Sonnet 5 at low saved $0.171, and asking cost $0.144, a margin of $0.027. The other three tasks land where a route saves more than twice its cost. On a session already running the setting a route recommends, a route saves nothing, whatever the task size.
+The bench's rename falls in the middle band for Opus 5 at xhigh: moving it to Sonnet 5 at low saved $0.171, and asking cost $0.141, a margin of $0.030. The other three tasks land where a route saves more than twice its cost. On a session already running the setting a route recommends, a route saves nothing, whatever the task size.
 
 The 70% was measured on small tasks. Whether a larger task saves the same share on the cheaper setting is untested, so the bands extend the measurements to sizes the bench did not run.
 

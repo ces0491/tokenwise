@@ -16,6 +16,8 @@ Corrections from the review before tagging. Setup no longer recommends a change 
   - The findings quoted Sonnet's re-run medians under a table of cost per completed task, and now quote cost per completed task: $0.41 against $0.30 on the implement task.
   - The document-format README said Claude read each form in full, which its own tables contradict for the Quarto page and the WebFetch artifact reads. It says each session was asked to, gives the Artifact tool's cut as 50,000 characters, dates the earlier paper run, and loses a closing line and a restated caveat.
   - The README called C12's four tasks "the bench's four".
+- **The route skill's effort ladder separates Claude Code from the API.** It said Opus 4.7 defaults to `xhigh` in both. The API effort docs give `high`, and only Claude Code defaults Opus 4.7 to `xhigh`.
+- **Routes measured again**, since `SKILL.md` changed: Claude Code 2.1.280, pinned to `claude-opus-5`, $1.99 at list price. A route in a session already under way cost $0.045 from Sonnet 5 at medium, $0.125 from Opus 5 at high and $0.141 from Opus 5 at xhigh, and left 337 to 910 tokens behind. Loaded and unused, the plugin adds 152 tokens, against 148 for 1.4.0 and 153 for 1.3.2 with the same route name and description.
 - **Smaller fixes.** `pdf-wrap.mjs` trims the pandoc version, which kept a trailing carriage return on Windows. `measure.mjs` masks artifact ids anywhere in a saved run. Two test names say what they test, and the recall test checks that the filler text does not read as a review. CI validates with Claude Code 2.1.280.
 
 ## 1.4.0 — 2026-09-23

@@ -42,7 +42,7 @@ Across 111 graded runs, seven of the twelve claims in `bench/SCOPE.md` were fals
 
 Pass/fail thresholds were fixed before the results were read (`bench/SCOPE.md`) and the verdicts are computed from them. Full numbers in [docs/findings.md](docs/findings.md), method in [docs/methodology.md](docs/methodology.md), raw runs in `bench/results/`.
 
-Those task costs leave out the skill itself, so its cost is measured separately. Loaded and unused, the plugin adds 148 tokens of context: the route skill's name and description, since setup loads only when typed and the hooks add nothing to the conversation. It runs on your session's model and effort: a route in a session already under way cost $0.04 asked from Sonnet 5 at medium, $0.12 from Opus 5 at high and $0.14 from Opus 5 at xhigh. The first route left 315 to 873 tokens behind, carried on every later call, and routing just before a `/clear` carries nothing. For a single small chore, asking can cost about what the cheaper model saves.
+Those task costs leave out the skill itself, so its cost is measured separately. Loaded and unused, the plugin adds 152 tokens of context: the route skill's name and description, since setup loads only when typed and the hooks add nothing to the conversation. It runs on your session's model and effort: a route in a session already under way cost $0.04 asked from Sonnet 5 at medium, $0.12 from Opus 5 at high and $0.14 from Opus 5 at xhigh. The first route left 337 to 910 tokens behind, carried on every later call, and routing just before a `/clear` carries nothing. For a single small chore, asking can cost about what the cheaper model saves.
 
 ![What each setting cost on the bench's tasks, what a route costs from three settings, and the task sizes where a route pays for itself](docs/breakeven.svg)
 
@@ -54,7 +54,7 @@ Every number above comes from a file in this repository or from a script in it. 
 git clone https://github.com/ces0491/tokenwise && cd tokenwise
 
 node bench/summarize.mjs --check     # do the published tables follow from the published runs?
-node bench/skill-cost.mjs --compare 1.4.0@1.3.2,1.4.0-opus-high@1.4.0,1.4.0-sonnet-medium@1.4.0   # the skill's own cost, from the saved sessions
+node bench/skill-cost.mjs --compare 1.5.0@1.3.2,1.5.0-opus-high@1.5.0,1.5.0-sonnet-medium@1.5.0   # the skill's own cost, from the saved sessions
 node bench/breakeven.mjs --check     # does the breakeven chart follow from the saved runs?
 node bench/context-profile.mjs       # the token figures above, against your own transcripts
 node bench/run.mjs --results bench/rerun   # re-run all 116 runs on your account, into a fresh directory

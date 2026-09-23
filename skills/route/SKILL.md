@@ -75,7 +75,7 @@ Ultracode is a Claude Code setting that sends `xhigh` and has Claude plan a dyna
 | --- | --- |
 | low | Fewest tool calls, terse replies, minimal thinking. Routine work, and reviews of a diff you can hold in your head. |
 | medium | Implementation from a plan, docs, tests, reproducible bugs. |
-| high | The default in Claude Code and the API on every model that supports effort except Opus 5.5, which defaults to medium, and Opus 4.7, which defaults to xhigh. Intelligence-sensitive work. |
+| high | The default on every model that supports effort except Opus 5.5, which defaults to medium. In Claude Code, Opus 4.7 defaults to xhigh. Intelligence-sensitive work. |
 | xhigh | Buys thinking tokens. Anthropic's effort docs aim it at long-running agentic and coding work. |
 | max | Correctness over cost. Only when xhigh has shown headroom. Unmeasured. |
 | ultrathink | A prompt keyword for deeper reasoning on one turn, with effort unchanged. Unmeasured. |

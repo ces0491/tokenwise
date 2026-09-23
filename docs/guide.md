@@ -11,7 +11,7 @@ The plugin adds two skills and two warnings. This guide covers what each does, w
 
 In the VS Code extension the manager opens with `/plugins`. From the terminal, `claude plugin install tokenwise@ces0491-plugins` does the same thing and writes to the same settings.
 
-Idle, the plugin costs only the route skill's name and description, which is all that loads until it fires: 148 tokens of context, measured on Opus 5. Setup loads only when you type it, and the hooks add nothing to the conversation. What a route costs is under "What routing costs" below.
+Idle, the plugin costs only the route skill's name and description, which is all that loads until it fires: 152 tokens of context, measured on Opus 5. Setup loads only when you type it, and the hooks add nothing to the conversation. What a route costs is under "What routing costs" below.
 
 ## Check the default new sessions start on
 
@@ -44,7 +44,7 @@ Claude also runs it without being asked by name when you ask which model or effo
 
 ## What routing costs
 
-The skill runs in its own subagent context. Its text and its reasoning stay there, and only the answer comes back into your conversation, where it is carried on every later call like anything else in context. The skill runs on your session's model and effort. A route in a session already under way cost $0.04 asked from Sonnet 5 at medium, $0.12 from Opus 5 at high and $0.14 from Opus 5 at xhigh, and the first route left 315 to 873 tokens behind. `findings.md` has the numbers, and a chart of the task sizes where a route pays for itself.
+The skill runs in its own subagent context. Its text and its reasoning stay there, and only the answer comes back into your conversation, where it is carried on every later call like anything else in context. The skill runs on your session's model and effort. A route in a session already under way cost $0.04 asked from Sonnet 5 at medium, $0.12 from Opus 5 at high and $0.14 from Opus 5 at xhigh, and the first route left 337 to 910 tokens behind. `findings.md` has the numbers, and a chart of the task sizes where a route pays for itself.
 
 - Route just before a `/clear`, at a phase boundary, and nothing it returns is carried.
 - For a single small chore, pick Sonnet at low effort, or Haiku, yourself. On the bench, moving a rename from Opus at xhigh to Sonnet at low saved $0.17, against $0.14 for asking from Opus 5 at xhigh.
