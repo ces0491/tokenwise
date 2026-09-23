@@ -1,8 +1,10 @@
 #!/usr/bin/env node
-// Sets the model and effort new Claude Code sessions start on, in the user's settings, and puts them back.
+// Checks the model and effort new Claude Code sessions start on, in the user's settings, sets Sonnet 5 at medium when
+// the bench measured the current setting costing more, and puts the previous values back.
 // The /tokenwise:setup skill runs it; nothing here runs on install.
 //
-//   node skills/setup/setup.mjs show      # current values, the recommendation, and anything that would override it
+//   node skills/setup/setup.mjs show      # the setting sessions start on, whether setup recommends a change and why,
+//                                         # and anything that would override it
 //   node skills/setup/setup.mjs apply     # write the recommendation, saving the values from before setup first ran
 //   node skills/setup/setup.mjs restore   # put those back, except values the user changed after apply
 //
@@ -29,10 +31,47 @@ export function current(settings) {
   };
 }
 
-export const applied = (settings) => {
-  const c = current(settings);
-  return c.model === RECOMMENDED.model && c.effort === RECOMMENDED.effort;
+// What each model setting resolves to on the Anthropic API from Claude Code 2.1.280, per the model configuration docs.
+// No model set, or "default", is the account default: Opus 5.5 on Pro, Max, Team, Enterprise and the API.
+const ACCOUNT_DEFAULT = 'claude-opus-5-5';
+const ALIASES = { opus: 'claude-opus-5-5', sonnet: 'claude-sonnet-5', haiku: 'claude-haiku-4-5', fable: 'claude-fable-5-1', best: 'claude-fable-5-1' };
+export const canonicalModel = (m) => {
+  if (m == null || m === 'default') return ACCOUNT_DEFAULT;
+  const id = String(m).toLowerCase().replace(/\[1m\]$/, '').replace(/-\d{8}$/, '');
+  return ALIASES[id] ?? id;
 };
+
+// The level a model runs at from these settings: its saved level, then the top-level effortLevel, which Opus 5.5
+// ignores in the user's settings, then the model's own default. Haiku takes no effort level.
+export function effortFor(settings, model) {
+  if (model === 'claude-haiku-4-5') return null;
+  const saved = settings.modelSettings?.[model]?.effortLevel;
+  if (saved != null) return saved;
+  if (model !== 'claude-opus-5-5' && settings.effortLevel != null) return settings.effortLevel;
+  return model === 'claude-opus-5-5' ? 'medium' : model === 'claude-opus-4-7' ? 'xhigh' : 'high';
+}
+
+export const applied = (settings) => canonicalModel(settings.model) === RECOMMENDED.canonical
+  && effortFor(settings, RECOMMENDED.canonical) === RECOMMENDED.effort;
+
+// Settings where Sonnet 5 at medium cost at most 0.7 times as much per completed task on a task both ran, the bench's
+// noise band. Sonnet 5 at high came to 0.71 times on its one task, inside the band. The account default, Opus 5.5 at
+// medium, was compared directly (C12) and saved materially on one task of four, so it stays.
+const COSTLIER = { 'claude-opus-5': ['medium', 'high', 'xhigh'], 'claude-sonnet-5': ['xhigh'], 'claude-fable-5-1': ['xhigh'] };
+
+// Whether setup recommends a change, and on what basis: "applied" (already there), "c12" (Opus 5.5 at medium),
+// "noise" (Sonnet 5 at high), "cheaper" (Haiku, or Sonnet 5 at low), "measured" (a setting in COSTLIER) or
+// "unmeasured" (anything else).
+export function assess(settings) {
+  const model = canonicalModel(settings.model);
+  const start = { model, effort: effortFor(settings, model), accountDefault: settings.model == null || settings.model === 'default' };
+  const basis = applied(settings) ? 'applied'
+    : model === 'claude-opus-5-5' && start.effort === 'medium' ? 'c12'
+      : model === 'claude-sonnet-5' && start.effort === 'high' ? 'noise'
+        : model === 'claude-haiku-4-5' || (model === 'claude-sonnet-5' && start.effort === 'low') ? 'cheaper'
+          : COSTLIER[model]?.includes(start.effort) ? 'measured' : 'unmeasured';
+  return { start, recommend: basis === 'measured', basis };
+}
 
 // A copy of settings with the given values written, deleting a key whose value is null and any object left empty.
 export function withValues(settings, { model, effort }) {
@@ -108,9 +147,12 @@ export function run(command, { env = process.env, cwd = process.cwd() } = {}) {
         if (s) projectFiles[rel] = s;
       } catch { /* an unreadable project file is Claude Code's to report */ }
     }
-    // The top-level effortLevel is not a value setup writes, but it is what a model with no saved level runs at.
+    // The top-level effortLevel is not a value setup writes, but it is what a model with no saved level runs at, except
+    // Opus 5.5.
+    const a = assess(settings);
     return {
       ok: true, file, current: current(settings), topLevelEffort: settings.effortLevel ?? null,
+      start: a.start, recommend: a.recommend, basis: a.basis,
       recommended: { model: RECOMMENDED.model, effort: RECOMMENDED.effort },
       applied: applied(settings), backup: fs.existsSync(backupFile), overrides: overrides(env, projectFiles),
     };
@@ -118,6 +160,11 @@ export function run(command, { env = process.env, cwd = process.cwd() } = {}) {
 
   if (command === 'apply') {
     if (applied(settings)) return { ok: true, changed: false, message: `${file} already starts new sessions on ${RECOMMENDED.model} at ${RECOMMENDED.effort}. Nothing changed.` };
+    const a = assess(settings);
+    if (!a.recommend) {
+      const at = a.start.effort ? ` at ${a.start.effort}` : '';
+      return { ok: false, changed: false, message: `Setup recommends no change from ${a.start.model}${at} (${a.basis}), so nothing was written. /model sets a default by hand.` };
+    }
     const before = current(settings);
     // A backup left by an earlier apply holds the values from before setup first ran, so it is kept. Otherwise a second
     // apply, after the user changed a value, would save setup's own values as the ones to go back to.

@@ -32,7 +32,7 @@ Reading volume is how much must enter context to do the job. Judgment density is
 
 Start at the cheap end of each row. The bench behind these rows is in `../../bench/RESULTS.md`; costs quoted are from it, at API list price on a small test project.
 
-The bench measured `claude-haiku-4-5-20251001`, `claude-sonnet-5`, `claude-opus-5` and `claude-fable-5-1`, which is what `haiku`, `sonnet`, `opus` and `fable` resolved to on 8 and 14 September 2026. A measured row is evidence about that model. From Claude Code 2.1.280, `opus` resolves to Opus 5.5, which the bench has not run. When the user is on, or switching to, a newer model in the same family, say that the row's evidence comes from the older one.
+The bench measured `claude-haiku-4-5-20251001`, `claude-sonnet-5`, `claude-opus-5` and `claude-fable-5-1`, which is what `haiku`, `sonnet`, `opus` and `fable` resolved to on 8 and 14 September 2026. A measured row is evidence about that model. From Claude Code 2.1.280, `opus` resolves to Opus 5.5, `claude-opus-5-5`, which the bench ran only at medium against Sonnet 5 at medium: Sonnet cost 0.67 times as much implementing from a spec, and was within noise on a reproducible bug and on prompts holding three jobs. When the user is on, or switching to, a newer model in the same family, say that the row's evidence comes from the older one.
 
 | Phase or task | Start here | Escalate to | Measured |
 | --- | --- | --- | --- |

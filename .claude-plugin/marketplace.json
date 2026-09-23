@@ -6,7 +6,7 @@
     {
       "name": "tokenwise",
       "source": "./",
-      "description": "A cheaper default for new Claude Code sessions, warnings before a resume or model switch re-sends the conversation, and model and effort routing per phase.",
+      "description": "A check of the default new Claude Code sessions start on, warnings before a resume or model switch re-sends the conversation, and model and effort routing per phase.",
       "category": "productivity"
     }
   ]

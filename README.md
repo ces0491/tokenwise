@@ -1,6 +1,6 @@
 # tokenwise
 
-A Claude Code plugin that starts new sessions on a cheaper default, shows what a resume or a model switch is about to re-send, and recommends the model and effort level per phase of a session.
+A Claude Code plugin that checks the default new sessions start on, shows what a resume or a model switch is about to re-send, and recommends the model and effort level per phase of a session.
 
 ## Why
 
@@ -12,9 +12,9 @@ Two facts shape the advice. The prompt cache is per model, and on most models pe
 
 ## What it does
 
-In order of how often it interrupts you: a default set once, warnings, and advice on request.
+In order of how often it interrupts you: a default checked once, warnings, and advice on request.
 
-**`/tokenwise:setup`** starts new sessions on Sonnet 5 at medium effort. On the four bench tasks both ran, Sonnet 5 at medium passed every run at 19% to 59% of Opus 5 at xhigh's cost per completed task. It shows your current settings, what would override the change, and what Sonnet gives up, and writes only after you say yes. `/tokenwise:setup restore` puts the previous values back, leaving alone any you changed since.
+**`/tokenwise:setup`** checks the model and effort new sessions start on. On the account default from Claude Code 2.1.280, Opus 5.5 at medium, it changes nothing: against it, Sonnet 5 at medium cost materially less on one of the bench's four tasks. From a setting the bench measured costing more, it offers Sonnet 5 at medium. Opus 5 at xhigh is one: on the four tasks both ran, Sonnet 5 at medium passed every run at 19% to 59% of its cost per completed task. It shows your current settings, what would override the change, and what Sonnet gives up, and writes only after you say yes. `/tokenwise:setup restore` puts the previous values back, leaving alone any you changed since.
 
 **Two warnings**, from hooks that run a local script and add nothing to the conversation:
 
@@ -38,11 +38,11 @@ Claude also runs the skill when you ask which model or effort level to use. It r
 
 Four of the routing table's nine rows were run against a small test project where a grader decides whether a run worked: hidden tests for implementing and debugging, with the original tests restored first so a model that edits tests to pass gets no credit; recall of five planted defects for reviewing; tests plus a grep for a rename. The table's last column says which rows those are, and marks the rest untested or not separated.
 
-Across 87 graded runs, six of the eleven claims in `bench/SCOPE.md` were falsified. Debugging and reviewing named a more expensive setting than the work needed. Forcing subagents onto Haiku saved 30%, short of the bench's 40% pass mark. And splitting a small task into a planning session and an implementation session cost more than doing it in one. Each row starts at the cheap end and names the failure that justifies moving up. Implementing a feature from a spec cost $0.17 on Haiku and $2.63 on Fable at xhigh, and both passed the same 37 tests. Reviewing a diff on Opus at low effort found all five planted defects in 3 turns; the same model at high effort found the same five in 13 turns for 3.3 times the cost. With ultracode on, Opus ran a workflow on that review and again found the same five, for 9.5 times the cost of Opus at xhigh. Sending each job in a prompt to a worker on its own setting cost 0.99 to 1.85 times as much as doing all of it in one session, so that keyword stayed an experiment ([experiments/ultratoken](experiments/ultratoken/README.md)).
+Across 111 graded runs, seven of the twelve claims in `bench/SCOPE.md` were falsified. Debugging and reviewing named a more expensive setting than the work needed. Forcing subagents onto Haiku saved 30%, short of the bench's 40% pass mark. Splitting a small task into a planning session and an implementation session cost more than doing it in one. And against Opus 5.5 at medium, the account default from Claude Code 2.1.280, Sonnet 5 at medium saved more than the bench's 30% noise band only on implementing from a spec. Each row starts at the cheap end and names the failure that justifies moving up. Implementing a feature from a spec cost $0.17 on Haiku and $2.63 on Fable at xhigh, and both passed the same 37 tests. Reviewing a diff on Opus at low effort found all five planted defects in 3 turns; the same model at high effort found the same five in 13 turns for 3.3 times the cost. With ultracode on, Opus ran a workflow on that review and again found the same five, for 9.5 times the cost of Opus at xhigh. Sending each job in a prompt to a worker on its own setting cost 0.99 to 1.85 times as much as doing all of it in one session, so that keyword stayed an experiment ([experiments/ultratoken](experiments/ultratoken/README.md)).
 
 Pass/fail thresholds were fixed before the results were read (`bench/SCOPE.md`) and the verdicts are computed from them. Full numbers in [docs/findings.md](docs/findings.md), method in [docs/methodology.md](docs/methodology.md), raw runs in `bench/results/`.
 
-Those task costs leave out the skill itself, so its cost is measured separately. Loaded and unused, the plugin adds 153 tokens of context: the route skill's name and description, since setup loads only when typed and the hooks add nothing to the conversation. It runs on your session's model and effort: a route in a session already under way cost $0.04 asked from Sonnet 5 at medium, $0.12 from Opus 5 at high and $0.13 from Opus 5 at xhigh. The first route left 457 to 980 tokens behind, carried on every later call, and routing just before a `/clear` carries nothing. For a single small chore, asking can cost about what the cheaper model saves.
+Those task costs leave out the skill itself, so its cost is measured separately. Loaded and unused, the plugin adds 148 tokens of context: the route skill's name and description, since setup loads only when typed and the hooks add nothing to the conversation. It runs on your session's model and effort: a route in a session already under way cost $0.04 asked from Sonnet 5 at medium, $0.12 from Opus 5 at high and $0.14 from Opus 5 at xhigh. The first route left 315 to 873 tokens behind, carried on every later call, and routing just before a `/clear` carries nothing. For a single small chore, asking can cost about what the cheaper model saves.
 
 ![What each setting cost on the bench's tasks, what a route costs from three settings, and the task sizes where a route pays for itself](docs/breakeven.svg)
 
@@ -54,15 +54,15 @@ Every number above comes from a file in this repository or from a script in it. 
 git clone https://github.com/ces0491/tokenwise && cd tokenwise
 
 node bench/summarize.mjs --check     # do the published tables follow from the published runs?
-node bench/skill-cost.mjs --compare 1.3.0,1.3.0-opus-high@1.3.0,1.3.0-sonnet-medium@1.3.0   # the skill's own cost, from the saved sessions
+node bench/skill-cost.mjs --compare 1.4.0@1.3.2,1.4.0-opus-high@1.4.0,1.4.0-sonnet-medium@1.4.0   # the skill's own cost, from the saved sessions
 node bench/breakeven.mjs --check     # does the breakeven chart follow from the saved runs?
 node bench/context-profile.mjs       # the token figures above, against your own transcripts
-node bench/run.mjs --results bench/rerun   # re-run all 92 runs on your account, into a fresh directory
+node bench/run.mjs --results bench/rerun   # re-run all 116 runs on your account, into a fresh directory
 ```
 
-`--check` regenerates `bench/RESULTS.md` from `bench/results/runs.jsonl` and fails if the committed report differs, so you can confirm the tables were not edited by hand without spending anything. `context-profile.mjs` reads your own transcripts, so expect different numbers: the ratio and the cache share are the parts that should look familiar. Only the last command uses your account: the published runs come to $68.52 at list price. `node bench/summarize.mjs --results bench/rerun --out bench/rerun/RESULTS.md` then builds the report and verdicts from your runs, to set beside the published one.
+`--check` regenerates `bench/RESULTS.md` from `bench/results/runs.jsonl` and fails if the committed report differs, so you can confirm the tables were not edited by hand without spending anything. `context-profile.mjs` reads your own transcripts, so expect different numbers: the ratio and the cache share are the parts that should look familiar. Only the last command uses your account: the published runs come to $79.69 at list price. `node bench/summarize.mjs --results bench/rerun --out bench/rerun/RESULTS.md` then builds the report and verdicts from your runs, to set beside the published one.
 
-What the bench cannot show: all 87 graded runs passed, 86 of them on the graders alone and one review answer the keyword grader could not read on the hand reading in `bench/results/hand-grades.json`, so it measures cost at equal outcomes and never reaches the point where an expensive setting earns its price. The fixture is small, so it says nothing about long-context sessions. No run used `max` effort, and ultracode ran only on two small tasks, so whether it pays on large work that splits rests on Anthropic's docs and the skill's reading of them. And it measured the models the aliases pointed to on 8, 14 and 15 September 2026: Haiku 4.5, Sonnet 5, Opus 5 and Fable 5.1. `node scripts/check-models.mjs --live` asks Claude Code what each alias points to today, for a small cost.
+What the bench cannot show: all 111 graded runs passed, 110 of them on the graders alone and one review answer the keyword grader could not read on the hand reading in `bench/results/hand-grades.json`, so it measures cost at equal outcomes and never reaches the point where an expensive setting earns its price. The fixture is small, so it says nothing about long-context sessions. No run used `max` effort, and ultracode ran only on two small tasks, so whether it pays on large work that splits rests on Anthropic's docs and the skill's reading of them. And it measured the models the aliases pointed to on 8, 14 and 15 September 2026, Haiku 4.5, Sonnet 5, Opus 5 and Fable 5.1, and Opus 5.5 by its full model id on 23 September. `node scripts/check-models.mjs --live` asks Claude Code what each alias points to today, for a small cost.
 
 ## Documentation
 

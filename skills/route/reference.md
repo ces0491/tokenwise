@@ -2,7 +2,7 @@
 
 Evidence and sources behind `SKILL.md`. Read this when a recommendation is challenged or the user asks why.
 
-Two kinds of evidence appear here. The token measurements below are observational, parsed from real Claude Code transcripts on one machine by `bench/context-profile.mjs`. The per-row model and effort recommendations were tested separately on a benchmark of graded tasks; that is in `../../docs/findings.md`, and it falsified six of the eleven claims it set out to test. Where the two disagree, the benchmark wins for anything it covers, which is task-level model and effort choice on a small codebase. It does not cover long-context sessions, which is what the numbers below describe.
+Two kinds of evidence appear here. The token measurements below are observational, parsed from real Claude Code transcripts on one machine by `bench/context-profile.mjs`. The per-row model and effort recommendations were tested separately on a benchmark of graded tasks; that is in `../../docs/findings.md`, and it falsified seven of the twelve claims it set out to test. Where the two disagree, the benchmark wins for anything it covers, which is task-level model and effort choice on a small codebase. It does not cover long-context sessions, which is what the numbers below describe.
 
 ## Where the tokens go
 
@@ -58,7 +58,7 @@ Each subagent runs in its own context window; only its summary returns. Agent fi
 
 From the Claude Code skills docs: "When you or Claude invoke a skill, the rendered `SKILL.md` content enters the conversation as a single message and stays there across later turns." A second invocation with different arguments appends the full content again, and auto-compaction re-attaches invoked skills after its summary, up to a token budget. `context: fork` runs a skill in a subagent instead: Claude Code "gives it the skill content as its prompt. The subagent doesn't see your conversation history".
 
-This skill runs forked for that reason. Measured on Opus 5 at xhigh effort (`../../docs/findings.md`), a route that ran in the conversation left 9.6K tokens behind for every later call, most of it the answer and its thinking. Forked, a 1.3.2 route left 980, the answer alone. The cost is that the skill routes from the description it is given and cannot see the conversation or its context size.
+This skill runs forked for that reason. Measured on Opus 5 at xhigh effort (`../../docs/findings.md`), a route that ran in the conversation left 9.6K tokens behind for every later call, most of it the answer and its thinking. Forked, a 1.4.0 route left 873, the answer alone. The cost is that the skill routes from the description it is given and cannot see the conversation or its context size.
 
 ## Images
 

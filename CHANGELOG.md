@@ -2,6 +2,16 @@
 
 Versions follow the bar in `SCOPE.md`: a changed recommendation is a minor bump, a changed answer format or a removed section is a major one.
 
+## 1.4.0 — 2026-09-23
+
+Setup's recommendation changed, which is a minor release. No row of the routing table changed.
+
+- **C12: Sonnet 5 at medium against Opus 5.5 at medium, falsified.** From Claude Code 2.1.280 an account with no model set starts on Opus 5.5 at medium. The bench compared it with Sonnet 5 at medium on the four tasks setup quotes, three runs per cell, both arms on 2.1.280. Every run passed. Sonnet cost 0.67 times as much per completed task implementing from a spec, and 0.87, 1.09 and 0.90 times on the bug fix and the two multi-job prompts. C12 needed a saving beyond the 30% noise band on three of the four. The 24 runs cost $11.17 at list price, and the Sonnet cells ran again beside Opus 5.5 because a session starts 13.2K tokens larger on 2.1.280 than on 2.1.272.
+- **`/tokenwise:setup` recommends a change only where the bench measured one.** On the account default it recommends no change and says why. It offers Sonnet 5 at medium from Opus 5 at medium, high or xhigh, Fable 5.1 at xhigh, and Sonnet 5 at xhigh, the settings where Sonnet cost at most 0.7 times as much on a task both ran. Sonnet 5 at high, at 0.71 times on one run, and every unmeasured setting get no recommendation, and `apply` refuses to write when there is none. `setup.mjs show` reports the model and effort sessions start on, resolving aliases, saved levels and the top-level `effortLevel`, which Opus 5.5 ignores in user settings.
+- **The docs name `claude-opus-5-5`.** `SKILL.md` says what C12 found. The README, guide, findings, methodology and both scope files carry the new result and counts: 116 runs, 111 graded, seven of twelve claims falsified. The methodology's fixed overhead per call, given as 19K to 28K tokens, was 19K to 40K once the multi runs of 15 September were counted, and is 38K to 51K on 2.1.280.
+- **Routes measured again.** `SKILL.md` changed, so the route sessions ran again on Claude Code 2.1.280, pinned to `claude-opus-5` as for 1.3.2, for $1.97 at list price. A route in a session already under way cost $0.044 from Sonnet 5 at medium, $0.116 from Opus 5 at high and $0.144 from Opus 5 at xhigh, and left 315 to 873 tokens behind. Loaded and unused, the plugin adds 148 tokens, against 153 for 1.3.2. `hooks/route-costs.json` and the chart follow.
+- **Two stale figures in the READMEs.** The command for reproducing the skill's cost named the 1.3.0 route labels in the README and the 1.2.0 labels in `bench/README.md`, and both gave the published runs' total from before C12. They name the 1.4.0 labels and $79.69.
+
 ## 1.3.2 — 2026-09-23
 
 No row of the routing table changed. `SKILL.md` did, so its routes were measured again.

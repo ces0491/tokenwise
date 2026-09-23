@@ -1,6 +1,6 @@
 # Bench results
 
-Generated 2026-09-15 11:05 UTC from 92 runs (87 graded, the rest session resumes with no grader) recorded 2026-09-08 to 2026-09-15 on Claude Code 2.1.263 and 2.1.270. Together they cost $68.52 at list price, across 178 minutes of session time.
+Generated 2026-09-23 09:01 UTC from 116 runs (111 graded, the rest session resumes with no grader) recorded 2026-09-08 to 2026-09-23 on Claude Code 2.1.263 and 2.1.270 and 2.1.280. Together they cost $79.69 at list price, across 212 minutes of session time.
 
 ## How to read this
 
@@ -33,6 +33,7 @@ None. A run that hits a usage limit or an API error never attempted its task, so
 | C10 ultratoken on small jobs | falsified from opus at xhigh; falsified from sonnet at medium | from opus at xhigh: ultratoken 3/3 at $0.89 per completed task, plain 3/3 at $0.71, routed in 3 of 3; from sonnet at medium: ultratoken 3/3 at $0.77 per completed task, plain 3/3 at $0.42, routed in 3 of 3 |
 | C11 ultratoken with a large job | falsified from opus at xhigh; falsified from sonnet at medium | from opus at xhigh: ultratoken 3/3 at $1.29 per completed task, plain 3/3 at $1.30, routed in 3 of 3; from sonnet at medium: ultratoken 3/3 at $0.76 per completed task, plain 3/3 at $0.65, routed in 3 of 3 |
 | C10 and C11 by job size | pays at neither size from opus at xhigh; pays at neither size from sonnet at medium | from opus at xhigh: ultratoken at 1.25x of the plain cost per completed task on small jobs, 0.99x with a large job; from sonnet at medium: ultratoken at 1.85x of the plain cost per completed task on small jobs, 1.17x with a large job |
+| C12 Sonnet 5 at medium against Opus 5.5 at medium | falsified | implement: Sonnet saves, 3/3 at $0.41 per completed task against Opus 5.5 3/3 at $0.61 (0.67x); debug: Sonnet tie, 3/3 at $0.19 per completed task against Opus 5.5 3/3 at $0.21 (0.87x); multi: Sonnet tie, 3/3 at $0.44 per completed task against Opus 5.5 3/3 at $0.40 (1.09x); multi-large: Sonnet tie, 3/3 at $0.70 per completed task against Opus 5.5 3/3 at $0.77 (0.90x) |
 
 ## Cells
 
@@ -42,15 +43,19 @@ None. A run that hits a usage limit or an API error never attempted its task, so
 | implement-haiku | 1 | 1/1 | $0.17 | $0.17 | 19 |
 | implement-opus-medium | 3 | 3/3 | $0.86 | $0.82 | 11 |
 | implement-opus-xhigh | 3 | 3/3 | $1.65 | $1.62 | 16 |
+| implement-opus55-medium | 3 | 3/3 | $0.59 | $0.61 | 11 |
 | implement-sonnet-high | 1 | 1/1 | $0.42 | $0.42 | 21 |
 | implement-sonnet-low | 1 | 1/1 | $0.24 | $0.24 | 15 |
 | implement-sonnet-medium | 3 | 3/3 | $0.28 | $0.30 | 17 |
+| implement-sonnet-medium-c12 | 3 | 3/3 | $0.39 | $0.41 | 19 |
 | implement-sonnet-xhigh | 3 | 3/3 | $0.62 | $0.59 | 25 |
 | debug-haiku | 1 | 1/1 | $0.06 | $0.06 | 8 |
 | debug-opus-high | 3 | 3/3 | $0.41 | $0.40 | 9 |
 | debug-opus-ultracode | 3 | 3/3 | $0.45 | $0.51 | 8 |
 | debug-opus-xhigh | 3 | 3/3 | $0.35 | $0.36 | 9 |
+| debug-opus55-medium | 3 | 3/3 | $0.21 | $0.21 | 5 |
 | debug-sonnet-medium | 3 | 3/3 | $0.12 | $0.12 | 7 |
+| debug-sonnet-medium-c12 | 3 | 3/3 | $0.19 | $0.19 | 8 |
 | debug-sonnet-xhigh | 1 | 1/1 | $0.16 | $0.16 | 11 |
 | review-fable-high | 1 | 1/1 | $0.79 | $0.79 | 5 |
 | review-opus-high | 3 | 3/3 | $0.82 | $0.83 | 13 |
@@ -65,11 +70,15 @@ None. A run that hits a usage limit or an API error never attempted its task, so
 | explore-opus-inherit | 3 | 3/3 | $0.63 | $0.65 | 2 |
 | multi-large-opus-xhigh | 3 | 3/3 | $1.25 | $1.30 | 19 |
 | multi-large-opus-xhigh-ultratoken | 3 | 3/3 | $1.32 | $1.29 | 4 |
+| multi-large-opus55-medium | 3 | 3/3 | $0.86 | $0.77 | 15 |
 | multi-large-sonnet-medium | 3 | 3/3 | $0.64 | $0.65 | 23 |
+| multi-large-sonnet-medium-c12 | 3 | 3/3 | $0.62 | $0.70 | 24 |
 | multi-large-sonnet-medium-ultratoken | 3 | 3/3 | $0.75 | $0.76 | 3 |
 | multi-opus-xhigh | 3 | 3/3 | $0.70 | $0.71 | 9 |
 | multi-opus-xhigh-ultratoken | 3 | 3/3 | $0.89 | $0.89 | 4 |
+| multi-opus55-medium | 3 | 3/3 | $0.41 | $0.40 | 6 |
 | multi-sonnet-medium | 3 | 3/3 | $0.43 | $0.42 | 23 |
+| multi-sonnet-medium-c12 | 3 | 3/3 | $0.40 | $0.44 | 19 |
 | multi-sonnet-medium-ultratoken | 3 | 3/3 | $0.60 | $0.77 | 2 |
 | split-impl-sonnet-medium | 1 | 1/1 | $0.51 | $0.51 | 31 |
 | split-plan-opus-xhigh | 1 | 1/1 | $1.99 | $1.99 | 13 |
@@ -86,11 +95,17 @@ None. A run that hits a usage limit or an API error never attempted its task, so
 | implement-opus-xhigh | opus | xhigh | 14 | 51K | 60K | 651K | 30K | 15K | $1.67 | 5.5 | pass (51/51) |
 | implement-opus-xhigh#2 | opus | xhigh | 18 | 49K | 51K | 825K | 25K | 10K | $1.55 | 4.6 | pass (47/47) |
 | implement-opus-xhigh#3 | opus | xhigh | 16 | 52K | 56K | 775K | 28K | 13K | $1.65 | 5.2 | pass (48/48) |
+| implement-opus55-medium | claude-opus-5-5 | medium | 9 | 44K | 34K | 364K | 12K | 2K | $0.59 | 1.6 | pass (51/51) |
+| implement-opus55-medium#2 | claude-opus-5-5 | medium | 12 | 47K | 37K | 525K | 14K | 2K | $0.68 | 2.0 | pass (52/52) |
+| implement-opus55-medium#3 | claude-opus-5-5 | medium | 11 | 40K | 32K | 406K | 10K | 2K | $0.54 | 1.5 | pass (53/53) |
 | implement-sonnet-high | sonnet | high | 21 | 28K | 39K | 552K | 16K | 8K | $0.42 | 2.4 | pass (46/46) |
 | implement-sonnet-low | sonnet | low | 15 | 25K | 26K | 347K | 7K | 409 | $0.24 | 1.1 | pass (52/52) |
 | implement-sonnet-medium | sonnet | medium | 17 | 21K | 29K | 336K | 7K | 1K | $0.26 | 1.2 | pass (46/46) |
 | implement-sonnet-medium#2 | sonnet | medium | 17 | 22K | 30K | 346K | 9K | 3K | $0.28 | 1.5 | pass (46/46) |
 | implement-sonnet-medium#3 | sonnet | medium | 20 | 27K | 35K | 507K | 12K | 4K | $0.37 | 2.4 | pass (53/53) |
+| implement-sonnet-medium-c12 | sonnet | medium | 21 | 46K | 39K | 923K | 12K | 4K | $0.46 | 1.7 | pass (46/46) |
+| implement-sonnet-medium-c12#2 | sonnet | medium | 19 | 36K | 38K | 645K | 11K | 3K | $0.39 | 1.4 | pass (49/49) |
+| implement-sonnet-medium-c12#3 | sonnet | medium | 18 | 38K | 36K | 641K | 10K | 3K | $0.37 | 1.6 | pass (49/49) |
 | implement-sonnet-xhigh | sonnet | xhigh | 20 | 24K | 39K | 448K | 16K | 8K | $0.40 | 2.4 | pass (45/45) |
 | implement-sonnet-xhigh#2 | sonnet | xhigh | 29 | 34K | 61K | 926K | 31K | 18K | $0.74 | 4.7 | pass (55/55) |
 | implement-sonnet-xhigh#3 | sonnet | xhigh | 25 | 31K | 52K | 733K | 27K | 16K | $0.62 | 3.8 | pass (52/52) |
@@ -111,9 +126,15 @@ None. A run that hits a usage limit or an API error never attempted its task, so
 | debug-opus-xhigh | opus | xhigh | 9 | 33K | 23K | 270K | 3K | 1K | $0.44 | 0.8 | pass (34/34) |
 | debug-opus-xhigh#2 | opus | xhigh | 10 | 20K | 22K | 176K | 2K | 349 | $0.35 | 0.5 | pass (34/34) |
 | debug-opus-xhigh#3 | opus | xhigh | 9 | 17K | 19K | 136K | 2K | 259 | $0.30 | 0.5 | pass (34/34) |
+| debug-opus55-medium | claude-opus-5-5 | medium | 5 | 42K | 19K | 192K | 1K | 91 | $0.21 | 0.3 | pass (34/34) |
+| debug-opus55-medium#2 | claude-opus-5-5 | medium | 6 | 43K | 20K | 240K | 1K | 126 | $0.23 | 0.4 | pass (34/34) |
+| debug-opus55-medium#3 | claude-opus-5-5 | medium | 5 | 42K | 18K | 191K | 816 | 38 | $0.20 | 0.4 | pass (34/34) |
 | debug-sonnet-medium | sonnet | medium | 7 | 30K | 17K | 192K | 1K | 218 | $0.12 | 0.4 | pass (34/34) |
 | debug-sonnet-medium#2 | sonnet | medium | 8 | 30K | 18K | 220K | 2K | 404 | $0.13 | 0.6 | pass (34/34) |
 | debug-sonnet-medium#3 | sonnet | medium | 7 | 30K | 17K | 193K | 1K | 279 | $0.12 | 0.4 | pass (34/34) |
+| debug-sonnet-medium-c12 | sonnet | medium | 6 | 54K | 22K | 304K | 1K | 182 | $0.16 | 0.3 | pass (34/34) |
+| debug-sonnet-medium-c12#2 | sonnet | medium | 8 | 55K | 23K | 414K | 2K | 217 | $0.19 | 0.5 | pass (34/34) |
+| debug-sonnet-medium-c12#3 | sonnet | medium | 9 | 55K | 23K | 473K | 2K | 351 | $0.21 | 0.4 | pass (34/34) |
 | debug-sonnet-xhigh | sonnet | xhigh | 11 | 24K | 22K | 238K | 2K | 618 | $0.16 | 0.5 | pass (34/34) |
 
 ## review: every run
@@ -172,9 +193,15 @@ None. A run that hits a usage limit or an API error never attempted its task, so
 | multi-opus-xhigh-ultratoken | opus | xhigh | 3 | 42K | 5K | 121K | 2K | 374 | $1.02 | 1.5 | fix pass, review pass, rounding pass |
 | multi-opus-xhigh-ultratoken#2 | opus | xhigh | 6 | 18K | 8K | 98K | 4K | 1K | $0.77 | 1.6 | fix pass, review pass, rounding pass |
 | multi-opus-xhigh-ultratoken#3 | opus | xhigh | 4 | 30K | 6K | 114K | 4K | 2K | $0.89 | 1.8 | fix pass, review pass, rounding pass |
+| multi-opus55-medium | claude-opus-5-5 | medium | 6 | 49K | 26K | 266K | 4K | 923 | $0.34 | 0.7 | fix pass, review pass, rounding pass |
+| multi-opus55-medium#2 | claude-opus-5-5 | medium | 8 | 47K | 36K | 343K | 5K | 1K | $0.45 | 0.8 | fix pass, review pass, rounding pass |
+| multi-opus55-medium#3 | claude-opus-5-5 | medium | 6 | 53K | 35K | 281K | 4K | 1K | $0.41 | 0.7 | fix pass, review pass, rounding pass |
 | multi-sonnet-medium | sonnet | medium | 23 | 32K | 44K | 702K | 11K | 6K | $0.43 | 2.0 | fix pass, review pass, rounding pass |
 | multi-sonnet-medium#2 | sonnet | medium | 25 | 32K | 43K | 762K | 13K | 8K | $0.46 | 2.5 | fix pass, review pass, rounding pass |
 | multi-sonnet-medium#3 | sonnet | medium | 19 | 32K | 38K | 572K | 9K | 6K | $0.36 | 1.7 | fix pass, review pass, rounding pass |
+| multi-sonnet-medium-c12 | sonnet | medium | 19 | 36K | 40K | 650K | 9K | 5K | $0.38 | 1.4 | fix pass, review pass, rounding pass |
+| multi-sonnet-medium-c12#2 | sonnet | medium | 26 | 49K | 44K | 1.2M | 11K | 6K | $0.53 | 2.0 | fix pass, review pass, rounding pass |
+| multi-sonnet-medium-c12#3 | sonnet | medium | 18 | 52K | 36K | 904K | 7K | 3K | $0.40 | 1.2 | fix pass, review pass, rounding pass |
 | multi-sonnet-medium-ultratoken | sonnet | medium | 2 | 51K | 3K | 99K | 2K | 79 | $0.59 | 1.3 | fix pass, review pass, rounding pass |
 | multi-sonnet-medium-ultratoken#2 | sonnet | medium | 2 | 54K | 4K | 103K | 2K | 51 | $1.13 | 3.0 | fix pass, review pass, rounding pass |
 | multi-sonnet-medium-ultratoken#3 | sonnet | medium | 2 | 54K | 3K | 104K | 2K | 51 | $0.60 | 1.3 | fix pass, review pass, rounding pass |
@@ -189,9 +216,15 @@ None. A run that hits a usage limit or an API error never attempted its task, so
 | multi-large-opus-xhigh-ultratoken | opus | xhigh | 8 | 38K | 7K | 300K | 4K | 1K | $1.34 | 3.8 | implement pass, review pass, rounding pass |
 | multi-large-opus-xhigh-ultratoken#2 | opus | xhigh | 4 | 44K | 7K | 168K | 4K | 2K | $1.32 | 3.5 | implement pass, review pass, rounding pass |
 | multi-large-opus-xhigh-ultratoken#3 | opus | xhigh | 3 | 45K | 5K | 130K | 3K | 2K | $1.23 | 3.1 | implement pass, review pass, rounding pass |
+| multi-large-opus55-medium | claude-opus-5-5 | medium | 18 | 58K | 47K | 989K | 15K | 4K | $0.87 | 4.3 | implement pass, review pass, rounding pass |
+| multi-large-opus55-medium#2 | claude-opus-5-5 | medium | 15 | 52K | 48K | 733K | 17K | 3K | $0.86 | 2.3 | implement pass, review pass, rounding pass |
+| multi-large-opus55-medium#3 | claude-opus-5-5 | medium | 9 | 52K | 36K | 436K | 10K | 2K | $0.58 | 1.5 | implement pass, review pass, rounding pass |
 | multi-large-sonnet-medium | sonnet | medium | 23 | 38K | 43K | 833K | 13K | 3K | $0.64 | 2.5 | implement pass, review pass, rounding pass |
 | multi-large-sonnet-medium#2 | sonnet | medium | 23 | 43K | 50K | 928K | 19K | 9K | $0.57 | 2.9 | implement pass, review pass, rounding pass |
 | multi-large-sonnet-medium#3 | sonnet | medium | 3 | 71K | 5K | 207K | 2K | 105 | $0.75 | 3.7 | implement pass, review pass, rounding pass |
+| multi-large-sonnet-medium-c12 | sonnet | medium | 24 | 49K | 52K | 1.1M | 19K | 9K | $0.62 | 2.8 | implement pass, review pass, rounding pass |
+| multi-large-sonnet-medium-c12#2 | sonnet | medium | 22 | 44K | 48K | 912K | 17K | 9K | $0.55 | 2.5 | implement pass, review pass, rounding pass |
+| multi-large-sonnet-medium-c12#3 | sonnet | medium | 30 | 48K | 49K | 1.4M | 14K | 3K | $0.92 | 2.2 | implement pass, review pass, rounding pass |
 | multi-large-sonnet-medium-ultratoken | sonnet | medium | 3 | 51K | 4K | 149K | 2K | 47 | $0.75 | 2.7 | implement pass, review pass (grader: recall 0/5, FP 0; hand: recall 5/5, FP 0), rounding pass |
 | multi-large-sonnet-medium-ultratoken#2 | sonnet | medium | 2 | 50K | 3K | 97K | 2K | 74 | $0.71 | 2.3 | implement pass, review pass, rounding pass |
 | multi-large-sonnet-medium-ultratoken#3 | sonnet | medium | 3 | 54K | 3K | 160K | 2K | 329 | $0.84 | 2.2 | implement pass, review pass, rounding pass |

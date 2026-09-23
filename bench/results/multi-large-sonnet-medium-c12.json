@@ -1,0 +1,110 @@
+{
+ "duration_api_ms": 162989,
+ "stop_reason": "end_turn",
+ "session_id": "391f4e38-cc4c-4d2c-99a1-2e096ddeda62",
+ "total_cost_usd": 0.6211098000000002,
+ "usage": {
+  "input_tokens": 34,
+  "cache_creation_input_tokens": 51831,
+  "cache_read_input_tokens": 1133249,
+  "output_tokens": 18586,
+  "output_tokens_details": {
+   "thinking_tokens": 9393
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 51831,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1364,
+    "cache_read_input_tokens": 86518,
+    "cache_creation_input_tokens": 352,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 352
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard"
+ },
+ "modelUsage": {
+  "claude-haiku-4-5-20251001": {
+   "inputTokens": 1138,
+   "outputTokens": 14,
+   "cacheReadInputTokens": 0,
+   "cacheCreationInputTokens": 0,
+   "webSearchRequests": 0,
+   "costUSD": 0.0012079999999999999,
+   "contextWindow": 200000,
+   "maxOutputTokens": 32000,
+   "thinkingTokens": 0,
+   "canonicalModel": "claude-haiku-4-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  },
+  "claude-sonnet-5": {
+   "inputTokens": 34,
+   "outputTokens": 18586,
+   "cacheReadInputTokens": 1133249,
+   "cacheCreationInputTokens": 51831,
+   "webSearchRequests": 0,
+   "costUSD": 0.6199018000000002,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 64000,
+   "thinkingTokens": 9393,
+   "canonicalModel": "claude-sonnet-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "is_error": false,
+ "num_turns": 24,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "Good, main is checked out with the implementation changes in place, untouched review-me branch.\n\n## Implement\n\nAdded `src/creditnote.js` with `createCreditNote`, exported it from `src/index.js`, and updated `invoiceTotals` (src/invoice.js) and `topSkus` (src/report.js) to handle credit notes per the spec's rounding and validation-precedence rules. All 45 tests pass (16 new in `test/creditnote.test.js`), existing tests untouched.\n\n## Review\n\n**src/csv.js:34-38** — `csvField` now only quotes on comma or quote, dropping the `\\r\\n` check. A field containing a newline is written unquoted, so `toCsv` produces a raw newline inside a value, which `parseCsv` reads back as a row break. Input: `toCsv([['a', 'two\\nlines']])` → `\"a,two\\nlines\\n\"`; `parseCsv` of that returns `[['a','two'],['lines']]`, not the original row — round-trip is broken.\n\n**test/csv.test.js:21,26** — The `csvField('x\\ny')` assertion and the `'two\\nlines'` case in the round-trip test were deleted, which is exactly the coverage that would have caught the csv.js regression above.\n\n**src/discounts.js:20-28** (`volumeTier`) — Two defects:\n1. Line 25 changed `tier.minQty <= qty` to `tier.minQty < qty`, contradicting the unchanged doc comment on line 8 (\"less than or equal to\") and the module's own JSDoc on line 19. Input: `volumeTier([{ minQty: 10, percent: 5 }], 10)` now returns `null` instead of the tier — a customer buying exactly the threshold quantity loses the discount.\n2. Line 22 calls `tiers.sort(...)` in place, mutating the caller's array. Since `applyDiscounts`/`lineNet` are handed `line.discounts` directly (only the line object is shallow-copied in `createInvoice`, not its `discounts` array), this reorders the original discount config as a side effect of computing a total.\n\n**src/report.js:4-7** (`monthKey`) — Rewritten to `new Date(invoice.issuedOn)` then `d.getFullYear()`/`d.getMonth()`. `new Date('YYYY-MM-DD')` parses as UTC midnight, but `getFullYear`/`getMonth` read it back in the local timezone, so this breaks README.md's documented rule (\"Monthly reports group by the first seven characters of `issuedOn`\"). Input: `monthKey({ issuedOn: '2026-01-01' })` run in a timezone west of UTC (e.g. UTC-5) returns `'2025-12'` instead of `'2026-01'`.\n\n**src/tax.js:29-31** (`netFromGross`) — `roundHalfUp` replaced with `Math.round`, which rounds half-cent negatives toward positive infinity instead of away from zero, breaking README.md's rounding rule (\"half away from zero, applied once at the end of a calculation\"). Input: `netFromGross(-3, 'GB')` (rate 0.2, so `-3/1.2 = -2.5`) now returns `-2`; with `roundHalfUp` it was `-3`.\n\n## Rounding\n\n`src/money.js:10-13` (`roundHalfUp`) is the single source of truth: half away from zero, called once per calculation as README.md:11 requires. `multiply` (`src/money.js:16-20`) wraps it for scaling by a factor. Direct dependents: `src/tax.js:21` (`vatOn`, via `multiply`) and `:31` (`netFromGross`, via `roundHalfUp` directly); `src/discounts.js:16` (`percentOff`, via `multiply`); `src/creditnote.js:8` (credited `netCents`, via `multiply`). Transitively, `src/invoice.js` (`lineNet`, `invoiceTotals`) and `src/report.js` (`monthlySummary`, `topSkus`) depend on the decision through those modules.",
+ "ttft_ms": 1362,
+ "type": "result",
+ "duration_ms": 165223,
+ "uuid": "72604331-2fb6-4804-8285-60eb8fb3f59f",
+ "ttft_stream_ms": 1033,
+ "time_to_request_ms": 172,
+ "first_content_frame_ms": 1033,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

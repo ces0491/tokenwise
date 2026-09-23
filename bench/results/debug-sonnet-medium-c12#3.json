@@ -1,0 +1,110 @@
+{
+ "duration_api_ms": 21039,
+ "stop_reason": "end_turn",
+ "session_id": "3fadb679-bf99-430b-b1a6-291bf4020e96",
+ "total_cost_usd": 0.20686380000000004,
+ "usage": {
+  "input_tokens": 18,
+  "cache_creation_input_tokens": 23396,
+  "cache_read_input_tokens": 472644,
+  "output_tokens": 1773,
+  "output_tokens_details": {
+   "thinking_tokens": 351
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 23396,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 150,
+    "cache_read_input_tokens": 57800,
+    "cache_creation_input_tokens": 635,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 635
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard"
+ },
+ "modelUsage": {
+  "claude-haiku-4-5-20251001": {
+   "inputTokens": 930,
+   "outputTokens": 11,
+   "cacheReadInputTokens": 0,
+   "cacheCreationInputTokens": 0,
+   "webSearchRequests": 0,
+   "costUSD": 0.000985,
+   "contextWindow": 200000,
+   "maxOutputTokens": 32000,
+   "thinkingTokens": 0,
+   "canonicalModel": "claude-haiku-4-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  },
+  "claude-sonnet-5": {
+   "inputTokens": 18,
+   "outputTokens": 1773,
+   "cacheReadInputTokens": 472644,
+   "cacheCreationInputTokens": 23396,
+   "webSearchRequests": 0,
+   "costUSD": 0.20587880000000003,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 64000,
+   "thinkingTokens": 351,
+   "canonicalModel": "claude-sonnet-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "is_error": false,
+ "num_turns": 9,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "All 29 tests pass now.\n\n`invoiceTotals` was computing VAT per line and summing the results, so each line's fractional cent got rounded up separately (three lines of 3 cents at 20% GB VAT each rounded 0.6→1, totaling 3) instead of once on the invoice net. I changed it to compute VAT once on the summed net (9×0.2=1.8→2), matching the documented \"rounded once\" behavior in `vatOn`.",
+ "ttft_ms": 1263,
+ "type": "result",
+ "duration_ms": 22623,
+ "uuid": "9d7a117e-91c5-4039-af9e-5fd0d5d07563",
+ "ttft_stream_ms": 937,
+ "time_to_request_ms": 43,
+ "first_content_frame_ms": 937,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

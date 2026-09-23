@@ -1,0 +1,110 @@
+{
+ "duration_api_ms": 82473,
+ "stop_reason": "end_turn",
+ "session_id": "8b293190-232e-4126-afb8-b701ff4abeea",
+ "total_cost_usd": 0.544716,
+ "usage": {
+  "input_tokens": 18,
+  "cache_creation_input_tokens": 32180,
+  "cache_read_input_tokens": 406325,
+  "output_tokens": 10247,
+  "output_tokens_details": {
+   "thinking_tokens": 1534
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 32180,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 898,
+    "cache_read_input_tokens": 57791,
+    "cache_creation_input_tokens": 754,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 754
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard"
+ },
+ "modelUsage": {
+  "claude-haiku-4-5-20251001": {
+   "inputTokens": 944,
+   "outputTokens": 11,
+   "cacheReadInputTokens": 0,
+   "cacheCreationInputTokens": 0,
+   "webSearchRequests": 0,
+   "costUSD": 0.0009989999999999999,
+   "contextWindow": 200000,
+   "maxOutputTokens": 32000,
+   "thinkingTokens": 0,
+   "canonicalModel": "claude-haiku-4-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  },
+  "claude-opus-5-5": {
+   "inputTokens": 18,
+   "outputTokens": 10247,
+   "cacheReadInputTokens": 406325,
+   "cacheCreationInputTokens": 32180,
+   "webSearchRequests": 0,
+   "costUSD": 0.543717,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 1534,
+   "canonicalModel": "claude-opus-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "is_error": false,
+ "num_turns": 11,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "Credit notes are in and `npm test` passes: 45 tests, 0 failures. I didn't change any existing tests.\n\n**Changes**\n- **`src/creditnote.js`** (new): `createCreditNote` checks its inputs in the order the spec gives and returns a frozen credit note. Each credited line's `netCents` is the original `lineNet × qty / originalQty`, rounded once with `roundHalfUp`. Discounts aren't recalculated at the credited quantity. The invoice passed in isn't changed.\n- **`src/invoice.js`**: `invoiceTotals` now handles `kind === 'credit'` and returns negative totals, with VAT calculated once on the credited sum. It uses `0 - x` rather than `-x` so that a zero-value credit returns `0` instead of `-0`, which strict `deepEqual` treats as different. Invoice totals work as before.\n- **`src/report.js`**: `topSkus` subtracts credited `qty` and `netCents`. `monthlySummary` needed no code change because it already goes through `invoiceTotals`; I only updated its doc comment.\n- **`src/index.js`**: exports `createCreditNote`.\n- **`test/creditnote.test.js`** (new): 16 tests. They cover the result's shape, freezing, the invoice being left unchanged, prorating and half-up rounding, a volume-tier line keeping its discount, each error type, the order checks run in, VAT calculated once on the credited sum, and both reports.\n- **`README.md`**: added a rule for credit notes and updated the modules table.\n\n**Decisions the spec doesn't cover**\n- **Date check export:** to check `issuedOn` \"like an invoice date\" without copying the regex, I exported a small `isDate` helper from `src/invoice.js`. It isn't re-exported from `src/index.js`, so the public API only gains `createCreditNote`.\n- **Same SKU twice on an invoice:** if the original invoice has two lines with the same SKU, a requested credit line matches the first one. The spec says SKUs are unique on the credit note but says nothing about duplicates on the invoice. Tell me if you want a different rule, such as rejecting that case.\n- **Order of credited lines:** credited lines keep the order they were requested in. A full credit follows the invoice's line order.\n- **Credit note on its own:** a credit note with no matching invoice in the report input leaves that SKU with negative totals in `topSkus`. That follows from the spec, and I've added a test for it.\n\nNothing is committed yet. Say when you want me to commit.",
+ "ttft_ms": 2410,
+ "type": "result",
+ "duration_ms": 87907,
+ "uuid": "47d852c3-f245-4820-b9a9-ebe1e61badbe",
+ "ttft_stream_ms": 1175,
+ "time_to_request_ms": 84,
+ "first_content_frame_ms": 1175,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

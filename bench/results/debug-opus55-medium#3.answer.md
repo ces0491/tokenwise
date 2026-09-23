@@ -1,0 +1,3 @@
+`invoiceTotals` in `src/invoice.js` worked out VAT for each line, rounded it, and then added the rounded amounts together, so the rounding errors piled up: three 3-cent lines at 20% each round 0.6 up to 1, which gives 3 cents of VAT instead of 2. I changed it to work out VAT once on the summed net (`vatOn(net, region)`), and `npm test` now passes 29 of 29 tests.
+
+`lineVat` is still exported for per-line use, but nothing in `src/` calls it now.

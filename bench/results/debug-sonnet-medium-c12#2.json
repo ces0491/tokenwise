@@ -1,0 +1,110 @@
+{
+ "duration_api_ms": 28159,
+ "stop_reason": "end_turn",
+ "session_id": "f1a1b0c6-2709-4b4a-aceb-39cbe4fad5ba",
+ "total_cost_usd": 0.1902586,
+ "usage": {
+  "input_tokens": 16,
+  "cache_creation_input_tokens": 22663,
+  "cache_read_input_tokens": 414198,
+  "output_tokens": 1575,
+  "output_tokens_details": {
+   "thinking_tokens": 217
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 22663,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "not_available",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 131,
+    "cache_read_input_tokens": 57068,
+    "cache_creation_input_tokens": 634,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 634
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard"
+ },
+ "modelUsage": {
+  "claude-haiku-4-5-20251001": {
+   "inputTokens": 930,
+   "outputTokens": 11,
+   "cacheReadInputTokens": 0,
+   "cacheCreationInputTokens": 0,
+   "webSearchRequests": 0,
+   "costUSD": 0.000985,
+   "contextWindow": 200000,
+   "maxOutputTokens": 32000,
+   "thinkingTokens": 0,
+   "canonicalModel": "claude-haiku-4-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  },
+  "claude-sonnet-5": {
+   "inputTokens": 16,
+   "outputTokens": 1575,
+   "cacheReadInputTokens": 414198,
+   "cacheCreationInputTokens": 22663,
+   "webSearchRequests": 0,
+   "costUSD": 0.1892736,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 64000,
+   "thinkingTokens": 217,
+   "canonicalModel": "claude-sonnet-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "is_error": false,
+ "num_turns": 8,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "All 29 tests pass. `invoiceTotals` was rounding VAT separately per line and summing the results, so three 3-cent lines each rounded 0.6 cents of VAT up to 1 cent (3 total) instead of rounding VAT once on the summed net (9 cents → 1.8 → 2). Fixed in `src/invoice.js` by computing VAT once on the total net amount.",
+ "ttft_ms": 2790,
+ "type": "result",
+ "duration_ms": 29746,
+ "uuid": "e175d2b0-f174-4956-9ae2-27b0cd5bcdbd",
+ "ttft_stream_ms": 2199,
+ "time_to_request_ms": 47,
+ "first_content_frame_ms": 2199,
+ "queued_turn_count": 0,
+ "result_index": 0
+}
