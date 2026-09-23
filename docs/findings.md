@@ -9,7 +9,7 @@ On a small, well-specified codebase, every model and effort level tested passed 
 - two named a more expensive setting than the work required
 - one saved less than the bench's pass mark
 - three split work in ways that did not pay: planning and implementing separately cost more than one session, and sending each job in a prompt to its own worker missed the bar with small jobs and with a large one
-- one found setup's default, Sonnet 5 at medium, saving materially on only one task of four against Opus 5.5 at medium, the account default from Claude Code 2.1.280
+- one found Sonnet 5 at medium, the setting setup recommends, saving materially on only one task of four against Opus 5.5 at medium, the account default from Claude Code 2.1.280
 
 The claim on ultracode held on the review, where a workflow found the same defects as `xhigh` for 9.5 times the cost, and could not be tested on the bug fix, where no workflow started.
 
@@ -183,7 +183,7 @@ Figures are cost per completed task. Every `ultratoken` run sent the bug fix or 
 
 `../experiments/ultratoken/README.md` has the per-model spend and the reproduction.
 
-## Sonnet 5 against the new default
+## Sonnet 5 against Opus 5.5, the account default
 
 From Claude Code 2.1.280, an account with no model set starts on Opus 5.5 at medium. Setup had recommended Sonnet 5 at medium on cells compared against Opus 5 at xhigh, so C12 compared the two defaults on the four tasks setup quotes. Opus 5.5 ran by its full id, `claude-opus-5-5`, since `opus` had resolved to Opus 5 for every earlier run. A session with no plugin starts 13.2K tokens larger on 2.1.280 than on 2.1.272, and the published Sonnet cells ran on 2.1.263 and 2.1.270, so Sonnet ran again beside Opus 5.5 on the same version, as `<case>-sonnet-medium-c12`.
 
@@ -194,11 +194,11 @@ From Claude Code 2.1.280, an account with no model set starts on Opus 5.5 at med
 | Three jobs in one prompt | $0.44 | $0.40 | 1.09x |
 | Three jobs, one of them the feature | $0.70 | $0.77 | 0.90x |
 
-Cost per completed task at list price, three runs per cell. Every run passed. Sonnet saved beyond the 30% noise band only on the implement task, and C12 needed it to on three of the four, so the claim is falsified. Opus 5.5 costs twice as much as Sonnet 5 per token on input and output and the same on cache reads, and it took fewer API calls at the median on every task: 11 against 19 on the implement task, and 6 against 19 on three jobs in one prompt.
+Cost per completed task at list price, three runs per cell. Every run passed. Sonnet saved beyond the 30% noise band only on the implement task, and C12 needed it to on three of the four, so the claim is falsified. At list price Opus 5.5 costs twice as much as Sonnet 5 per token on input and output and the same on cache reads, and it took fewer turns at the median on every task: 11 against 19 on the implement task, and 6 against 19 on three jobs in one prompt.
 
-Running Sonnet again on 2.1.280 mattered. Its implement median came to $0.39 against $0.28 in the published cell, and its bug fix to $0.19 against $0.12. Against the published cells, Opus 5.5 would have looked more expensive than it is.
+On 2.1.280 Sonnet's cost per completed task came to $0.41 on the implement task against $0.30 in the published cell, and $0.19 on the bug fix against $0.12. Set beside the published cells, Opus 5.5 would have looked more expensive than it is.
 
-Setup now recommends no change on the account default. It offers Sonnet 5 at medium only from a setting where Sonnet cost at most 0.7 times as much on a task both ran: Opus 5 at medium, high or xhigh, Fable 5.1 at xhigh, and Sonnet 5 at xhigh.
+Setup recommends no change on the account default. It offers Sonnet 5 at medium only from a setting where Sonnet cost at most 0.7 times as much on every task the bench ran both: Opus 5 at medium, high or xhigh, and Fable 5.1 at xhigh.
 
 ## Claim by claim
 

@@ -15,8 +15,8 @@
 //
 // A link is read by a session offered only WebFetch. A claude.ai artifact link is also read by one offered the Artifact
 // and Read tools. Each tool set gets its own session with no document, since the tools add context of their own. An
-// artifact's link is not saved, only the version the Artifact tool reports, so a private artifact's address stays out
-// of the saved run; any other link is saved as given.
+// artifact's link is not saved, only the version the Artifact tool reports, and an artifact id in an answer or a tool
+// call is masked, so a private artifact's address stays out of the saved run; any other link is saved as given.
 //
 // --documents downloads each URL into a temporary directory and records its SHA-256, so a re-run can tell whether it
 // measured the same bytes. The documents themselves are not stored. Tested by measure.test.mjs.
@@ -194,6 +194,9 @@ async function download(url, file) {
 export const isArtifactLink = (arg) => /^https:\/\/claude\.ai\/artifact\/[\w-]+\/?$/.test(arg);
 export const isLink = (arg) => /^https:\/\/\S+$/.test(arg);
 
+// An answer or a tool call can still carry an artifact's address, so every id in the saved text is replaced.
+export const maskArtifactIds = (text) => text.replace(/(claude\.ai\/(?:code\/)?artifact\/)[\w-]+/g, '$1<id>');
+
 // The ways a session holding a link can read it: an artifact link with the Artifact tool or WebFetch, any other page
 // with WebFetch.
 const WEBFETCH = { format: 'link, WebFetch', tools: ['WebFetch'] };
@@ -297,7 +300,7 @@ async function main(argv) {
     }
     if (opt('out')) {
       fs.mkdirSync(path.dirname(path.resolve(opt('out'))), { recursive: true });
-      fs.writeFileSync(opt('out'), `${JSON.stringify(run, null, 1)}\n`);
+      fs.writeFileSync(opt('out'), `${maskArtifactIds(JSON.stringify(run, null, 1))}\n`);
     }
     process.stdout.write(`\n${report(run)}\n`);
   } finally {

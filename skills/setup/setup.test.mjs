@@ -16,7 +16,9 @@ function home(t, settings) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'tokenwise-setup-'));
   t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
   if (settings !== undefined) fs.writeFileSync(path.join(dir, 'settings.json'), typeof settings === 'string' ? settings : JSON.stringify(settings));
-  return { env: { CLAUDE_CONFIG_DIR: dir }, cwd: dir, file: path.join(dir, 'settings.json') };
+  // No Claude Code version, so run() does not start the installed CLI; the command-line tests get a CLAUDE_BIN that
+  // does not exist, for the same reason.
+  return { env: { CLAUDE_CONFIG_DIR: dir, CLAUDE_BIN: 'tokenwise-no-such-claude' }, cwd: dir, file: path.join(dir, 'settings.json'), cliVersion: null };
 }
 const read = (file) => JSON.parse(fs.readFileSync(file, 'utf8'));
 
@@ -31,11 +33,12 @@ test('apply writes the model and the effort saved for that model, and keeps ever
 });
 
 // C12 found Sonnet 5 at medium saving materially on one task of four against Opus 5.5 at medium, the account default,
-// so setup recommends a change only from a setting the bench measured costing more than Sonnet 5 at medium.
-test('setup recommends a change only from a setting the bench measured costing more', () => {
+// so setup recommends a change only from a setting where Sonnet 5 at medium saved materially on every task both ran.
+test('setup recommends a change only from a setting the bench measured costing more on every task', () => {
   const cases = [
     [{}, 'claude-opus-5-5', 'medium', 'c12'],
     [{ model: 'default', effortLevel: 'xhigh' }, 'claude-opus-5-5', 'medium', 'c12'],
+    [{ model: 'Default' }, 'claude-opus-5-5', 'medium', 'c12'],
     [{ model: 'opus[1m]' }, 'claude-opus-5-5', 'medium', 'c12'],
     [{ model: 'opus', modelSettings: { 'claude-opus-5-5': { effortLevel: 'high' } } }, 'claude-opus-5-5', 'high', 'unmeasured'],
     [{ model: 'claude-opus-5' }, 'claude-opus-5', 'high', 'measured'],
@@ -43,7 +46,7 @@ test('setup recommends a change only from a setting the bench measured costing m
     [{ model: 'fable' }, 'claude-fable-5-1', 'high', 'unmeasured'],
     [{ model: 'best', modelSettings: { 'claude-fable-5-1': { effortLevel: 'xhigh' } } }, 'claude-fable-5-1', 'xhigh', 'measured'],
     [{ model: 'sonnet' }, 'claude-sonnet-5', 'high', 'noise'],
-    [{ model: 'sonnet', effortLevel: 'xhigh' }, 'claude-sonnet-5', 'xhigh', 'measured'],
+    [{ model: 'sonnet', effortLevel: 'xhigh' }, 'claude-sonnet-5', 'xhigh', 'noise'],
     [{ model: 'sonnet', effortLevel: 'medium' }, 'claude-sonnet-5', 'medium', 'applied'],
     [{ model: 'claude-sonnet-5', modelSettings: { 'claude-sonnet-5': { effortLevel: 'low' } } }, 'claude-sonnet-5', 'low', 'cheaper'],
     [{ model: 'haiku' }, 'claude-haiku-4-5', null, 'cheaper'],
@@ -53,6 +56,31 @@ test('setup recommends a change only from a setting the bench measured costing m
     const a = assess(settings);
     assert.deepEqual([a.start.model, a.start.effort, a.basis, a.recommend], [model, effort, basis, basis === 'measured'], JSON.stringify(settings));
   }
+});
+
+test('an effort cap lowers the level a model runs at, and a model entry cap replaces the top-level one', () => {
+  const cases = [
+    [{ model: 'claude-opus-5', maxEffortLevel: 'low' }, 'low', 'unmeasured'],
+    [{ model: 'claude-opus-5', modelSettings: { 'claude-opus-5': { maxEffortLevel: 'medium' } } }, 'medium', 'measured'],
+    [{ model: 'claude-opus-5', effortLevel: 'xhigh', maxEffortLevel: 'medium', modelSettings: { 'claude-opus-5': { maxEffortLevel: 'max' } } }, 'xhigh', 'measured'],
+    [{ model: 'sonnet', maxEffortLevel: 'medium' }, 'medium', 'applied'],
+    [{ maxEffortLevel: 'low' }, 'low', 'unmeasured'],
+  ];
+  for (const [settings, effort, basis] of cases) {
+    const a = assess(settings);
+    assert.deepEqual([a.start.effort, a.basis], [effort, basis], JSON.stringify(settings));
+  }
+});
+
+test('on a Claude Code older than 2.1.280, setup recommends nothing and apply writes nothing', (t) => {
+  assert.equal(assess({ model: 'opus', effortLevel: 'xhigh' }, { cliVersion: '2.1.273' }).basis, 'old-cli');
+  assert.equal(assess({ model: 'opus' }, { cliVersion: '2.1.280' }).basis, 'c12');
+  assert.equal(assess({ model: 'sonnet', effortLevel: 'medium' }, { cliVersion: '2.1.200' }).basis, 'applied');
+  const h = home(t, { model: 'claude-opus-5' });
+  const r = run('apply', { ...h, cliVersion: '2.1.273' });
+  assert.equal(r.ok, false);
+  assert.match(r.message, /old-cli/);
+  assert.deepEqual(read(h.file), { model: 'claude-opus-5' });
 });
 
 test('apply writes nothing from the account default, and creates no settings file', (t) => {
@@ -91,7 +119,7 @@ test('a second apply after the user changed a value keeps the first backup', (t)
   const h = home(t, { model: 'claude-opus-5' });
   run('apply', h);
   const s = read(h.file);
-  s.modelSettings['claude-sonnet-5'].effortLevel = 'xhigh';
+  s.model = 'claude-opus-5';
   fs.writeFileSync(h.file, JSON.stringify(s));
   assert.equal(run('apply', h).changed, true);
   run('restore', h);
@@ -138,12 +166,12 @@ test('the command line still runs through a directory link', (t) => {
   assert.equal(JSON.parse(r.stdout).current.model, 'opus');
 });
 
-test('from Sonnet at xhigh, apply saves medium for it and restore removes the entry', (t) => {
-  const h = home(t, { model: 'sonnet', effortLevel: 'xhigh' });
+test('from Fable 5.1 at xhigh, apply writes Sonnet 5 at medium and restore puts Fable back', (t) => {
+  const h = home(t, { model: 'fable', modelSettings: { 'claude-fable-5-1': { effortLevel: 'xhigh' } } });
   run('apply', h);
-  assert.deepEqual(read(h.file), { model: 'sonnet', effortLevel: 'xhigh', modelSettings: { 'claude-sonnet-5': { effortLevel: 'medium' } } });
+  assert.deepEqual(read(h.file), { model: 'sonnet', modelSettings: { 'claude-fable-5-1': { effortLevel: 'xhigh' }, 'claude-sonnet-5': { effortLevel: 'medium' } } });
   run('restore', h);
-  assert.deepEqual(read(h.file), { model: 'sonnet', effortLevel: 'xhigh' });
+  assert.deepEqual(read(h.file), { model: 'fable', modelSettings: { 'claude-fable-5-1': { effortLevel: 'xhigh' } } });
 });
 
 test('a settings file that is not JSON is left untouched', (t) => {
@@ -162,11 +190,10 @@ test('show reports current values, whether they already match, and what override
   fs.writeFileSync(path.join(h.cwd, '.claude', 'settings.json'), JSON.stringify({ model: 'haiku' }));
   const r = run('show', { ...h, env: { ...h.env, CLAUDE_CODE_EFFORT_LEVEL: 'high' } });
   assert.deepEqual(r.current, { model: 'opus', effort: null });
-  assert.equal(r.topLevelEffort, 'max');
+  assert.equal(r.claudeVersion, null);
   assert.deepEqual(r.start, { model: 'claude-opus-5-5', effort: 'medium', accountDefault: false }, 'Opus 5.5 ignores the top-level level');
   assert.equal(r.basis, 'c12');
   assert.equal(r.recommend, false);
-  assert.deepEqual(r.recommended, { model: 'sonnet', effort: 'medium' });
   assert.equal(r.applied, false);
   assert.equal(r.overrides.length, 2);
   assert.match(r.overrides.join('\n'), /CLAUDE_CODE_EFFORT_LEVEL=high/);
@@ -176,6 +203,13 @@ test('show reports current values, whether they already match, and what override
 test('overrides names each environment variable and project setting that applies', () => {
   assert.deepEqual(overrides({}, {}), []);
   assert.equal(overrides({ ANTHROPIC_MODEL: 'opus' }, { '.claude/settings.local.json': { effortLevel: 'low' } }).length, 2);
+  const found = overrides({ ANTHROPIC_DEFAULT_MODEL: 'claude-opus-5', ANTHROPIC_DEFAULT_SONNET_MODEL: 'claude-sonnet-4-6' }, {
+    '.claude/settings.json': { modelSettings: { 'claude-opus-5-5': { effortLevel: 'high' } }, maxEffortLevel: 'medium' },
+  }).join('\n');
+  assert.match(found, /ANTHROPIC_DEFAULT_MODEL=claude-opus-5 sets the model when no settings file names one/);
+  assert.match(found, /ANTHROPIC_DEFAULT_SONNET_MODEL=claude-sonnet-4-6 changes what the sonnet alias resolves to/);
+  assert.match(found, /sets an effort level in this project/);
+  assert.match(found, /caps effort in this project/);
 });
 
 test('withValues removes an entry it emptied', () => {

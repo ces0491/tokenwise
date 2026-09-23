@@ -288,14 +288,16 @@ function verdicts() {
       bySize.map(([name, a, b]) => `from ${name}: ultratoken at ${ratio(a)} of the plain cost per completed task on small jobs, ${ratio(b)} with a large job`).join('; ')]);
   } else out.push(['C10 and C11 by job size', 'not run', '']);
 
-  // C12: per task, Sonnet 5 at medium against Opus 5.5 at medium, both run on the same Claude Code version. Sonnet saves
-  // when it passes at least as many runs at no more than 0.7 times Opus 5.5's cost per completed task, and fails more
-  // when it passes fewer; anything else is a tie. An Opus 5.5 cell that never completed has no finite cost per completed
-  // task, so a completing Sonnet cell saves against it. Holds when Sonnet saves on three of the four tasks and fails
-  // more on none.
-  const c12 = ['implement', 'debug', 'multi', 'multi-large'].filter((c) => need(`${c}-opus55-medium`, `${c}-sonnet-medium-c12`)).map((c) => {
+  // C12: per task, Sonnet 5 at medium against Opus 5.5 at medium. Sonnet saves when it passes at least as many runs at
+  // no more than 0.7 times Opus 5.5's cost per completed task, and fails more when it passes fewer; anything else is a
+  // tie. SCOPE.md counts runs, so unlike C10 and C11 the pass counts compare as counts. An Opus 5.5 cell that never
+  // completed has no finite cost per completed task, so a completing Sonnet cell saves against it. Holds when Sonnet
+  // saves on three of the four tasks and fails more on none. Both arms were to run on one Claude Code version, and the
+  // evidence says so when they did not.
+  const C12_TASKS = ['implement', 'debug', 'multi', 'multi-large'];
+  const c12 = C12_TASKS.filter((c) => need(`${c}-opus55-medium`, `${c}-sonnet-medium-c12`)).map((c) => {
     const o = s(`${c}-opus55-medium`); const so = s(`${c}-sonnet-medium-c12`);
-    const fewer = so.passes * o.n < o.passes * so.n;
+    const fewer = so.passes < o.passes;
     const cheaper = so.costPerCompleted != null && (o.costPerCompleted == null || so.costPerCompleted <= 0.7 * o.costPerCompleted);
     const v = fewer ? 'fails more' : cheaper ? 'saves' : 'tie';
     const cpc = (x) => (x.costPerCompleted == null ? 'never completed' : usd(x.costPerCompleted));
@@ -307,7 +309,9 @@ function verdicts() {
     const v = c12.length < 4 ? `incomplete, ${c12.length} of 4 tasks run`
       : saves >= 3 && !c12.some((r) => r.v === 'fails more') ? 'holds' : 'falsified';
     const n = Math.min(...c12.map((r) => r.n));
-    out.push(['C12 Sonnet 5 at medium against Opus 5.5 at medium', v + (n < 3 ? ` (provisional, n=${n})` : ''), c12.map((r) => r.note).join('; ')]);
+    const versions = [...new Set(C12_TASKS.flatMap((c) => [`${c}-opus55-medium`, `${c}-sonnet-medium-c12`]).flatMap((k) => (cells.get(k) || []).map((r) => r.claude_version)))];
+    const mixed = versions.length > 1 ? `; the runs span ${versions.join(' and ')}` : '';
+    out.push(['C12 Sonnet 5 at medium against Opus 5.5 at medium', v + (n < 3 ? ` (provisional, n=${n})` : ''), c12.map((r) => r.note).join('; ') + mixed]);
   } else out.push(['C12', 'not run', '']);
 
   return out;

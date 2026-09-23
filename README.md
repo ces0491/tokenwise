@@ -14,7 +14,7 @@ Two facts shape the advice. The prompt cache is per model, and on most models pe
 
 In order of how often it interrupts you: a default checked once, warnings, and advice on request.
 
-**`/tokenwise:setup`** checks the model and effort new sessions start on. On the account default from Claude Code 2.1.280, Opus 5.5 at medium, it changes nothing: against it, Sonnet 5 at medium cost materially less on one of the bench's four tasks. From a setting the bench measured costing more, it offers Sonnet 5 at medium. Opus 5 at xhigh is one: on the four tasks both ran, Sonnet 5 at medium passed every run at 19% to 59% of its cost per completed task. It shows your current settings, what would override the change, and what Sonnet gives up, and writes only after you say yes. `/tokenwise:setup restore` puts the previous values back, leaving alone any you changed since.
+**`/tokenwise:setup`** checks the model and effort new sessions start on. On the account default from Claude Code 2.1.280, Opus 5.5 at medium, it changes nothing: against it, Sonnet 5 at medium cost materially less on one of the four tasks C12 compared. From a setting where Sonnet 5 at medium cost at most 0.7 times as much on every task the bench ran both, it offers Sonnet 5 at medium. Opus 5 at xhigh is one: on the four tasks both ran, Sonnet 5 at medium passed every run at 19% to 59% of its cost per completed task. It shows your current settings, what would override the change, and what Sonnet gives up, and writes only after you say yes. `/tokenwise:setup restore` puts the previous values back, leaving alone any you changed since.
 
 **Two warnings**, from hooks that run a local script and add nothing to the conversation:
 

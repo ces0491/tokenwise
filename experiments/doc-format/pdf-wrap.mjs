@@ -290,7 +290,7 @@ async function main(argv) {
     const md = path.join(work, 'synthetic.md');
     fs.writeFileSync(md, markdown);
     const tools = {
-      pandoc: run('pandoc', ['--version']).split('\n')[0].replace(/^pandoc\s+/, ''),
+      pandoc: run('pandoc', ['--version']).split('\n')[0].replace(/^pandoc\s+/, '').trim(),
       // xpdf's pdftotext exits non-zero after printing its version.
       pdftotext: `${spawnSync('pdftotext', ['-v'], { encoding: 'utf8' }).stderr ?? ''}`.split('\n')[0].replace(/^pdftotext version\s*/, '').trim() || 'unknown',
     };

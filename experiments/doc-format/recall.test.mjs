@@ -19,6 +19,7 @@ test('both document texts hold the same paths, and only the findings text reads 
   assert.deepEqual(findings.spans, filler.spans);
   assert.notEqual(findings.markdown, filler.markdown);
   assert.match(findings.markdown, /, (the|a) [a-z ]+/);
+  assert.doesNotMatch(filler.markdown, /, (the|a) [a-z ]+/);
   assert.throws(() => document(2, 11, 'lorem'), /unknown text style/);
 });
 
