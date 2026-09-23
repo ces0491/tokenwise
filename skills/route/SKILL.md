@@ -16,7 +16,7 @@ Route from this file and that description. Do not read other files, run commands
 ## Three facts the recommendations rest on
 
 1. Every API call re-sends the whole conversation. A turn costs context size multiplied by calls, plus output, and thinking is output. The model sets the price per token; effort changes how many tokens are spent, through thinking and extra turns. Across 137 sessions on one machine, input outweighed output 428 to 1, and 99% of input was cached context re-read on every call.
-2. The prompt cache is per model and, on most models, per effort level. Changing either on a warm context re-processes all of it, and Claude Code asks you to confirm while the cache is warm. On Fable 5.1 with an API key or a Claude subscription, an effort change keeps the cache. (Documented behaviour; not measured by the bench.) After `/clear` the conversation is gone, so a change then usually re-processes only what a new session's first request would: the system prompt and project context.
+2. The prompt cache is per model and, on most models, per effort level. Changing either on a warm context re-processes all of it, and Claude Code asks you to confirm while the cache is warm. On Opus 5.5 and Fable 5.1 with an API key or a Claude subscription, an effort change keeps the cache. (Documented behaviour; not measured by the bench.) After `/clear` the conversation is gone, so a change then usually re-processes only what a new session's first request would: the system prompt and project context.
 3. Nothing can switch the running session's model or effort for you. Hooks and plugins can recommend, or change settings for the next session. Pressing `s` in the `/model` picker or the `/effort` slider switches for this session only. Typing `/model <alias>` or `/effort <level>` also saves the choice as the default for new sessions, replacing a default that `/tokenwise:setup` wrote.
 
 ## Classify on two axes
@@ -32,17 +32,17 @@ Reading volume is how much must enter context to do the job. Judgment density is
 
 Start at the cheap end of each row. The bench behind these rows is in `../../bench/RESULTS.md`; costs quoted are from it, at API list price on a small test project.
 
-The bench measured `claude-haiku-4-5-20251001`, `claude-sonnet-5`, `claude-opus-5` and `claude-fable-5-1`, which is what `haiku`, `sonnet`, `opus` and `fable` resolved to on 8 and 14 September 2026. A measured row is evidence about that model. When the user is on, or switching to, a newer model in the same family, say that the row's evidence comes from the older one.
+The bench measured `claude-haiku-4-5-20251001`, `claude-sonnet-5`, `claude-opus-5` and `claude-fable-5-1`, which is what `haiku`, `sonnet`, `opus` and `fable` resolved to on 8 and 14 September 2026. A measured row is evidence about that model. From Claude Code 2.1.280, `opus` resolves to Opus 5.5, which the bench has not run. When the user is on, or switching to, a newer model in the same family, say that the row's evidence comes from the older one.
 
 | Phase or task | Start here | Escalate to | Measured |
 | --- | --- | --- | --- |
 | Plan, architect, resolve an ambiguous spec | opus, `high` | fable, `xhigh` | Not separated from implementation by the bench. Plan mode, then write the plan to a file. |
-| Implement from a written spec or plan | sonnet, `medium` | opus, `medium`, then `xhigh` | Sonnet at medium passed every run at 17% of the cost of opus at xhigh, which also passed every run. |
+| Implement from a written spec or plan | sonnet, `medium` | opus, `medium`, then `xhigh` | Measured on `claude-opus-5`: Sonnet at medium passed every run at 17% of the cost of opus at xhigh, which also passed every run. |
 | Implement without a spec, or a cross-cutting change | sonnet, `high` | opus, `xhigh` | Untested. |
-| Debug a failure you can reproduce | sonnet, `medium` | opus, `high` | Both passed every run. Opus cost 3.3x as much for the same fix on a bug with a failing test pointing at it. |
+| Debug a failure you can reproduce | sonnet, `medium` | opus, `high` | Measured on `claude-opus-5`: both passed every run. Opus cost 3.3x as much for the same fix on a bug with a failing test pointing at it. |
 | Debug a failure with no reproduction | opus, `high` | fable, `xhigh` | Untested. |
-| Tests, docs, mechanical refactors, renames | sonnet, `low`, or haiku | sonnet, `medium` | Both passed every run at a third and a quarter of the cost of opus at xhigh. |
-| Review a diff | opus, `low` | opus, `high` for a large or unfamiliar diff | On a six-file diff, opus at low effort found all five planted defects in 3 turns; opus at high effort found the same five in 13 turns for 3.3x the cost. Sonnet at high missed one defect in two runs of three. |
+| Tests, docs, mechanical refactors, renames | sonnet, `low`, or haiku | sonnet, `medium` | Measured on `claude-opus-5`: both passed every run at a third and a quarter of the cost of opus at xhigh. |
+| Review a diff | opus, `low` | opus, `high` for a large or unfamiliar diff | Measured on `claude-opus-5`: on a six-file diff, opus at low effort found all five planted defects in 3 turns; opus at high effort found the same five in 13 turns for 3.3x the cost. Sonnet at high missed one defect in two runs of three. |
 | Commit, chores, formatting | sonnet, `low`, or haiku | | Untested. The row above is the same class of work and was measured. |
 | Bulk labelling, classification, extraction | not Claude Code | | Untested. A script sees each item once, without the per-call overhead, and the Batch API halves the price. |
 
@@ -66,7 +66,7 @@ Ultracode is a Claude Code setting that sends `xhigh` and has Claude plan a dyna
 - For one such task, the keyword `ultracode` in that prompt runs it as a workflow and leaves the session's effort alone. `/effort ultracode` lets Claude decide task by task whether to run a workflow, for the rest of the session or until you set another level, so it suits a run of such tasks.
 - It needs a model that supports `xhigh`, so not Haiku. It is also unavailable when workflows are off or an effort cap sits below `xhigh`, and `CLAUDE_CODE_EFFORT_LEVEL` set to another level keeps its orchestration inactive.
 - Workflow agents take a model in the subagent order: one the workflow names for a stage, then the agent type's `model` field, then `CLAUDE_CODE_SUBAGENT_MODEL`, then the session model. With `CLAUDE_CODE_SUBAGENT_MODEL_FORCE=1` as well, every agent runs on that variable's model, so the delegation settings below put a whole workflow on Haiku. Say which stages can take a smaller model when describing the task.
-- Agent count follows the `/config` size guideline, `medium` (under 15) by default, unless the prompt asks for another scale.
+- Agent count follows the `/config` size guideline, `medium` (fewer than 10) by default and `small` (fewer than 5) on Pro, unless the prompt asks for another scale.
 - Treat turning ultracode on or off on a warm context as an effort change (fact 2).
 
 ## Effort ladder (`/effort <level>`)
@@ -75,7 +75,7 @@ Ultracode is a Claude Code setting that sends `xhigh` and has Claude plan a dyna
 | --- | --- |
 | low | Fewest tool calls, terse replies, minimal thinking. Routine work, and reviews of a diff you can hold in your head. |
 | medium | Implementation from a plan, docs, tests, reproducible bugs. |
-| high | The default in Claude Code and the API on every current model except Opus 4.7, which defaults to xhigh. Intelligence-sensitive work. |
+| high | The default in Claude Code and the API on every model that supports effort except Opus 5.5, which defaults to medium, and Opus 4.7, which defaults to xhigh. Intelligence-sensitive work. |
 | xhigh | Buys thinking tokens. Anthropic's effort docs aim it at long-running agentic and coding work. |
 | max | Correctness over cost. Only when xhigh has shown headroom. Unmeasured. |
 | ultrathink | A prompt keyword for deeper reasoning on one turn, with effort unchanged. Unmeasured. |
@@ -116,4 +116,4 @@ A short block, no preamble:
 - You give up: the concrete tradeoff of the cheaper choice
 - Escalate when: the signal, per the rule above
 
-Quote the cost of a model or effort change on a warm context as the user's whole current context re-processed, except an effort change on Fable 5.1 with an API key or a subscription, and point to `/context` for its size, which this skill cannot see. Do not invent multipliers or dollar figures. When recommending ultracode, say its cost grows with the number of agents, that on the bench's small review, where it ran a workflow, it cost 9.5 times `xhigh` for the same result, and point to `/usage` to see it. Never report a switch you did not see the user make.
+Quote the cost of a model or effort change on a warm context as the user's whole current context re-processed, except an effort change on Opus 5.5 or Fable 5.1 with an API key or a subscription, and point to `/context` for its size, which this skill cannot see. Do not invent multipliers or dollar figures. When recommending ultracode, say its cost grows with the number of agents, that on the bench's small review, where it ran a workflow, it cost 9.5 times `xhigh` for the same result, and point to `/usage` to see it. Never report a switch you did not see the user make.

@@ -36,7 +36,7 @@ Figures are cost per completed task at list price. A claim needed 0.7x or lower 
 ## What it does not show
 
 - **Jobs larger than the credit-note feature.** The largest job was the credit-note feature, which costs a $1.65 median on its own on Opus at xhigh.
-- **Other starting settings.** No run started at `max`, or on Sonnet 5 at high, the default on Pro and Team Standard.
+- **Other starting settings.** No run started at `max`, on Opus 5.5 at medium, the account default from Claude Code 2.1.280, or on Sonnet 5 at high, the earlier default on Pro and Team Standard.
 - **Escalation.** The one worker that failed its check was not sent again on a stronger setting, so no run exercised the escalation step.
 - **Grading without a hand reading.** One review section wrote its references as `` `src/discounts.js` line 24 ``, which the review grader does not read. It found all five defects, and `../../bench/results/hand-grades.json` records that. Graded by the grader alone, that cell is 2 of 3 at 1.75x. C11 is falsified either way.
 

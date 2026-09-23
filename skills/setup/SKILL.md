@@ -16,7 +16,7 @@ Otherwise:
 1. Run `node "${CLAUDE_PLUGIN_ROOT}/skills/setup/setup.mjs" show`. It prints JSON. If `ok` is false, show its message and stop.
 2. If `applied` is true, say new sessions already start on Sonnet at medium, list any `overrides`, and stop.
 3. Otherwise tell the user, in a few short lines:
-   - What new sessions start on now, from `current`. A null model is the account's default: Opus 5 on Max, Team Premium, Enterprise and the Anthropic API, Sonnet 5 on Pro and Team Standard. A null effort means Sonnet runs at `topLevelEffort` when that is `low`, `medium`, `high` or `xhigh`, and otherwise at the model's default, `high`. If `topLevelEffort` holds any other value, such as `max`, say that Claude Code's settings reference does not list it for that key.
+   - What new sessions start on now, from `current`. A null model is the account's default. From Claude Code 2.1.280 that is Opus 5.5 on Pro, Max, Team, Enterprise and the Anthropic API, at `medium` effort unless a level is saved for it; before 2.1.280 it was Opus 5 on Max, Team Premium, Enterprise and the API, and Sonnet 5 on Pro and Team Standard. A null effort means Sonnet runs at `topLevelEffort` when that is `low`, `medium`, `high` or `xhigh`, and otherwise at the model's default, `high`. If `topLevelEffort` holds any other value, such as `max`, say that Claude Code's settings reference does not list it for that key.
    - The change: `model` set to `sonnet` and a saved effort of `medium` for Sonnet 5, written to `file`.
    - Why, and what it gives up, from the two sections below.
    - Each entry in `overrides`, since those still win, and that an organization default model or managed settings can too.
@@ -34,6 +34,8 @@ Cost per completed task at list price, on the bench's small invoicing library, C
 | Fix a bug with a failing test | $0.12 | $0.36 |
 | Three jobs in one prompt | $0.42 | $0.71 |
 | Three jobs, one of them the feature | $0.65 | $1.30 |
+
+The bench has not run Opus 5.5, the account default from Claude Code 2.1.280. It defaults to `medium`, and per token it costs 2x Sonnet 5 on input, cache writes and output and the same on cache reads, where Opus 5 costs 2.5x on every class. Both differences narrow the gap the table shows; by how much is unmeasured.
 
 ## What it gives up
 

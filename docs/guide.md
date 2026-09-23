@@ -44,10 +44,10 @@ Claude also runs it without being asked by name when you ask which model or effo
 
 ## What routing costs
 
-The skill runs in its own subagent context. Its text and its reasoning stay there, and only the answer comes back into your conversation, where it is carried on every later call like anything else in context. The skill runs on your session's model and effort. A route in a session already under way cost $0.04 asked from Sonnet 5 at medium, $0.10 from Opus 5 at high and $0.12 from Opus 5 at xhigh, and the first route left 468 to 825 tokens behind. `findings.md` has the numbers, and a chart of the task sizes where a route pays for itself.
+The skill runs in its own subagent context. Its text and its reasoning stay there, and only the answer comes back into your conversation, where it is carried on every later call like anything else in context. The skill runs on your session's model and effort. A route in a session already under way cost $0.04 asked from Sonnet 5 at medium, $0.12 from Opus 5 at high and $0.13 from Opus 5 at xhigh, and the first route left 457 to 980 tokens behind. `findings.md` has the numbers, and a chart of the task sizes where a route pays for itself.
 
 - Route just before a `/clear`, at a phase boundary, and nothing it returns is carried.
-- For a single small chore, pick Sonnet at low effort, or Haiku, yourself. On the bench, moving a rename from Opus at xhigh to Sonnet at low saved $0.17, against $0.12 for asking from Opus 5 at xhigh.
+- For a single small chore, pick Sonnet at low effort, or Haiku, yourself. On the bench, moving a rename from Opus at xhigh to Sonnet at low saved $0.17, against $0.13 for asking from Opus 5 at xhigh.
 - Describe the work after the command. The skill cannot see your conversation, so `/tokenwise:route` on its own only asks for a description.
 
 ## Why context size drives the cost
@@ -58,7 +58,7 @@ Every API call re-sends the whole conversation. Cost is context size multiplied 
 
 Start at the cheap end and escalate on a failure you can point to. The Measured column says whether the bench covered that row; the skill's own table carries the evidence for each one.
 
-Measured means measured on `claude-haiku-4-5-20251001`, `claude-sonnet-5`, `claude-opus-5` and `claude-fable-5-1`, the models the aliases pointed to on 8 and 14 September 2026. When Anthropic moves an alias to a newer model, the advice follows the alias, but the evidence stays with the older model until the bench is re-run.
+Measured means measured on `claude-haiku-4-5-20251001`, `claude-sonnet-5`, `claude-opus-5` and `claude-fable-5-1`, the models the aliases pointed to on 8 and 14 September 2026. When Anthropic moves an alias to a newer model, the advice follows the alias, but the evidence stays with the older model until the bench is re-run. From Claude Code 2.1.280 `opus` points to Opus 5.5, which no bench run has used, so the Opus evidence describes Opus 5.
 
 <!-- routing-table: generated from skills/route/SKILL.md by scripts/sync-routing-table.mjs -->
 | Work | Start | Escalate to | Measured |
@@ -96,7 +96,7 @@ Workflow agents run on your session model unless the workflow, the agent type's 
 
 ## Switching mid-session
 
-The prompt cache is per model, and on most models per effort level too, so changing either on a warm context makes Claude Code re-process all of it. Claude Code asks you to confirm while the cache is warm. Fable 5.1 on an API key or a Claude subscription keeps its cache when effort changes.
+The prompt cache is per model, and on most models per effort level too, so changing either on a warm context makes Claude Code re-process all of it. Claude Code asks you to confirm while the cache is warm. Opus 5.5 and Fable 5.1 on an API key or a Claude subscription keep their cache when effort changes, and Claude Code applies the new level without asking.
 
 Switch at a phase boundary:
 
