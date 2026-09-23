@@ -1,6 +1,6 @@
 # What a document costs Claude Code to read, by format
 
-A paper, a code review report and three claude.ai artifacts, each handed to Claude Code in several forms, plus a synthetic review whose file paths are known. Claude read each form in full, one session per form, and the tokens it added to the context were measured from the session's own usage. Files were read with the Read tool unless a section says otherwise. Links were read with the tools a session would use for them.
+A paper, a code review report and three claude.ai artifacts, handed to Claude Code as files, links or both, plus a synthetic review whose file paths are known. Each session was asked to read one form in full, and the tokens it added to the context were measured from the session's own usage. Files were read with the Read tool unless a section says otherwise. Links were read with the tools a session would use for them.
 
 ## A paper
 
@@ -34,7 +34,7 @@ The raw run is `results/2026-09-16-sonnet-low-review-report.json`.
 
 - The pandoc HTML added 1.7 times what the Markdown did. The report's markup is light.
 - The PDF added 2.6 times what the Markdown did. At 5 pages it was read whole and sent as a document block, which [Anthropic's PDF documentation](https://platform.claude.com/docs/en/build-with-claude/pdf-support) describes as each page's image with its extracted text alongside.
-- The Quarto file was not read. It embeds scripts, fonts and the stylesheet, several as single lines tens or hundreds of thousands of characters long, and the report starts on line 2,196. Claude stopped at line 36, a 33,477-character base64 script, which it reported was over the Read tool's 25,000-token limit even when asked for on its own. The run's 11.1K is the cost of those 18 calls, not of the report.
+- The Quarto file was not read. It embeds scripts, fonts and the stylesheet, several as single lines tens or hundreds of thousands of characters long, and the report starts on line 2,196. Claude stopped at line 36, a 33,477-character base64 script, which it reported was over the Read tool's 25,000-token limit even when asked for on its own. The run's 11.1K tokens added were all spent on those 18 calls, before any of the report was reached.
 - Offered Read, Grep, Glob and Bash limited to `grep`, `head`, `tail`, `wc` and `cut`, Claude got through a copy of the Quarto file re-rendered with the same command. Two Read calls failed, Grep found where the report starts, and Claude read from line 2,170 to the end, adding 15.2K, about three times the Markdown. Those tools also raise a session's starting context, from 15.7K to 21.9K. The raw run is `results/2026-09-17-sonnet-low-quarto-tools.json`.
 
 ## File paths in a printed PDF
@@ -84,7 +84,7 @@ The raw run is `results/2026-09-17-sonnet-low-recall.json`, with each reply kept
 
 ### Hyphens lost
 
-The first version of the synthetic review strung random words after each path. Claude sometimes gave back that document's split paths with the hyphen missing, so the short Chrome PDF was run eight more times in each of four combinations: the filler text or the review findings (`--text`), with a prompt that does or does not say the document is a test (`--framing`).
+With `--text filler` the synthetic review strings random words after each path, in place of review findings. On that text Claude sometimes gave back split paths with the hyphen missing, so the short Chrome PDF was run eight more times in each of four combinations: the filler text or the review findings (`--text`), with a prompt that does or does not say the document is a test (`--framing`).
 
 | Document text | Prompt | Reads that listed the paths | Reads with a split path wrong |
 | --- | --- | --- | --- |
@@ -112,14 +112,14 @@ A code review of this author's tidylearn R package, published by Claude as a cla
 
 The raw run is `results/2026-09-17-sonnet-low-artifact.json`. It records the artifact version the Artifact tool returned, not the link, since the artifact is private.
 
-- The Artifact tool returned the first 50 KB of the page and saved the whole file to disk, with an instruction to read every line of it. Claude did, so most of the page entered the context twice.
+- The Artifact tool returned the first 50,000 characters of the page and saved the whole file to disk, with an instruction to read every line of it. Claude did, so most of the page entered the context twice.
 - A session offered the Artifact tools started at 33.1K tokens of context, against 15.7K offered only Read. That overhead is sent on every call, whether or not the session reads an artifact.
 - Offered only WebFetch, the saved session declined without a call, saying claude.ai artifact links need a login. An earlier session run by hand called WebFetch and got HTTP 403.
 - The artifact is owned by the account that ran the sessions, which is why the Artifact tool returned its HTML. For an artifact shared by someone else, the tool's description says a read returns an isolated summary. That case is not measured.
-- Two smaller artifacts by the same author, a methodology report and a brand-mark study, both plain HTML with no script-built content, came back whole from one Artifact call each, adding 17.1K and 8.3K. Neither was saved to disk or read a second time. Their calls returned 41,621 and 18,163 characters, where the tidylearn page came back cut at 50,000 with the rest saved to disk. Offered only WebFetch, the agent declined both without a call. The raw run is `results/2026-09-17-sonnet-low-artifacts-small.json`.
+- Two smaller artifacts by the same author, a methodology report and a brand-mark study, both plain HTML with no script-built content, came back whole from one Artifact call each, adding 17.1K and 8.3K. Neither was saved to disk or read a second time. Their calls returned 41,621 and 18,163 characters, under the 50,000-character cut. Offered only WebFetch, the agent declined both without a call. The raw run is `results/2026-09-17-sonnet-low-artifacts-small.json`.
 - On Claude Code 2.1.273 (`results/2026-09-17-sonnet-low-links-cc2.1.273.json`), the tidylearn link read with the Artifact tool added 26.5K: after the Artifact call, Claude read the saved file from line 560 only, so the page did not go in twice. The two smaller artifacts added 17.1K and 8.4K, as before. Left to choose, the agent again declined WebFetch for all three links. Told to use WebFetch, two hand-run sessions on 2.1.273 got HTTP 403, as the 2.1.272 one did.
-- These are all headless `claude -p` sessions. In an interactive Claude Code session in VS Code, whose WebFetch description says artifact links are fetchable through the claude.ai login, WebFetch returned the tidylearn page the way the Artifact tool does: its first 50,000 characters, with the whole file saved to disk. That call is not saved.
-- `pandoc -f html -t gfm-raw_html` on the saved page gives an empty file, because the findings are built by script. The Markdown copy was made by rendering the page with `chrome --headless --dump-dom`, removing `<script>`, `<style>`, `<title>` and `<link>` elements, turning `<header>` and `<main>` into `<div>`, and converting with `pandoc -f html -t gfm-raw_html --wrap=none`. Pandoc 3.8.3 keeps only the contents of `<main>` when a page has one, which dropped the summary table until that element was renamed.
+- The saved sessions are all headless `claude -p` sessions. In an interactive Claude Code session in VS Code, whose WebFetch description says artifact links are fetchable through the claude.ai login, WebFetch returned the tidylearn page the way the Artifact tool does: its first 50,000 characters, with the whole file saved to disk. That call is not saved.
+- `pandoc -f html -t gfm-raw_html` on the saved page gives an empty file, because the findings are built by script. The Markdown copy was made by rendering the page with `chrome --headless --dump-dom`, removing `<script>`, `<style>`, `<title>` and `<link>` elements, turning `<header>` and `<main>` into `<div>`, and converting with `pandoc -f html -t gfm-raw_html --wrap=none`. `<main>` is renamed because pandoc 3.8.3 keeps only the contents of `<main>` when a page has one, which would drop the summary table.
 
 ## An ordinary link
 
@@ -132,25 +132,23 @@ The paper's arXiv HTML page, given to a session as a link and read with WebFetch
 
 The raw run is `results/2026-09-17-sonnet-low-webfetch.json`.
 
-- WebFetch hands the agent a smaller model's answer about the page, not the page. For a 189 KB page, that came to two answers of 2,015 characters in all.
+- WebFetch hands the agent a smaller model's answer about the page. For a 189 KB page, the two answers came to 2,015 characters in all.
 - Asked to read the page in full, the agent replied "OK", as it did after reading whole files.
 - On Claude Code 2.1.273 (`results/2026-09-17-sonnet-low-links-cc2.1.273.json`), two WebFetch calls returned 1,843 and 1,370 characters and added 1.6K. This time the agent declined to reply "OK", saying WebFetch had given it summaries and it could not honestly claim to have read the page.
-
-Across all the documents, whatever enters the context is sent again on every later call in the session.
 
 ## What it does not show
 
 - **Other documents.** A handful of real documents. The gap between formats depends on how much markup a page carries and how it was rendered. `measure.mjs` takes any files and links, so run it on your own.
 - **Understanding.** The recall test checks whether exact paths survive. It says nothing about whether Claude understood a document's content.
 - **Other tools.** Apart from the Quarto check, file sessions are offered only the Read tool.
-- **A shared artifact.** Every artifact link was read by its owner. A reader it was shared with gets a summary, which is not measured.
+- **A shared artifact.** Every artifact link was read by its owner. The Artifact tool's description says a reader it was shared with gets an isolated summary; that case is not measured.
 - **Other public pages.** One page was read through WebFetch.
 - **Other models.** Everything ran on Sonnet 5 at low effort.
 - **Variation between runs.** The paper ran twice, the tidylearn artifact link offered Artifact and Read ran once more by hand, adding 46.4K, and the recall test ran each copy three times. Tokens added depend on what the tools return, and the saved runs record each call, so a re-run can be compared call by call.
 
 ## Check it
 
-The paper and the review report were recorded on 16 September 2026, and everything else on 17 September, all on Claude Sonnet 5 at low effort, on Claude Code 2.1.272 except `results/2026-09-17-sonnet-low-links-cc2.1.273.json`. A session with no document offered only Read started at 15.5K to 15.7K tokens of context. Dollar figures are the list prices Claude Code reports; on a subscription they weight usage rather than add up to a bill.
+The paper and the review report were recorded on 16 September 2026 and everything else on 17 September, all on Claude Sonnet 5 at low effort and Claude Code 2.1.272, except `results/2026-09-17-sonnet-low-links-cc2.1.273.json` on 2.1.273 and the earlier paper run, `results/2026-09-14-sonnet-low.json`, on 14 September on 2.1.270. A session with no document offered only Read started at 15.5K to 15.7K tokens of context. Dollar figures are the list prices Claude Code reports; on a subscription they are a weighting for comparison, and nothing is billed at them.
 
 Free, from the saved runs:
 

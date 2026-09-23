@@ -51,7 +51,7 @@ node --test bench/graders.test.mjs bench/matrix.test.mjs bench/stream.test.mjs  
 node bench/summarize.mjs                          # rebuild RESULTS.md
 node scripts/check-matrix.mjs                     # matrix.json names exactly the published runs
 node bench/context-profile.mjs                    # the observational table in skills/route/reference.md
-node bench/skill-cost.mjs --compare 1.4.0@1.3.2,1.4.0-opus-high@1.4.0,1.4.0-sonnet-medium@1.4.0   # what routing costs, from the saved sessions
+node bench/skill-cost.mjs --compare 1.5.0@1.3.2,1.5.0-opus-high@1.5.0,1.5.0-sonnet-medium@1.5.0   # what routing costs, from the saved sessions
 node bench/skill-cost.mjs --label <name> --sessions invoked,unprompted  # measure the current skill; about $1
 node bench/breakeven.mjs                                            # the breakeven chart in docs/, from the saved runs
 ```

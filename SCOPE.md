@@ -6,11 +6,16 @@ A Claude Code plugin that gets more work out of a Claude subscription for the le
 
 `bench/SCOPE.md` scopes the experiment that tests the recommendations. This file scopes the repository.
 
+## Done: 1.4, setup against the account default
+
+- [x] **C12.** `bench/SCOPE.md` pre-registers a comparison of Sonnet 5 at medium with Opus 5.5 at medium, the account default from Claude Code 2.1.280, run with both arms on the same Claude Code version and published whatever it shows.
+- [x] **Setup follows the bench.** `/tokenwise:setup` recommends Sonnet 5 at medium only from a setting where the bench measured Sonnet cost at most 0.7 times as much on every task both ran. On any other setting it says why it recommends no change, and it names the environment variables and project settings that decide where sessions start. It reads effort as Claude Code does, caps included.
+
 ## Done: 1.3.0, defaults and guards
 
 The pieces ask the user for as little as possible, in this order: a default checked once, a warning only when something material is about to happen, and advice on request.
 
-- [x] **Setup.** `/tokenwise:setup` shows the model and effort new sessions start on, from the user's `~/.claude/settings.json`. It recommends Sonnet 5 at medium, saved under `modelSettings`, only from a setting where the bench measured Sonnet cost at most 0.7 times as much on a task both ran, with the evidence behind it, and otherwise says why it recommends no change. It writes only after an explicit yes, says how to restore the previous values, and changes nothing when run a second time.
+- [x] **Setup.** `/tokenwise:setup` shows the `model`, and the effort level saved for Sonnet 5 under `modelSettings`, in the user's `~/.claude/settings.json`, and recommends Sonnet 5 at medium, with the bench evidence behind it. It writes only after an explicit yes, says how to restore the previous values, and changes nothing when run a second time.
 - [x] **Resume guard.** A SessionStart hook shows the re-send size and estimated cost from its input (`context_tokens`, `estimated_cache_write_usd`) and suggests starting fresh. It fires only on a resumed or forked session whose `prompt_cache_likely_expired` is true, and only above the materiality threshold. It returns only `systemMessage`, and a hook message adds no tokens to the conversation: two forks of one conversation, differing only in the size of that message, send first requests within run-to-run noise of each other.
 - [x] **Switch figure.** Claude Code's own confirmation for a warm-cache model switch says the history gets re-read, and gives no size or cost. A PreModelSwitch hook shows both above the threshold and returns no decision, so every switch goes ahead or not as it would without the plugin. Claude Code shows the line with the command's result once a switch applies, and not when it is cancelled, so the line gives what the next message will re-send. The hooks reference lists no event for effort changes, so those rely on Claude Code's confirmation.
 - [x] **Cost and tests.** Each new piece's idle and per-trigger cost is measured on the shipped `SKILL.md`, identified by its hash rather than by a version number, and published beside the route's. Each hook is tested against the input schema in Claude Code's hooks reference and verified once in a live session.
@@ -20,7 +25,7 @@ The pieces ask the user for as little as possible, in this order: a default chec
 
 ## Materiality
 
-A guard fires only when the estimated re-send cost exceeds what a route costs from the session's model, as measured on the shipped skill ($0.04 from Sonnet 5 at medium, $0.12 to $0.14 from Opus 5 on 1.4.0). Below that, Ces judged a warning not worth the interruption. A cost difference under 30%, the noise band C10 and C11 used, does not change a recommendation.
+A guard fires only when the estimated re-send cost exceeds what a route costs from the session's model, as measured on the shipped skill ($0.04 from Sonnet 5 at medium, $0.12 to $0.14 from Opus 5 on 1.5.0). Below that, Ces judged a warning not worth the interruption. A cost difference under 30%, the noise band C10 and C11 used, does not change a recommendation.
 
 ## Standing criteria
 
@@ -66,7 +71,7 @@ Ces. A routing row changes only when a graded run says so. A falsified claim cha
 
 ## Revision history
 
-- 2026-09-23, after C12: **setup recommends a change only where the bench measured one.** From Claude Code 2.1.280 the account default is Opus 5.5 at medium. C12 in `bench/SCOPE.md` found Sonnet 5 at medium saving beyond the 30% band on one task of four against it. Setup now recommends Sonnet 5 at medium only from a setting where Sonnet cost at most 0.7 times as much on a task both ran, and on any other setting it says why it changes nothing. Ces chose this over retiring setup, and over keeping the recommendation on the strength of the implement task alone.
+- 2026-09-23, after C12: **setup recommends a change only where the bench measured one.** From Claude Code 2.1.280 the account default is Opus 5.5 at medium. C12 in `bench/SCOPE.md` found Sonnet 5 at medium saving beyond the 30% band on one task of four against it. Setup now recommends Sonnet 5 at medium only from a setting where Sonnet cost at most 0.7 times as much on every task both ran, and on any other setting it says why it changes nothing. Ces chose this over retiring setup, and over keeping the recommendation on the strength of the implement task alone.
 
 - 2026-09-15, building the switch figure: **the figure is a separate line, since Claude Code's confirmation shows none.** In Claude Code 2.1.272, the confirmation reads "This conversation is cached for the current model. Switching to X means the full history gets re-read on your next message", from reading the client itself because the docs do not quote it. A hook returning `ask` replaces that text with its own. Outside an interactive `/model`, though, the hooks reference says Claude Code treats `ask` as a refusal. The hook's `source` is `"command"` for `/model`, `/config` and turning on fast mode alike, so an `ask` guard would block those switches. Ces chose a `systemMessage` line with no decision. Two live checks followed.
   - A `/model opus` in a conversation Opus had written: Claude Code ran the hook with a $4.84 estimate although no re-send was due, because it confirms only when the target did not write the last response. The figure applies the same rule.

@@ -1,6 +1,6 @@
 {
   "name": "tokenwise",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "description": "Check the default new Claude Code sessions start on, see what a resume or model switch is about to re-send, and pick the model and effort level for each phase of a session.",
   "author": { "name": "Cesaire Tobias", "url": "https://github.com/ces0491" },
   "homepage": "https://github.com/ces0491/tokenwise",

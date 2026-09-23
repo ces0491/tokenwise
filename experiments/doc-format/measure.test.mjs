@@ -4,7 +4,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { allowedFor, callsText, isArtifactLink, isLink, parseSession, report, summarise } from './measure.mjs';
+import { allowedFor, callsText, isArtifactLink, isLink, maskArtifactIds, parseSession, report, summarise } from './measure.mjs';
 
 test('offering Bash allows only read-only commands', () => {
   const allowed = allowedFor(['Read', 'Grep', 'Bash']);
@@ -94,12 +94,18 @@ test('saved runs from before other tools were offered still report their Read ca
   assert.match(md, /Baseline session with no document: 15\.5K tokens/);
 });
 
-test('only claude.ai artifact links are taken as links', () => {
+test('only claude.ai artifact links count as artifact links', () => {
   assert.equal(isArtifactLink('https://claude.ai/artifact/GTrkydz4Yso4yoKdkjxtiT'), true);
   assert.equal(isArtifactLink('https://claude.ai/artifact/GTrkydz4Yso4yoKdkjxtiT/'), true);
   assert.equal(isArtifactLink('https://example.org/artifact/abc'), false);
   assert.equal(isArtifactLink('http://claude.ai/artifact/abc'), false);
   assert.equal(isArtifactLink('report.html'), false);
+});
+
+test('an artifact id in saved text is masked, leaving the rest of the address', () => {
+  assert.equal(maskArtifactIds('read https://claude.ai/artifact/GTrkydz4Yso4yoKdkjxtiT in full'), 'read https://claude.ai/artifact/<id> in full');
+  assert.equal(maskArtifactIds('"url":"https://claude.ai/code/artifact/0b1c-2d3e"'), '"url":"https://claude.ai/code/artifact/<id>"');
+  assert.equal(maskArtifactIds('https://example.org/artifact/abc'), 'https://example.org/artifact/abc');
 });
 
 test('any https address is taken as a link, and a file name or plain http is not', () => {

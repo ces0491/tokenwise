@@ -14,23 +14,24 @@ If the arguments are `restore`, run `node "${CLAUDE_PLUGIN_ROOT}/skills/setup/se
 Otherwise:
 
 1. Run `node "${CLAUDE_PLUGIN_ROOT}/skills/setup/setup.mjs" show`. It prints JSON. If `ok` is false, show its message and stop.
-2. Say what new sessions start on, from `start`: its `model` at its `effort`. When `start.accountDefault` is true, say this is the account default, which setup reads as Opus 5.5 at `medium` on Pro, Max, Team, Enterprise and the API from Claude Code 2.1.280, and that an organization default model or a level saved for Opus 5.5 changes it. If `start.effort` is a value other than `low`, `medium`, `high` or `xhigh`, say that Claude Code's settings reference does not list it for `effortLevel`.
-3. Then act on `basis`:
-   - `applied`: new sessions already start on Sonnet 5 at medium. List any `overrides`, since those still win, and stop.
+2. Say what new sessions start on, from `start`: its `model`, at its `effort` unless that is null, as it is for Haiku, which takes no effort level. When `start.accountDefault` is true, say this is the account default, which setup reads as Opus 5.5 at `medium` on Pro, Max, Team, Enterprise and the API from Claude Code 2.1.280, and that an organization default model or a level saved for Opus 5.5 changes it. If `start.effort` is a value other than `low`, `medium`, `high` or `xhigh`, say that Claude Code's settings reference does not list it for `effortLevel`.
+3. List each entry in `overrides`. Those decide where sessions start in that shell or project whatever the user's settings say, so what follows is about the user's settings only. An organization default model or managed settings can override them too.
+4. Then act on `basis`:
+   - `applied`: new sessions already start on Sonnet 5 at medium. If `backup` is true, setup wrote this earlier: say that from Claude Code 2.1.280 the account default is Opus 5.5 at medium, which the bench found within its 30% noise band of Sonnet 5 at medium on three tasks of four (the first table below), and that `/tokenwise:setup restore` puts back the values from before setup ran. Stop.
+   - `old-cli`: this Claude Code, `claudeVersion`, is older than 2.1.280, where `opus` and the account default resolved to other models, and setup reads settings as 2.1.280 does. Say to update with `claude update` and run setup again. Stop.
    - `c12`: the bench compared this setting with Sonnet 5 at medium and found a material saving on one task of four, in the first table below, so setup recommends no change. Stop.
-   - `noise`: on the one task the bench ran both, Sonnet 5 at medium cost 0.71 times as much as at high, inside the bench's 30% noise band, so setup recommends no change. Stop.
+   - `noise`: the bench compared this setting with Sonnet 5 at medium and the saving stayed inside its 30% noise band on at least one task both ran: Sonnet 5 at medium cost 0.72 times as much as at high on the one task, and 0.51 and 0.80 times as much as at xhigh on two. So setup recommends no change. Stop.
    - `cheaper`: Haiku and Sonnet 5 at low already sit at or below Sonnet 5 at medium, and setup does not move a session to a costlier setting. Stop.
    - `unmeasured`: the bench has not compared this setting with Sonnet 5 at medium, so setup recommends no change. Stop.
-   - `measured`: go on to step 4.
+   - `measured`: go on to step 5.
 
    When stopping, add that `/tokenwise:route <the work>` gives the setting for a specific task.
-4. Tell the user, in a few short lines:
+5. Tell the user, in a few short lines:
    - The change: `model` set to `sonnet` and a saved effort of `medium` for Sonnet 5, written to `file`.
    - Why, from the rows of the second table below for their setting, and what it gives up, from the last section.
-   - Each entry in `overrides`, since those still win, and that an organization default model or managed settings can too.
    - This session keeps its model. The change applies to sessions started afterwards.
    - `/tokenwise:setup restore` puts the previous values back, leaving alone any the user changed since.
-5. Ask whether to apply it. Run `node "${CLAUDE_PLUGIN_ROOT}/skills/setup/setup.mjs" apply` only after a clear yes, then report its message.
+6. Ask whether to apply it. Run `node "${CLAUDE_PLUGIN_ROOT}/skills/setup/setup.mjs" apply` only after a clear yes, then report its message.
 
 ## Against the account default
 
@@ -43,11 +44,11 @@ Claim C12 in the tokenwise bench, on Claude Code 2.1.280, 23 September 2026. Cos
 | Three jobs in one prompt | $0.44 | $0.40 |
 | Three jobs, one of them the feature | $0.70 | $0.77 |
 
-Only the first clears the bench's 30% noise band. Opus 5.5 costs twice as much as Sonnet 5 per token on input and output, and took fewer API calls at the median on every task.
+Only the first clears the bench's 30% noise band. At list price Opus 5.5 costs twice as much as Sonnet 5 per token on input and output, and it took fewer turns at the median on every task.
 
 ## Settings setup changes
 
-Cost per completed task at list price, on Claude Code 2.1.263 and 2.1.270. In every row Sonnet 5 at medium cost at most 0.7 times as much, and every run passed.
+Cost per completed task at list price, on Claude Code 2.1.263 and 2.1.270. The table has every task the bench ran on both settings. In every row Sonnet 5 at medium cost at most 0.7 times as much, and every run passed.
 
 | Setting new sessions start on | Work | That setting | Sonnet 5, medium |
 | --- | --- | --- | --- |
@@ -58,7 +59,6 @@ Cost per completed task at list price, on Claude Code 2.1.263 and 2.1.270. In ev
 | Opus 5, high | Fix a bug with a failing test | $0.40 | $0.12 |
 | Opus 5, medium | Implement a feature from a written spec | $0.82 | $0.30 |
 | Fable 5.1, xhigh (one run) | Implement a feature from a written spec | $2.63 | $0.30 |
-| Sonnet 5, xhigh | Implement a feature from a written spec | $0.59 | $0.30 |
 
 ## What it gives up
 
